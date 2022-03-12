@@ -2,6 +2,17 @@ package aes_256
 
 import "errors"
 
+func subBytes(state [][]uint8) [][]uint8 {
+	for i, row := range state {
+		for j, elem := range row {
+			sboxElem := Sbox[elem]
+			state[i][j] = sboxElem
+		}
+	}
+
+	return state
+}
+
 func keyExpansion(key []rune) ([][]uint8, error) {
 	if len(key) != 4*Nk {
 		return nil, errors.New("incorrect len of secret key(should be 32(4 * nk))")
