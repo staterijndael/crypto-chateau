@@ -29,11 +29,17 @@ func (k *KeyStore) GenerateSharedKey(receivedPublicKey *big.Int) error {
 	return nil
 }
 
-func (k *KeyStore) GeneratePublicKey(privateNum *big.Int) {
+func (k *KeyStore) GeneratePublicKey() error {
+	if !IsKeyValid(k.PrivateKey) {
+		return errors.New("incorrect private key")
+	}
+
 	publicKey := new(big.Int)
-	publicKey.Exp(Generator, privateNum, Prime)
+	publicKey.Exp(Generator, k.PrivateKey, Prime)
 
 	k.PublicKey = publicKey
+
+	return nil
 }
 
 func (k *KeyStore) GeneratePrivateKey() {
