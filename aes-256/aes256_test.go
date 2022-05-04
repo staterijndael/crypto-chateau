@@ -33,14 +33,9 @@ func Test_SubBytes(t *testing.T) {
 
 	assert.NotEqualValues(t, stateBefore, stateAfter)
 
-	for i, row := range stateAfter {
-		for j, elem := range row {
-			sboxElem := InvSbox[elem]
-			stateAfter[i][j] = sboxElem
-		}
-	}
+	invStateAfter := InvSubBytes(stateAfter)
 
-	assert.Equal(t, stateBefore, stateAfter)
+	assert.Equal(t, stateBefore, invStateAfter)
 }
 
 func Test_KeyExpansion(t *testing.T) {
@@ -68,4 +63,33 @@ func Test_ShiftRows(t *testing.T) {
 	resultState := shiftRows(stateBefore)
 
 	log.Println(resultState)
+
+	invResultState := InvShiftRows(resultState)
+
+	log.Println(invResultState)
+
+	assert.Equal(t, stateBefore, invResultState)
+}
+
+func Test_MixColumns(t *testing.T) {
+	stateBefore := [][]uint16{
+		{0x1, 0x55, 0x3, 0x14, 0x5, 0x22, 0x7, 0x8},
+		{0x7, 0x22, 0x3, 0x4, 0x14, 0x54, 0x7, 0x13},
+		{0x9, 0x54, 0x3, 0x4, 0x54, 0x77, 0x54, 0x99},
+		{0x13, 0x37, 0x3, 0x54, 0x51, 0x62, 0x7, 0x8},
+	}
+
+	cpStateBefore := make([][]uint16, len(stateBefore))
+	copy(cpStateBefore, stateBefore)
+
+	log.Println(stateBefore)
+	resultState := mixColumns(cpStateBefore)
+
+	log.Println(stateBefore)
+
+	invResultState := InvMixColumns(resultState)
+
+	log.Println(invResultState)
+
+	assert.Equal(t, stateBefore, invResultState)
 }

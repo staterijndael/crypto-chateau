@@ -1,6 +1,8 @@
 package aes_256
 
-import "errors"
+import (
+	"errors"
+)
 
 func subBytes(state [][]uint16) [][]uint16 {
 	for i, row := range state {
@@ -89,16 +91,18 @@ func mixColumns(state [][]uint16) [][]uint16 {
 }
 
 func shiftRows(state [][]uint16) [][]uint16 {
-	result := make([][]uint16, len(state))
-	for i := 0; i < len(state); i++ {
-		result[i] = make([]uint16, Nk)
-	}
-
 	for row := 1; row < Nb; row++ {
+		res := make([]uint16, Nk)
 		for col := 0; col < Nk; col++ {
-			result[row][(col+row)%Nk] = state[row][col]
+			shift := (Nk - 1 - col - row) % Nk
+			if shift < 0 {
+				shift = Nk + shift
+			}
+			res[shift] = state[row][Nk-1-col]
 		}
+
+		state[row] = res
 	}
 
-	return result
+	return state
 }

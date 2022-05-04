@@ -24,6 +24,10 @@ func mulBy0b(num uint16) uint16 {
 	return mulBy02(mulBy02(mulBy02(num))) ^ mulBy02(num) ^ num
 }
 
-func mulBy0e(num uint16) uint16 {
+func mulBy0d(num uint16) uint16 {
 	return mulBy02(mulBy02(mulBy02(num))) ^ mulBy02(mulBy02(num)) ^ num
+}
+
+func mulBy0e(num uint16) uint16 {
+	return mulBy02(mulBy02(mulBy02(num))) ^ mulBy02(mulBy02(num)) ^ mulBy02(num)
 }
