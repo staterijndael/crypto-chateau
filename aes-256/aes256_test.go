@@ -14,6 +14,28 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
+func Test_Encrypt(t *testing.T) {
+	data := "abcddddddddddddd"
+
+	hasher := sha256.New()
+	randSymbol := string([]rune{rune(rand.Intn(122-97+1) + 97)})
+	hasher.Write([]byte(randSymbol))
+	shaHash := hex.EncodeToString(hasher.Sum(nil))
+
+	shaHashRunes := []rune(shaHash)[:len(shaHash)/2]
+
+	encryptedData, err := encrypt([]rune(data), shaHashRunes)
+	assert.NoError(t, err)
+
+	decryptedData, err := decrypt(encryptedData, shaHashRunes)
+	assert.NoError(t, err)
+
+	assert.Equal(t, data, string(decryptedData))
+
+	t.Log(string(encryptedData))
+	t.Log(string(decryptedData))
+}
+
 func Test_SubBytes(t *testing.T) {
 	stateBefore := [][]uint16{
 		{0x10, 0x32, 0x16, 0x22},
@@ -48,8 +70,8 @@ func Test_KeyExpansion(t *testing.T) {
 
 	kExp, err := keyExpansion(shaHashRunes)
 	assert.NoError(t, err)
-	t.Log(shaHash)
-	t.Log(kExp)
+	t.Log(len(kExp[0]))
+
 }
 
 func Test_ShiftRows(t *testing.T) {

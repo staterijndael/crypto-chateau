@@ -28,7 +28,7 @@ func keyExpansion(key []rune) ([][]uint16, error) {
 		}
 	}
 
-	for col := Nk; col < Nb*(Nk+1); col++ {
+	for col := Nk; col < Nb*(Nr+1); col++ {
 		if col%Nk == 0 {
 			tmpPrevCol := make([]uint16, 4)
 			for row := 0; row < 4; row++ {
@@ -63,9 +63,9 @@ func addRoundKey(state [][]uint16, keySchedule [][]uint16, round uint16) [][]uin
 		row uint16
 	)
 
-	for col = 0; col < Nk; col++ {
+	for col = 0; col < Nb; col++ {
 		for row = 0; row < Nb; row++ {
-			s := state[row][col] ^ keySchedule[row][Nk*round+col]
+			s := state[row][col] ^ keySchedule[row][Nb*round+col]
 
 			state[row][col] = s
 		}
@@ -75,7 +75,7 @@ func addRoundKey(state [][]uint16, keySchedule [][]uint16, round uint16) [][]uin
 }
 
 func mixColumns(state [][]uint16) [][]uint16 {
-	for row := 0; row < Nk; row++ {
+	for row := 0; row < Nb; row++ {
 		s0 := mulBy02(state[0][row]) ^ mulBy03(state[1][row]) ^ state[2][row] ^ state[3][row]
 		s1 := state[0][row] ^ mulBy02(state[1][row]) ^ mulBy03(state[2][row]) ^ state[3][row]
 		s2 := state[0][row] ^ state[1][row] ^ mulBy02(state[2][row]) ^ mulBy03(state[3][row])
@@ -92,13 +92,13 @@ func mixColumns(state [][]uint16) [][]uint16 {
 
 func shiftRows(state [][]uint16) [][]uint16 {
 	for row := 1; row < Nb; row++ {
-		res := make([]uint16, Nk)
-		for col := 0; col < Nk; col++ {
-			shift := (Nk - 1 - col - row) % Nk
+		res := make([]uint16, 4)
+		for col := 0; col < 4; col++ {
+			shift := (4 - 1 - col - row) % 4
 			if shift < 0 {
-				shift = Nk + shift
+				shift = 4 + shift
 			}
-			res[shift] = state[row][Nk-1-col]
+			res[shift] = state[row][4-1-col]
 		}
 
 		state[row] = res
