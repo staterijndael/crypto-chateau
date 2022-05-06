@@ -5,9 +5,12 @@ import (
 )
 
 func subBytes(state [][]uint16) [][]uint16 {
-	for i, row := range state {
-		for j, elem := range row {
-			sboxElem := Sbox[elem]
+	for i := range state {
+		for j := range state[i] {
+			row := state[i][j] / 0x10
+			col := state[i][j] % 0x10
+
+			sboxElem := Sbox[16*row+col]
 			state[i][j] = sboxElem
 		}
 	}
@@ -15,7 +18,7 @@ func subBytes(state [][]uint16) [][]uint16 {
 	return state
 }
 
-func keyExpansion(key []rune) ([][]uint16, error) {
+func keyExpansion(key []byte) ([][]uint16, error) {
 	if len(key) != 4*Nk {
 		return nil, errors.New("incorrect len of secret key(should be 32(4 * nk))")
 	}

@@ -15,19 +15,19 @@ func init() {
 }
 
 func Test_Encrypt(t *testing.T) {
-	data := "abcddddddddddddd"
+	data := "Дарова"
 
 	hasher := sha256.New()
 	randSymbol := string([]rune{rune(rand.Intn(122-97+1) + 97)})
 	hasher.Write([]byte(randSymbol))
 	shaHash := hex.EncodeToString(hasher.Sum(nil))
 
-	shaHashRunes := []rune(shaHash)[:len(shaHash)/2]
+	shaHashRunes := []byte(shaHash)[:len(shaHash)/2]
 
-	encryptedData, err := encrypt([]rune(data), shaHashRunes)
+	encryptedData, err := Encrypt([]byte(data), shaHashRunes)
 	assert.NoError(t, err)
 
-	decryptedData, err := decrypt(encryptedData, shaHashRunes)
+	decryptedData, err := Decrypt(encryptedData, shaHashRunes)
 	assert.NoError(t, err)
 
 	assert.Equal(t, data, string(decryptedData))
@@ -66,7 +66,7 @@ func Test_KeyExpansion(t *testing.T) {
 	hasher.Write([]byte(randSymbol))
 	shaHash := hex.EncodeToString(hasher.Sum(nil))
 
-	shaHashRunes := []rune(shaHash)[:len(shaHash)/2]
+	shaHashRunes := []byte(shaHash)[:len(shaHash)/2]
 
 	kExp, err := keyExpansion(shaHashRunes)
 	assert.NoError(t, err)

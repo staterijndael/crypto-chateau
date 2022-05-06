@@ -1,6 +1,76 @@
 package aes_256
 
-func encrypt(inputBytes []rune, key []rune) ([]rune, error) {
+import (
+	"errors"
+)
+
+func Encrypt(inputBytes []byte, key []byte) ([]byte, error) {
+	if len(inputBytes) == 0 {
+		return nil, errors.New("incorrect input bytes length")
+	}
+
+	for len(inputBytes)%(Nb*4) != 0 {
+		inputBytes = append(inputBytes, ' ')
+	}
+
+	result := make([]byte, 0, len(inputBytes))
+
+	for batch := 1; batch <= len(inputBytes)/(Nb*4); batch++ {
+		offset := (batch - 1) * Nb * 4
+		limit := offset + Nb*4
+
+		state := inputBytes[offset:limit]
+
+		encryptedData, err := encrypt(state, key)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, encryptedData...)
+	}
+
+	return result, nil
+}
+
+func Decrypt(cipher []byte, key []byte) ([]byte, error) {
+	if len(cipher) == 0 || len(cipher)%Nb*4 != 0 {
+		return nil, errors.New("incorrect input bytes length")
+	}
+
+	result := make([]byte, 0, len(cipher))
+
+	for batch := 1; batch <= len(cipher)/(Nb*4); batch++ {
+		offset := (batch - 1) * Nb * 4
+		limit := offset + Nb*4
+
+		state := cipher[offset:limit]
+
+		decryptedData, err := decrypt(state, key)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, decryptedData...)
+	}
+
+	finalIndex := len(result) - 1
+	for i := len(result) - 1; i >= 0; i-- {
+		if result[i] != ' ' {
+			finalIndex = i + 1
+			break
+		}
+	}
+
+	result = result[:finalIndex]
+
+	return result, nil
+}
+
+func encrypt(inputBytes []byte, key []byte) ([]byte, error) {
+	if len(inputBytes) != 4*Nb {
+		return nil, errors.New("incorrect input bytes length")
+	}
+
 	state := make([][]uint16, 4)
 
 	for r := 0; r < 4; r++ {
@@ -29,18 +99,18 @@ func encrypt(inputBytes []rune, key []rune) ([]rune, error) {
 	state = shiftRows(state)
 	state = addRoundKey(state, keySchedule, rnd)
 
-	output := make([]rune, len(inputBytes))
+	output := make([]byte, len(inputBytes))
 
 	for row := range state {
 		for col := range state[row] {
-			output[row+4*col] = rune(state[row][col])
+			output[row+4*col] = byte(state[row][col])
 		}
 	}
 
 	return output, nil
 }
 
-func decrypt(cipher []rune, key []rune) ([]rune, error) {
+func decrypt(cipher []byte, key []byte) ([]byte, error) {
 	state := make([][]uint16, 4)
 
 	for r := 0; r < 4; r++ {
@@ -69,11 +139,11 @@ func decrypt(cipher []rune, key []rune) ([]rune, error) {
 	state = InvSubBytes(state)
 	state = addRoundKey(state, keySchedule, rnd)
 
-	output := make([]rune, len(cipher))
+	output := make([]byte, len(cipher))
 
 	for row := range state {
 		for col := range state[row] {
-			output[row+4*col] = rune(state[row][col])
+			output[row+4*col] = byte(state[row][col])
 		}
 	}
 
