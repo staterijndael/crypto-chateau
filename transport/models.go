@@ -47,11 +47,10 @@ func parseMsg(msg []byte) ([][]byte, error) {
 			}
 
 			result = append(result, buf[lastIndex+1:])
-			buf = append(buf, symb)
 			lastIndex = i
-		} else {
-			buf = append(buf, symb)
 		}
+
+		buf = append(buf, symb)
 	}
 
 	if lastIndex == len(buf)-1 {
