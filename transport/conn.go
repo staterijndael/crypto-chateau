@@ -47,13 +47,13 @@ func (cn *Conn) enableEncryption(sharedKey *big.Int) error {
 		return errors.New("invalid shared key")
 	}
 
-	sharedKeyBytes, err := getSha256FromBigInt(sharedKey)
+	sharedKeyHash, err := getSha256FromBigInt(sharedKey)
 	if err != nil {
 		return err
 	}
 
 	cn.encryption.enabled = true
-	cn.encryption.sharedKey = sharedKeyBytes
+	cn.encryption.sharedKey = sharedKeyHash
 
 	return nil
 }
