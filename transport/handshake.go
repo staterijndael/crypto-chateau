@@ -60,6 +60,11 @@ func ClientHandshake(ctx context.Context, tcpConn net.Conn) (net.Conn, error) {
 		return nil, err
 	}
 
+	err = conn.enableEncryption(keyStore.SharedKey)
+	if err != nil {
+		return nil, err
+	}
+
 	return conn, nil
 }
 
