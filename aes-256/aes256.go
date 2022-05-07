@@ -8,6 +8,9 @@ func Encrypt(inputBytes []byte, key []byte) ([]byte, error) {
 	if len(inputBytes) == 0 {
 		return nil, errors.New("incorrect input bytes length")
 	}
+	if len(key) != 4*Nk {
+		return nil, errors.New("incorrect len of secret key(should be 32(4 * nk))")
+	}
 
 	for len(inputBytes)%(Nb*4) != 0 {
 		inputBytes = append(inputBytes, ' ')
@@ -35,6 +38,9 @@ func Encrypt(inputBytes []byte, key []byte) ([]byte, error) {
 func Decrypt(cipher []byte, key []byte) ([]byte, error) {
 	if len(cipher) == 0 || len(cipher)%Nb*4 != 0 {
 		return nil, errors.New("incorrect input bytes length")
+	}
+	if len(key) != 4*Nk {
+		return nil, errors.New("incorrect len of secret key(should be 32(4 * nk))")
 	}
 
 	result := make([]byte, 0, len(cipher))

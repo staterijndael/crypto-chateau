@@ -20,14 +20,12 @@ func Test_Encrypt(t *testing.T) {
 	hasher := sha256.New()
 	randSymbol := string([]rune{rune(rand.Intn(122-97+1) + 97)})
 	hasher.Write([]byte(randSymbol))
-	shaHash := hex.EncodeToString(hasher.Sum(nil))
+	secretKey := hasher.Sum(nil)
 
-	shaHashRunes := []byte(shaHash)[:len(shaHash)/2]
-
-	encryptedData, err := Encrypt([]byte(data), shaHashRunes)
+	encryptedData, err := Encrypt([]byte(data), secretKey)
 	assert.NoError(t, err)
 
-	decryptedData, err := Decrypt(encryptedData, shaHashRunes)
+	decryptedData, err := Decrypt(encryptedData, secretKey)
 	assert.NoError(t, err)
 
 	assert.Equal(t, data, string(decryptedData))
