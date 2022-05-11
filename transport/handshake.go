@@ -23,8 +23,13 @@ func ClientHandshake(ctx context.Context, tcpConn net.Conn) (net.Conn, error) {
 	keyStore := dh.KeyStore{}
 	keyStore.GeneratePrivateKey()
 
+	_, err := conn.Write([]byte("handshake"))
+	if err != nil {
+		return nil, err
+	}
+
 	dhParams := dhParamsInitMsg{g: dh.Generator, p: dh.Prime}
-	_, err := conn.Write(formatMsg(dhParams.g.Bytes(), dhParams.p.Bytes()))
+	_, err = conn.Write(formatMsg(dhParams.g.Bytes(), dhParams.p.Bytes()))
 	if err != nil {
 		return nil, err
 	}
