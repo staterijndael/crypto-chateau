@@ -19,10 +19,10 @@ type InsertUserRequest struct {
 type InsertUserResponse struct {
 }
 
-func (i *InsertUserRequest) Marshal() {
-
+func (i *InsertUserRequest) Marshal() ([]byte, error) {
+	return nil, nil
 }
 
-func (i *InsertUserResponse) Marshal() {
-
+func (i *InsertUserResponse) Marshal() ([]byte, error) {
+	return nil, nil
 }

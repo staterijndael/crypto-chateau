@@ -147,6 +147,8 @@ func (s *Server) handleMethod(ctx context.Context, peer *Peer) error {
 		if err != nil {
 			return err
 		}
+	default:
+		return errors.New("incorrect handler format: InternalError")
 	}
 
 	return nil
