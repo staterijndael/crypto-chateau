@@ -7,30 +7,35 @@ import (
 )
 
 type Message interface {
-	Marshal()
+	Marshal() ([]byte, error)
 }
 
-func ParseMessage(p []byte, msgType Message) ([]byte, Message, error) {
-	handlerName, n, err := getHandlerName(p)
+func ParseMessage(p []byte, msgType Message) (Message, error) {
+	var msg Message
+	params, err := getParams(p)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	if n >= len(p)-1 {
-		return nil, nil, errors.New("incorrect message format")
-	}
-
-	params, err := getParams(p[n:])
+	msg, err = generateMessage(params, msgType)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	msg, err := generateMessage(params, msgType)
-	if err != nil {
-		return nil, nil, err
+	return msg, nil
+}
+
+func GetHandlerName(p []byte) ([]byte, int, error) {
+	buf := make([]byte, 0, 50)
+	for i, b := range p {
+		if b == '#' {
+			return buf, i + 1, nil
+		}
+
+		buf = append(buf, b)
 	}
 
-	return handlerName, msg, nil
+	return nil, 0, errors.New("incorrect message format: handler name not found")
 }
 
 func generateMessage(params map[string][]byte, msgType Message) (Message, error) {
@@ -128,6 +133,8 @@ func generateMessage(params map[string][]byte, msgType Message) (Message, error)
 					return nil, errors.New("incorrect value for bool type " + string(value))
 				}
 				f.SetBool(x)
+			default:
+				return nil, errors.New("unknown field type")
 			}
 		} else {
 			return nil, errors.New("unknown param " + param)
@@ -135,19 +142,6 @@ func generateMessage(params map[string][]byte, msgType Message) (Message, error)
 	}
 
 	return msgType, nil
-}
-
-func getHandlerName(p []byte) ([]byte, int, error) {
-	buf := make([]byte, 0, 50)
-	for i, b := range p {
-		if b == '#' {
-			return buf, i + 1, nil
-		}
-
-		buf = append(buf, b)
-	}
-
-	return nil, 0, errors.New("incorrect message format: handler name not found")
 }
 
 func getParams(p []byte) (map[string][]byte, error) {

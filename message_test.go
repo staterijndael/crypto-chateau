@@ -20,9 +20,20 @@ func Test_ParseMessage(t *testing.T) {
 	msg := []byte("handlerName# someBool: 1, someInt : ")
 	msg = append(msg, num...)
 	msg = append(msg, []byte(", someString :asdmamsd")...)
-	handlerName, msgStruct, err := ParseMessage(msg, &TestMessage{})
+	handlerName, n, err := GetHandlerName(msg)
+	assert.NoError(t, err)
+	msgStruct, err := ParseMessage(msg[n:], &TestMessage{})
 	assert.NoError(t, err)
 	assert.Equal(t, "handlerName", string(handlerName))
 
 	t.Log(msgStruct)
+}
+
+// i am so lazy to add testcases
+func Test_ParseMessage2(t *testing.T) {
+	msg := []byte("handlerName#")
+	handlerName, _, err := GetHandlerName(msg)
+	assert.NoError(t, err)
+
+	assert.Equal(t, "handlerName", string(handlerName))
 }

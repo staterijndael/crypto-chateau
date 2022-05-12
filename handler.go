@@ -1,5 +1,15 @@
 package crypto_chateau
 
+import "crypto-chateau/generated"
+
 type Handler struct {
-	callFunc func(...interface{}) (Message, error)
+	callFunc       interface{}
+	requestMsgType Message
+}
+
+func initHandlers(endpoint generated.Endpoint, handlers map[string]*Handler) {
+	handlers["InsertUser"] = &Handler{
+		callFunc:       endpoint.UserEndpoint.InsertUser,
+		requestMsgType: &generated.InsertUserRequest{},
+	}
 }
