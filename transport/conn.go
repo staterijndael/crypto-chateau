@@ -2,9 +2,9 @@ package transport
 
 import (
 	"context"
-	aes_256 "crypto-chateau/aes-256"
-	"crypto-chateau/dh"
 	"errors"
+	"github.com/Oringik/crypto-chateau/aes-256"
+	"github.com/Oringik/crypto-chateau/dh"
 	"github.com/xelaj/go-dry/ioutil"
 	"math/big"
 	"net"

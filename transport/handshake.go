@@ -3,8 +3,8 @@ package transport
 import (
 	"bufio"
 	"context"
-	"crypto-chateau/dh"
 	"errors"
+	"github.com/Oringik/crypto-chateau/dh"
 	"math/big"
 	"net"
 	"time"

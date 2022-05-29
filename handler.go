@@ -1,6 +1,8 @@
 package crypto_chateau
 
-import "crypto-chateau/generated"
+import (
+	"github.com/Oringik/crypto-chateau/generated"
+)
 
 type Handler struct {
 	callFunc       interface{}

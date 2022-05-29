@@ -3,9 +3,9 @@ package crypto_chateau
 import (
 	"bufio"
 	"context"
-	"crypto-chateau/generated"
-	"crypto-chateau/transport"
 	"errors"
+	"github.com/Oringik/crypto-chateau/generated"
+	"github.com/Oringik/crypto-chateau/transport"
 	"log"
 	"net"
 	"sync"

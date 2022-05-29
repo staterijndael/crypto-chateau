@@ -2,7 +2,6 @@ package crypto_chateau
 
 import (
 	"context"
-	"crypto-chateau/generated"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
