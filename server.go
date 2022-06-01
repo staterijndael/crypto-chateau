@@ -8,6 +8,7 @@ import (
 	"github.com/Oringik/crypto-chateau/transport"
 	"log"
 	"net"
+	"strconv"
 	"sync"
 )
 
@@ -28,7 +29,7 @@ type Server struct {
 
 type Config struct {
 	IP   string
-	Port string
+	Port int
 }
 
 func NewServer(cfg *Config) *Server {
@@ -41,7 +42,7 @@ func NewServer(cfg *Config) *Server {
 }
 
 func (s *Server) Run(ctx context.Context, endpoint generated.Endpoint) error {
-	_, err := net.ResolveTCPAddr("tcp", s.Config.IP+":"+s.Config.Port)
+	_, err := net.ResolveTCPAddr("tcp", s.Config.IP+":"+strconv.Itoa(s.Config.Port))
 	if err != nil {
 		return err
 	}
@@ -155,7 +156,7 @@ func (s *Server) handleMethod(ctx context.Context, peer *Peer) error {
 }
 
 func (s *Server) listenClients(ctx context.Context, clientChan chan<- *Peer) {
-	listener, err := net.Listen("tcp", s.Config.IP+":"+s.Config.Port)
+	listener, err := net.Listen("tcp", s.Config.IP+":"+strconv.Itoa(s.Config.Port))
 	if err != nil {
 		log.Println(err)
 		s.shutdownCh <- struct{}{}
