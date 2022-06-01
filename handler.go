@@ -10,8 +10,8 @@ type Handler struct {
 }
 
 func initHandlers(endpoint generated.Endpoint, handlers map[string]*Handler) {
-	handlers["InsertUser"] = &Handler{
-		callFunc:       endpoint.UserEndpoint.InsertUser,
-		requestMsgType: &generated.InsertUserRequest{},
+	handlers["GetUser"] = &Handler{
+		callFunc:       endpoint.UserEndpoint.GetUser,
+		requestMsgType: &generated.GetUserRequest{},
 	}
 }

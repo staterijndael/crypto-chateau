@@ -2,6 +2,7 @@ package generated
 
 import (
 	"context"
+	"strconv"
 )
 
 type Endpoint struct {
@@ -9,20 +10,21 @@ type Endpoint struct {
 }
 
 type UserEndpoint interface {
-	InsertUser(context.Context, *InsertUserRequest) (*InsertUserResponse, error)
+	GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error)
 }
 
-type InsertUserRequest struct {
+type GetUserRequest struct {
 	UserID uint64
 }
 
-type InsertUserResponse struct {
+type GetUserResponse struct {
+	UserName string
 }
 
-func (i *InsertUserRequest) Marshal() ([]byte, error) {
-	return nil, nil
+func (i *GetUserRequest) Marshal() ([]byte, error) {
+	return []byte("GetUser# UserID:" + strconv.Itoa(int(i.UserID))), nil
 }
 
-func (i *InsertUserResponse) Marshal() ([]byte, error) {
-	return nil, nil
+func (i *GetUserResponse) Marshal() ([]byte, error) {
+	return []byte("GetUser# UserID:" + i.UserName), nil
 }
