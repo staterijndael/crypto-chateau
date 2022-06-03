@@ -83,7 +83,7 @@ func (cn *Conn) Write(p []byte) (int, error) {
 	convertedLength := uint16(len(p))
 	dataWithLength = append(dataWithLength, byte(convertedLength), byte(convertedLength>>8))
 	dataWithLength = append(dataWithLength, data...)
-	n, err := cn.tcpConn.Write(data)
+	n, err := cn.tcpConn.Write(dataWithLength)
 	return n, err
 }
 
