@@ -66,7 +66,7 @@ func (cn *Conn) Write(p []byte) (int, error) {
 		}
 	}
 
-	var data []byte
+	data := make([]byte, 0, len(p))
 
 	if cn.encryption.enabled {
 		encryptedData, err := aes_256.Encrypt(p, cn.encryption.sharedKey)
@@ -79,6 +79,9 @@ func (cn *Conn) Write(p []byte) (int, error) {
 		data = p
 	}
 
+	dataWithLength := make([]byte, 0, len(p)+2)
+	convertedLength := uint16(len(p))
+	dataWithLength = append(dataWithLength, byte(convertedLength), byte(convertedLength>>8))
 	n, err := cn.tcpConn.Write(data)
 	return n, err
 }
