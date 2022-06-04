@@ -21,12 +21,11 @@ func formatMsg(fields ...[]byte) []byte {
 
 	result := make([]byte, 0, 1024)
 
-	for i := 0; i < len(fields)-1; i++ {
+	for i := 0; i < len(fields); i++ {
+		convertedNum := uint16(len(fields[i]))
+		result = append(result, byte(convertedNum), byte(convertedNum>>8))
 		result = append(result, fields[i]...)
-		result = append(result, '|')
 	}
-
-	result = append(result, fields[len(fields)-1]...)
 
 	return result
 }
