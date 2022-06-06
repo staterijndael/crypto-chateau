@@ -71,7 +71,7 @@ func ClientHandshake(ctx context.Context, tcpConn net.Conn) (net.Conn, error) {
 }
 
 func readConnBigInt(conn *Conn) (*big.Int, error) {
-	buf := make([]byte, 256)
+	buf := make([]byte, 258)
 	_, err := conn.Read(buf)
 	if err != nil {
 		return nil, err
