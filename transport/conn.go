@@ -12,10 +12,11 @@ import (
 )
 
 type Conn struct {
-	tcpConn    net.Conn
-	reader     *ioutil.CancelableReader
-	cfg        connCfg
-	encryption encryption
+	tcpConn      net.Conn
+	reader       *ioutil.CancelableReader
+	reservedData []byte
+	cfg          connCfg
+	encryption   encryption
 }
 
 type connCfg struct {
@@ -95,27 +96,84 @@ func (cn *Conn) Read(p []byte) (int, error) {
 		}
 	}
 
-	if cn.encryption.enabled {
-		buf := make([]byte, len(p))
+	buf := make([]byte, len(p))
 
-		n, err := cn.reader.Read(buf)
-		if err != nil {
-			return 0, err
+	if len(cn.reservedData) > 0 {
+		if len(cn.reservedData) < 2 {
+			return 0, errors.New("not enough length of data for getting packet length")
 		}
 
-		decryptedData, err := aes_256.Decrypt(buf, cn.encryption.sharedKey)
-		if err != nil {
-			return 0, err
+		packetLength := uint16(cn.reservedData[0]) | uint16(cn.reservedData[1])<<8
+
+		if len(cn.reservedData) < int(2+packetLength) {
+			return 0, errors.New("incorrect packet length")
+		}
+		buf = cn.reservedData[:2+packetLength]
+
+		if int(2+packetLength) < len(cn.reservedData) {
+			cn.reservedData = cn.reservedData[2+packetLength:]
 		}
 
-		copy(p, decryptedData)
+		if int(2+packetLength) < len(buf) {
+			reserved := buf[2+packetLength:]
+			cn.reservedData = append(cn.reservedData, reserved...)
+		}
 
-		return n, nil
-	} else {
-		n, err := cn.reader.Read(p)
+		var data []byte
 
-		return n, err
+		if cn.encryption.enabled {
+			decryptedData, err := aes_256.Decrypt(buf, cn.encryption.sharedKey)
+			if err != nil {
+				return 0, err
+			}
+
+			data = decryptedData
+		} else {
+			data = buf
+		}
+
+		copy(p, data)
+
+		return len(data), nil
 	}
+
+	n, err := cn.reader.Read(buf)
+	if err != nil {
+		return 0, err
+	}
+
+	if len(buf) < 2 {
+		return 0, errors.New("not enough length of data for getting packet length")
+	}
+
+	packetLength := uint16(buf[0]) | uint16(buf[1])<<8
+	if int(packetLength) > len(buf) {
+		return 0, errors.New("incorrect packet length")
+	}
+	packet := buf[:packetLength]
+
+	toReserve := buf[packetLength:n]
+	if len(toReserve) > 0 {
+		cn.reservedData = append(cn.reservedData, toReserve...)
+	}
+
+	var data []byte
+
+	if cn.encryption.enabled {
+		decryptedData, err := aes_256.Decrypt(packet, cn.encryption.sharedKey)
+		if err != nil {
+			return 0, err
+		}
+
+		data = decryptedData
+	} else {
+		data = packet
+	}
+
+	copy(p, data)
+
+	return len(data), nil
+
 }
 
 func (cn *Conn) Close() error {
