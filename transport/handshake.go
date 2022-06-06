@@ -1,7 +1,6 @@
 package transport
 
 import (
-	"bufio"
 	"context"
 	"errors"
 	"github.com/Oringik/crypto-chateau/dh"
@@ -46,7 +45,7 @@ func ClientHandshake(ctx context.Context, tcpConn net.Conn) (net.Conn, error) {
 		return nil, err
 	}
 
-	connPublicKey, err := readConnBigInt(conn, msgDelim)
+	connPublicKey, err := readConnBigInt(conn)
 	if err != nil {
 		return nil, err
 	}
@@ -73,14 +72,15 @@ func ClientHandshake(ctx context.Context, tcpConn net.Conn) (net.Conn, error) {
 	return conn, nil
 }
 
-func readConnBigInt(conn *Conn, delim byte) (*big.Int, error) {
-	bytesMsg, err := bufio.NewReader(conn).ReadBytes(delim)
+func readConnBigInt(conn *Conn) (*big.Int, error) {
+	buf := make([]byte, 256)
+	_, err := conn.Read(buf)
 	if err != nil {
 		return nil, err
 	}
 
 	convertedBigIntBytes := new(big.Int)
-	convertedBigIntBytes.SetBytes(bytesMsg)
+	convertedBigIntBytes.SetBytes(buf)
 
 	return convertedBigIntBytes, nil
 }
