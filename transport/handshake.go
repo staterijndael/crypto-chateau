@@ -12,8 +12,6 @@ import (
 const (
 	maxReadTime  = 5 * time.Second
 	maxWriteTime = 3 * time.Second
-
-	msgDelim = '\n'
 )
 
 func ClientHandshake(ctx context.Context, tcpConn net.Conn) (net.Conn, error) {
