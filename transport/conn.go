@@ -3,6 +3,7 @@ package transport
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/Oringik/crypto-chateau/aes-256"
 	"github.com/Oringik/crypto-chateau/dh"
 	"github.com/xelaj/go-dry/ioutil"
@@ -145,6 +146,9 @@ func (cn *Conn) Read(p []byte) (int, error) {
 	if len(buf) < 2 {
 		return 0, errors.New("not enough length of data for getting packet length")
 	}
+
+	fmt.Println(buf[0])
+	fmt.Println(buf[1])
 
 	packetLength := uint16(buf[0]) | uint16(buf[1])<<8
 	if int(packetLength) > len(buf) {
