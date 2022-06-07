@@ -2,8 +2,8 @@ package transport
 
 import (
 	"context"
+	"encoding/binary"
 	"errors"
-	"fmt"
 	"github.com/Oringik/crypto-chateau/aes-256"
 	"github.com/Oringik/crypto-chateau/dh"
 	"github.com/xelaj/go-dry/ioutil"
@@ -147,12 +147,7 @@ func (cn *Conn) Read(p []byte) (int, error) {
 		return 0, errors.New("not enough length of data for getting packet length")
 	}
 
-	_ = buf[1]
-
-	fmt.Println(buf[0])
-	fmt.Println(buf[1])
-
-	packetLength := uint16(buf[0]) | uint16(buf[1])<<8
+	packetLength := binary.LittleEndian.Uint16(buf[:2])
 	if int(packetLength) > len(buf) {
 		return 0, errors.New("incorrect packet length")
 	}
