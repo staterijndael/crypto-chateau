@@ -147,7 +147,7 @@ func (cn *Conn) Read(p []byte) (int, error) {
 		return 0, errors.New("not enough length of data for getting packet length")
 	}
 
-	packetLength := binary.LittleEndian.Uint16(buf[:2])
+	packetLength := binary.BigEndian.Uint16(buf[:2])
 	if int(packetLength) > len(buf) {
 		return 0, errors.New("incorrect packet length")
 	}
