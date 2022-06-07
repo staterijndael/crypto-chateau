@@ -151,9 +151,9 @@ func (cn *Conn) Read(p []byte) (int, error) {
 		return 0, errors.New("incorrect packet length")
 	}
 
-	packet := buf[:packetLength]
+	packet := buf[:2+packetLength]
 
-	toReserve := buf[packetLength:n]
+	toReserve := buf[2+packetLength : n]
 	if len(toReserve) > 0 {
 		cn.reservedData = append(cn.reservedData, toReserve...)
 	}
