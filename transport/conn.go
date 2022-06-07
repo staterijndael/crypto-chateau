@@ -2,7 +2,6 @@ package transport
 
 import (
 	"context"
-	"encoding/binary"
 	"errors"
 	"github.com/Oringik/crypto-chateau/aes-256"
 	"github.com/Oringik/crypto-chateau/dh"
@@ -143,14 +142,15 @@ func (cn *Conn) Read(p []byte) (int, error) {
 		return 0, err
 	}
 
-	if len(buf) < 2 {
+	if len(buf) <= 2 {
 		return 0, errors.New("not enough length of data for getting packet length")
 	}
 
-	packetLength := binary.BigEndian.Uint16(buf[:2])
+	packetLength := uint16(buf[0]) | uint16(buf[1])<<8
 	if int(packetLength) > len(buf) {
 		return 0, errors.New("incorrect packet length")
 	}
+
 	packet := buf[:packetLength]
 
 	toReserve := buf[packetLength:n]
