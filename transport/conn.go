@@ -147,6 +147,8 @@ func (cn *Conn) Read(p []byte) (int, error) {
 		return 0, errors.New("not enough length of data for getting packet length")
 	}
 
+	_ = buf[1]
+
 	fmt.Println(buf[0])
 	fmt.Println(buf[1])
 
