@@ -1,7 +1,6 @@
 package crypto_chateau
 
 import (
-	"bufio"
 	"context"
 	"errors"
 	"github.com/Oringik/crypto-chateau/generated"
@@ -99,12 +98,15 @@ func (s *Server) handleRequest(ctx context.Context, peer *Peer) {
 }
 
 func (s *Server) handleMethod(ctx context.Context, peer *Peer) error {
-	bytesMsg, err := bufio.NewReader(peer).ReadBytes(msgDelim)
+	msg := make([]byte, 1024)
+	n, err := peer.Read(msg)
 	if err != nil {
 		return err
 	}
 
-	handlerName, n, err := GetHandlerName(bytesMsg)
+	msg = msg[:n]
+
+	handlerName, n, err := GetHandlerName(msg)
 	if err != nil {
 		return err
 	}
@@ -114,11 +116,11 @@ func (s *Server) handleMethod(ctx context.Context, peer *Peer) error {
 		return errors.New("unknown handler " + string(handlerName))
 	}
 
-	if n >= len(bytesMsg) {
+	if n >= len(msg) {
 		return errors.New("incorrect message")
 	}
 
-	requestMsg, err := ParseMessage(bytesMsg, handler.requestMsgType)
+	requestMsg, err := ParseMessage(msg[n:], handler.requestMsgType)
 	if err != nil {
 		return err
 	}
