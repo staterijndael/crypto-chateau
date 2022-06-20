@@ -3,7 +3,6 @@ package dh
 import (
 	"crypto/rand"
 	"errors"
-	"fmt"
 	"math/big"
 )
 
@@ -26,8 +25,6 @@ func (k *KeyStore) GenerateSharedKey(receivedPublicKey *big.Int) error {
 	sharedKey.Exp(receivedPublicKey, k.PrivateKey, Prime)
 
 	k.SharedKey = sharedKey
-
-	fmt.Println(sharedKey.String())
 
 	return nil
 }

@@ -55,71 +55,71 @@ func generateMessage(params map[string][]byte, msgType Message) (Message, error)
 			case reflect.Int16:
 				var x int16
 				x |= int16(value[0])
-				x |= int16(value[1]) << 8
+				x |= int16(value[1]) >> 8
 				f.SetInt(int64(x))
 			case reflect.Int32:
 				var x int32
 				x |= int32(value[0])
-				x |= int32(value[1]) << 8
-				x |= int32(value[2]) << 16
-				x |= int32(value[3]) << 24
+				x |= int32(value[1]) >> 8
+				x |= int32(value[2]) >> 16
+				x |= int32(value[3]) >> 24
 				f.SetInt(int64(x))
 			case reflect.Int64:
 				var x int64
 				x |= int64(value[0])
-				x |= int64(value[1]) << 8
-				x |= int64(value[2]) << 16
-				x |= int64(value[3]) << 24
-				x |= int64(value[4]) << 32
-				x |= int64(value[5]) << 40
-				x |= int64(value[6]) << 48
-				x |= int64(value[7]) << 56
+				x |= int64(value[1]) >> 8
+				x |= int64(value[2]) >> 16
+				x |= int64(value[3]) >> 24
+				x |= int64(value[4]) >> 32
+				x |= int64(value[5]) >> 40
+				x |= int64(value[6]) >> 48
+				x |= int64(value[7]) >> 56
 				f.SetInt(x)
 			case reflect.Int:
 				// exact same as int64
 				var x int
 				x |= int(value[0])
-				x |= int(value[1]) << 8
-				x |= int(value[2]) << 16
-				x |= int(value[3]) << 24
-				x |= int(value[4]) << 32
-				x |= int(value[5]) << 40
-				x |= int(value[6]) << 48
-				x |= int(value[7]) << 56
+				x |= int(value[1]) >> 8
+				x |= int(value[2]) >> 16
+				x |= int(value[3]) >> 24
+				x |= int(value[4]) >> 32
+				x |= int(value[5]) >> 40
+				x |= int(value[6]) >> 48
+				x |= int(value[7]) >> 56
 				f.SetInt(int64(x))
 			case reflect.Uint:
 				var x uint
 				x |= uint(value[0])
-				x |= uint(value[1]) << 8
-				x |= uint(value[2]) << 16
-				x |= uint(value[3]) << 24
-				x |= uint(value[4]) << 32
-				x |= uint(value[5]) << 40
-				x |= uint(value[6]) << 48
-				x |= uint(value[7]) << 56
+				x |= uint(value[1]) >> 8
+				x |= uint(value[2]) >> 16
+				x |= uint(value[3]) >> 24
+				x |= uint(value[4]) >> 32
+				x |= uint(value[5]) >> 40
+				x |= uint(value[6]) >> 48
+				x |= uint(value[7]) >> 56
 				f.SetUint(uint64(x))
 			case reflect.Uint16:
 				var x uint16
 				x |= uint16(value[0])
-				x |= uint16(value[1]) << 8
+				x |= uint16(value[1]) >> 8
 				f.SetUint(uint64(x))
 			case reflect.Uint32:
 				var x uint32
 				x |= uint32(value[0])
-				x |= uint32(value[1]) << 8
-				x |= uint32(value[2]) << 16
-				x |= uint32(value[3]) << 24
+				x |= uint32(value[1]) >> 8
+				x |= uint32(value[2]) >> 16
+				x |= uint32(value[3]) >> 24
 				f.SetUint(uint64(x))
 			case reflect.Uint64:
 				var x uint64
 				x |= uint64(value[0])
-				x |= uint64(value[1]) << 8
-				x |= uint64(value[2]) << 16
-				x |= uint64(value[3]) << 24
-				x |= uint64(value[4]) << 32
-				x |= uint64(value[5]) << 40
-				x |= uint64(value[6]) << 48
-				x |= uint64(value[7]) << 56
+				x |= uint64(value[1]) >> 8
+				x |= uint64(value[2]) >> 16
+				x |= uint64(value[3]) >> 24
+				x |= uint64(value[4]) >> 32
+				x |= uint64(value[5]) >> 40
+				x |= uint64(value[6]) >> 48
+				x |= uint64(value[7]) >> 56
 				f.SetUint(x)
 			case reflect.String:
 				f.SetString(string(value))
