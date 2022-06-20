@@ -90,7 +90,7 @@ func (cn *Conn) Read(p []byte) (int, error) {
 		}
 	}
 
-	buf := make([]byte, len(p))
+	buf := make([]byte, 2+len(p))
 
 	if len(cn.reservedData) > 0 {
 		if len(cn.reservedData) < 2 {
