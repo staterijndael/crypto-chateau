@@ -1,11 +1,9 @@
 package transport
 
 import (
-	"context"
 	"errors"
 	"github.com/Oringik/crypto-chateau/aes-256"
 	"github.com/Oringik/crypto-chateau/dh"
-	"github.com/xelaj/go-dry/ioutil"
 	"math/big"
 	"net"
 	"time"
@@ -13,7 +11,6 @@ import (
 
 type Conn struct {
 	tcpConn      net.Conn
-	reader       *ioutil.CancelableReader
 	reservedData []byte
 	cfg          connCfg
 	encryption   encryption
@@ -29,12 +26,9 @@ type encryption struct {
 	sharedKey []byte
 }
 
-func newConn(ctx context.Context, tcpConn net.Conn, cfg connCfg) *Conn {
-	reader := ioutil.NewCancelableReader(ctx, tcpConn)
-
+func newConn(tcpConn net.Conn, cfg connCfg) *Conn {
 	return &Conn{
 		tcpConn: tcpConn,
-		reader:  reader,
 		cfg:     cfg,
 	}
 }
@@ -137,7 +131,7 @@ func (cn *Conn) Read(p []byte) (int, error) {
 		return len(data), nil
 	}
 
-	n, err := cn.reader.Read(buf)
+	n, err := cn.tcpConn.Read(buf)
 	if err != nil {
 		return 0, err
 	}
