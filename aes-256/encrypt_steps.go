@@ -34,11 +34,11 @@ func keyExpansion(key []byte) ([][]uint16, error) {
 	for col := Nk; col < Nb*(Nr+1); col++ {
 		if col%Nk == 0 {
 			tmpPrevCol := make([]uint16, 4)
-			for row := 0; row < 4; row++ {
-				tmpPrevCol[row] = keySchedule[row][col-1]
+			for row := 1; row < 4; row++ {
+				tmpPrevCol[row-1] = keySchedule[row][col-1]
 			}
 
-			tmpPrevCol = append(tmpPrevCol, keySchedule[0][col-1])
+			tmpPrevCol[len(tmpPrevCol)-1] = keySchedule[0][col-1]
 
 			for i, val := range tmpPrevCol {
 				sboxElem := Sbox[val]
@@ -61,14 +61,10 @@ func keyExpansion(key []byte) ([][]uint16, error) {
 }
 
 func addRoundKey(state [][]uint16, keySchedule [][]uint16, round uint16) [][]uint16 {
-	var (
-		col uint16
-		row uint16
-	)
 
-	for col = 0; col < Nb; col++ {
-		for row = 0; row < Nb; row++ {
-			s := state[row][col] ^ keySchedule[row][Nb*round+col]
+	for col := 0; col < Nb; col++ {
+		for row := 0; row < Nb; row++ {
+			s := state[row][col] ^ keySchedule[row][Nb*round+uint16(col)]
 
 			state[row][col] = s
 		}
