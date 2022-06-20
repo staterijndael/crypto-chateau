@@ -2,6 +2,7 @@ package transport
 
 import (
 	"errors"
+	"fmt"
 	"github.com/Oringik/crypto-chateau/dh"
 	"math/big"
 	"net"
@@ -78,6 +79,8 @@ func readConnBigInt(conn *Conn) (*big.Int, error) {
 
 	convertedBigIntBytes := new(big.Int)
 	convertedBigIntBytes.SetBytes(buf)
+
+	fmt.Println(convertedBigIntBytes.String())
 
 	return convertedBigIntBytes, nil
 }
