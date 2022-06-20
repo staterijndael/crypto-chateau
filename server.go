@@ -82,7 +82,7 @@ func (s *Server) handleRequests(ctx context.Context, clientChan <-chan *Peer) {
 func (s *Server) handleRequest(ctx context.Context, peer *Peer) {
 	defer peer.Close()
 
-	securedConnect, err := transport.ClientHandshake(ctx, peer.conn)
+	securedConnect, err := transport.ClientHandshake(peer.conn)
 	if err != nil {
 		log.Println(err)
 		return

@@ -1,7 +1,6 @@
 package transport
 
 import (
-	"context"
 	"errors"
 	"github.com/Oringik/crypto-chateau/dh"
 	"math/big"
@@ -14,8 +13,8 @@ const (
 	maxWriteTime = 3 * time.Second
 )
 
-func ClientHandshake(ctx context.Context, tcpConn net.Conn) (net.Conn, error) {
-	conn := newConn(ctx, tcpConn, connCfg{readDeadline: maxReadTime, writeDeadline: maxWriteTime})
+func ClientHandshake(tcpConn net.Conn) (net.Conn, error) {
+	conn := newConn(tcpConn, connCfg{readDeadline: maxReadTime, writeDeadline: maxWriteTime})
 
 	keyStore := dh.KeyStore{}
 	keyStore.GeneratePrivateKey()
