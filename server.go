@@ -127,7 +127,7 @@ func (s *Server) handleMethod(ctx context.Context, peer *Peer) error {
 
 	switch handler.HandlerType {
 	case HandlerT:
-		fnc := handler.callFunc.(handlerFunc)
+		fnc := handler.callFunc.(func(context.Context, Message) (Message, error))
 		responseMsg, err := fnc(ctx, requestMsg)
 		if err != nil {
 			writeErr := peer.WriteError(err)
