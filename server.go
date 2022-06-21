@@ -125,8 +125,8 @@ func (s *Server) handleMethod(ctx context.Context, peer *Peer) error {
 		return err
 	}
 
-	switch handler.callFunc.(type) {
-	case handlerFunc:
+	switch handler.HandlerType {
+	case HandlerT:
 		fnc := handler.callFunc.(handlerFunc)
 		responseMsg, err := fnc(ctx, requestMsg)
 		if err != nil {
@@ -138,7 +138,7 @@ func (s *Server) handleMethod(ctx context.Context, peer *Peer) error {
 		if err != nil {
 			return err
 		}
-	case streamFunc:
+	case StreamT:
 		fnc := handler.callFunc.(streamFunc)
 		responseMsg, err := fnc(ctx, requestMsg, peer)
 		if err != nil {
