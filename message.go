@@ -112,14 +112,14 @@ func generateMessage(params map[string][]byte, msgType Message) (Message, error)
 				f.SetUint(uint64(x))
 			case reflect.Uint64:
 				var x uint64
-				x |= uint64(value[0])
-				x |= uint64(value[1]) >> 8
-				x |= uint64(value[2]) >> 16
-				x |= uint64(value[3]) >> 24
-				x |= uint64(value[4]) >> 32
-				x |= uint64(value[5]) >> 40
-				x |= uint64(value[6]) >> 48
-				x |= uint64(value[7]) >> 56
+				x |= uint64(value[7])
+				x |= uint64(value[6]) << 8
+				x |= uint64(value[5]) << 16
+				x |= uint64(value[4]) << 24
+				x |= uint64(value[3]) << 32
+				x |= uint64(value[2]) << 40
+				x |= uint64(value[1]) << 48
+				x |= uint64(value[0]) << 56
 				f.SetUint(x)
 			case reflect.String:
 				f.SetString(string(value))
