@@ -1,6 +1,9 @@
 package crypto_chateau
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"github.com/Oringik/crypto-chateau/generated"
 )
 
@@ -20,5 +23,26 @@ func initHandlers(endpoint generated.Endpoint, handlers map[string]*Handler) {
 		callFunc:       endpoint.UserEndpoint.GetUser,
 		HandlerType:    HandlerT,
 		requestMsgType: &generated.GetUserRequest{},
+	}
+}
+
+func callFuncToHandlerFunc(fnc interface{}) (func(context.Context, Message) (Message, error), error) {
+	switch fnc.(type) {
+	case generated.GetUserFunc:
+		callFunc := func(ctx context.Context, message Message) (Message, error) {
+			convertedMessage, ok := message.(*generated.GetUserRequest)
+			if !ok {
+				err := errors.New("error converting message to GetUserRequest")
+				fmt.Println(err)
+				return nil, err
+			}
+
+			resp, err := fnc.(generated.GetUserFunc)(ctx, convertedMessage)
+			return resp, err
+		}
+
+		return callFunc, nil
+	default:
+		return nil, errors.New("incorrect handler func type")
 	}
 }

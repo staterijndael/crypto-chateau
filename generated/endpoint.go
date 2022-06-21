@@ -9,6 +9,8 @@ type Endpoint struct {
 	UserEndpoint UserEndpoint
 }
 
+type GetUserFunc func(context.Context, *GetUserRequest) (*GetUserResponse, error)
+
 type UserEndpoint interface {
 	GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error)
 }

@@ -15,9 +15,6 @@ const (
 	msgDelim = '\n'
 )
 
-type handlerFunc func(context.Context, Message) (Message, error)
-type streamFunc func(context.Context, Message, *Peer) (Message, error)
-
 type Server struct {
 	Config   *Config
 	Handlers map[string]*Handler
@@ -127,7 +124,11 @@ func (s *Server) handleMethod(ctx context.Context, peer *Peer) error {
 
 	switch handler.HandlerType {
 	case HandlerT:
-		fnc := handler.callFunc.(func(context.Context, Message) (Message, error))
+		fnc, err := callFuncToHandlerFunc(handler.callFunc)
+		if err != nil {
+			return err
+		}
+
 		responseMsg, err := fnc(ctx, requestMsg)
 		if err != nil {
 			writeErr := peer.WriteError(err)
@@ -139,17 +140,17 @@ func (s *Server) handleMethod(ctx context.Context, peer *Peer) error {
 			return err
 		}
 	case StreamT:
-		fnc := handler.callFunc.(streamFunc)
-		responseMsg, err := fnc(ctx, requestMsg, peer)
-		if err != nil {
-			writeErr := peer.WriteError(err)
-			return writeErr
-		}
-
-		err = peer.WriteResponse(responseMsg)
-		if err != nil {
-			return err
-		}
+		//fnc := handler.callFunc
+		//responseMsg, err := fnc(ctx, requestMsg, peer)
+		//if err != nil {
+		//	writeErr := peer.WriteError(err)
+		//	return writeErr
+		//}
+		//
+		//err = peer.WriteResponse(responseMsg)
+		//if err != nil {
+		//	return err
+		//}
 	default:
 		return errors.New("incorrect handler format: InternalError")
 	}
