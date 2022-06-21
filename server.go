@@ -15,7 +15,7 @@ const (
 	msgDelim = '\n'
 )
 
-type handlerFunc func(context.Context, *Message) (*Message, error)
+type handlerFunc func(context.Context, Message) (Message, error)
 type streamFunc func(context.Context, Message, *Peer) (Message, error)
 
 type Server struct {
@@ -128,13 +128,13 @@ func (s *Server) handleMethod(ctx context.Context, peer *Peer) error {
 	switch handler.HandlerType {
 	case HandlerT:
 		fnc := handler.callFunc.(handlerFunc)
-		responseMsg, err := fnc(ctx, &requestMsg)
+		responseMsg, err := fnc(ctx, requestMsg)
 		if err != nil {
 			writeErr := peer.WriteError(err)
 			return writeErr
 		}
 
-		err = peer.WriteResponse(*responseMsg)
+		err = peer.WriteResponse(responseMsg)
 		if err != nil {
 			return err
 		}
