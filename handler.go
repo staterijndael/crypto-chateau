@@ -28,7 +28,7 @@ func initHandlers(endpoint generated.Endpoint, handlers map[string]*Handler) {
 
 func callFuncToHandlerFunc(fnc interface{}) (func(context.Context, Message) (Message, error), error) {
 	switch fnc.(type) {
-	case generated.GetUserFunc:
+	case func(context.Context, *generated.GetUserRequest) (*generated.GetUserResponse, error):
 		callFunc := func(ctx context.Context, message Message) (Message, error) {
 			convertedMessage, ok := message.(*generated.GetUserRequest)
 			if !ok {
@@ -37,7 +37,7 @@ func callFuncToHandlerFunc(fnc interface{}) (func(context.Context, Message) (Mes
 				return nil, err
 			}
 
-			resp, err := fnc.(generated.GetUserFunc)(ctx, convertedMessage)
+			resp, err := fnc.(func(context.Context, *generated.GetUserRequest) (*generated.GetUserResponse, error))(ctx, convertedMessage)
 			return resp, err
 		}
 
