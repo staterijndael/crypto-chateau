@@ -146,10 +146,15 @@ func generateMessage(params map[string][]byte, msgType Message) (Message, error)
 
 func getParams(p []byte) (map[string][]byte, error) {
 	params := make(map[string][]byte)
-	paramBuf := make([]byte, 0, 100)
-	valueBuf := make([]byte, 0, 1024)
+	paramBuf := make([]byte, 0, len(p))
+	valueBuf := make([]byte, 0, len(p))
+
+	paramBufLast := -1
+	valueBufLast := -1
 
 	var paramFilled bool
+	var stringParsing bool
+
 	for i, b := range p {
 		if b == ',' || i == len(p)-1 {
 			if (i != len(p)-1) && (p[i+1] == ',') {
@@ -161,21 +166,18 @@ func getParams(p []byte) (map[string][]byte, error) {
 			}
 
 			if len(paramBuf) != 0 && len(valueBuf) != 0 {
-				tmpBufParam := make([]byte, len(paramBuf))
-				tmpBufValue := make([]byte, len(valueBuf))
-				copy(tmpBufParam, paramBuf)
-				copy(tmpBufValue, valueBuf)
-
-				params[string(tmpBufParam)] = tmpBufValue
-				valueBuf = valueBuf[:0]
-				paramBuf = paramBuf[:0]
+				params[string(paramBuf[paramBufLast+1:])] = valueBuf[valueBufLast+1:]
+				paramBufLast = len(paramBuf) - 1
+				valueBufLast = len(valueBuf) - 1
 
 				paramFilled = false
 			}
-		} else if b == ':' {
+		} else if b == ':' && stringParsing == false {
 			paramFilled = true
-		} else if b == ' ' {
+		} else if b == ' ' && stringParsing == false {
 			continue
+		} else if b == '"' {
+			stringParsing = !stringParsing
 		} else {
 			if !paramFilled {
 				paramBuf = append(paramBuf, b)
