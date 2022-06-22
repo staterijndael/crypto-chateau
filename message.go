@@ -166,12 +166,14 @@ func getParams(p []byte) (map[string][]byte, error) {
 			}
 
 			if paramBufLast == len(paramBuf)-1 || valueBufLast == len(valueBuf)-1 {
-				params[string(paramBuf[paramBufLast+1:])] = valueBuf[valueBufLast+1:]
-				paramBufLast = len(paramBuf) - 1
-				valueBufLast = len(valueBuf) - 1
-
-				paramFilled = false
+				return nil, errors.New("incorrect message format: null value")
 			}
+
+			params[string(paramBuf[paramBufLast+1:])] = valueBuf[valueBufLast+1:]
+			paramBufLast = len(paramBuf) - 1
+			valueBufLast = len(valueBuf) - 1
+
+			paramFilled = false
 		} else if b == ':' && stringParsing == false {
 			paramFilled = true
 		} else if b == ' ' && stringParsing == false {
