@@ -165,7 +165,7 @@ func getParams(p []byte) (map[string][]byte, error) {
 				valueBuf = append(valueBuf, b)
 			}
 
-			if len(paramBuf) != 0 && len(valueBuf) != 0 {
+			if paramBufLast == len(paramBuf)-1 || valueBufLast == len(valueBuf)-1 {
 				params[string(paramBuf[paramBufLast+1:])] = valueBuf[valueBufLast+1:]
 				paramBufLast = len(paramBuf) - 1
 				valueBufLast = len(valueBuf) - 1
@@ -185,10 +185,6 @@ func getParams(p []byte) (map[string][]byte, error) {
 				valueBuf = append(valueBuf, b)
 			}
 		}
-	}
-
-	if len(paramBuf) != 0 || len(valueBuf) != 0 {
-		return nil, errors.New("incorrect message format")
 	}
 
 	return params, nil
