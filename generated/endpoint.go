@@ -26,5 +26,5 @@ func (i *GetUserRequest) Marshal() ([]byte, error) {
 }
 
 func (i *GetUserResponse) Marshal() ([]byte, error) {
-	return []byte("GetUser# UserName:" + i.UserName), nil
+	return []byte("GetUser# UserName:\"" + i.UserName + "\""), nil
 }
