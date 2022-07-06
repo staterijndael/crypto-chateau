@@ -140,17 +140,15 @@ func (s *Server) handleMethod(ctx context.Context, peer *Peer) error {
 			return err
 		}
 	case StreamT:
-		//fnc := handler.callFunc
-		//responseMsg, err := fnc(ctx, requestMsg, peer)
-		//if err != nil {
-		//	writeErr := peer.WriteError(err)
-		//	return writeErr
-		//}
-		//
-		//err = peer.WriteResponse(responseMsg)
-		//if err != nil {
-		//	return err
-		//}
+		fnc := handler.callFunc.(func(context.Context, *Stream) error)
+		stream := &Stream{
+			peer: peer,
+		}
+		err := fnc(ctx, stream)
+		if err != nil {
+			writeErr := peer.WriteError(err)
+			return writeErr
+		}
 	default:
 		return errors.New("incorrect handler format: InternalError")
 	}
