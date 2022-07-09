@@ -71,14 +71,16 @@ func (s *Server) Run(ctx context.Context, endpoint generated.Endpoint) error {
 
 func (s *Server) handleRequests(ctx context.Context, clientChan <-chan *Peer) {
 	for {
-		select {
-		case <-ctx.Done():
-			return
-		case client := <-clientChan:
-			go s.handleRequest(ctx, client)
-		default:
-			continue
-		}
+		//select {
+		//case <-ctx.Done():
+		//	return
+		//case client := <-clientChan:
+		//	go s.handleRequest(ctx, client)
+		//default:
+		//	continue
+		//}
+		client := <-clientChan
+		go s.handleRequest(ctx, client)
 	}
 }
 
