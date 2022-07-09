@@ -23,9 +23,13 @@ func ClientHandshake(tcpConn net.Conn, keyStore *dh.KeyStore) (net.Conn, error) 
 		return nil, errors.New("incorrect public key")
 	}
 
-	_, err := conn.Write([]byte("handshake"))
+	msg := make([]byte, 9)
+	_, err := conn.Read(msg)
 	if err != nil {
 		return nil, err
+	}
+	if string(msg) != "handshake" {
+		return nil, errors.New("incorrect init message")
 	}
 
 	dhParams := dhParamsInitMsg{g: dh.Generator, pHash: dh.PrimeHash}
