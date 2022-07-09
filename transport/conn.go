@@ -145,6 +145,7 @@ func (cn *Conn) Read(p []byte) (int, error) {
 	packetLength := uint16(buf[0]) | uint16(buf[1])<<8
 	if int(packetLength) > len(buf) {
 		fmt.Printf("connect %v incorrect packet length", cn.RemoteAddr().String())
+		fmt.Println()
 		return 0, errors.New("incorrect packet length")
 	}
 

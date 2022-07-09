@@ -85,7 +85,8 @@ func (s *Server) handleRequest(ctx context.Context, peer *Peer) {
 			return
 		}
 
-		fmt.Println("connect %v closed ", peer.conn.RemoteAddr().String())
+		fmt.Printf("connect %v closed ", peer.conn.RemoteAddr().String())
+		fmt.Println()
 	}()
 
 	securedConnect, err := transport.ClientHandshake(peer.conn)
@@ -186,7 +187,8 @@ func (s *Server) listenClients(ctx context.Context, clientChan chan<- *Peer) {
 				log.Println("Failed to accept connection:", err.Error())
 			}
 
-			fmt.Printf("client %v connected ", conn.LocalAddr().String())
+			fmt.Printf("client %v connected ", conn.RemoteAddr().String())
+			fmt.Println()
 
 			peer := NewPeer(conn)
 
