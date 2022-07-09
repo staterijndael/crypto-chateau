@@ -3,6 +3,7 @@ package crypto_chateau
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/Oringik/crypto-chateau/generated"
 	"github.com/Oringik/crypto-chateau/transport"
 	"log"
@@ -77,7 +78,15 @@ func (s *Server) handleRequests(ctx context.Context, clientChan <-chan *Peer) {
 }
 
 func (s *Server) handleRequest(ctx context.Context, peer *Peer) {
-	defer peer.Close()
+	defer func() {
+		err := peer.Close()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		fmt.Println("connect %v closed ", peer.conn.RemoteAddr().String())
+	}()
 
 	securedConnect, err := transport.ClientHandshake(peer.conn)
 	if err != nil {
@@ -176,6 +185,8 @@ func (s *Server) listenClients(ctx context.Context, clientChan chan<- *Peer) {
 				}
 				log.Println("Failed to accept connection:", err.Error())
 			}
+
+			fmt.Printf("client %v connected ", conn.LocalAddr().String())
 
 			peer := NewPeer(conn)
 

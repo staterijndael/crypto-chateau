@@ -2,6 +2,7 @@ package transport
 
 import (
 	"errors"
+	"fmt"
 	"github.com/Oringik/crypto-chateau/aes-256"
 	"github.com/Oringik/crypto-chateau/dh"
 	"math/big"
@@ -100,6 +101,7 @@ func (cn *Conn) Read(p []byte) (int, error) {
 		packetLength := uint16(cn.reservedData[0]) | uint16(cn.reservedData[1])<<8
 
 		if len(cn.reservedData) < int(2+packetLength) {
+			fmt.Printf("connect %v incorrect packet length", cn.RemoteAddr().String())
 			return 0, errors.New("incorrect packet length")
 		}
 		buf = cn.reservedData[:2+packetLength]
@@ -142,6 +144,7 @@ func (cn *Conn) Read(p []byte) (int, error) {
 
 	packetLength := uint16(buf[0]) | uint16(buf[1])<<8
 	if int(packetLength) > len(buf) {
+		fmt.Printf("connect %v incorrect packet length", cn.RemoteAddr().String())
 		return 0, errors.New("incorrect packet length")
 	}
 
