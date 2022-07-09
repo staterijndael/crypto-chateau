@@ -31,14 +31,11 @@ type Config struct {
 	Port int
 }
 
-func NewServer(cfg *Config) (*Server, error) {
+func NewServer(cfg *Config) *Server {
 	keyStore := &dh.KeyStore{}
 
 	keyStore.GeneratePrivateKey()
-	err := keyStore.GeneratePublicKey()
-	if err != nil {
-		return nil, err
-	}
+	keyStore.GeneratePublicKey()
 
 	return &Server{
 		Config:     cfg,
@@ -46,7 +43,7 @@ func NewServer(cfg *Config) (*Server, error) {
 		Handlers:   make(map[string]*Handler),
 		Clients:    make(map[string]*Peer),
 		shutdownCh: make(chan struct{}),
-	}, nil
+	}
 }
 
 func (s *Server) Run(ctx context.Context, endpoint generated.Endpoint) error {
