@@ -11,10 +11,7 @@ import (
 	"net"
 	"strconv"
 	"sync"
-)
-
-const (
-	msgDelim = '\n'
+	"sync/atomic"
 )
 
 type Server struct {
@@ -86,16 +83,7 @@ func (s *Server) handleRequests(ctx context.Context, clientChan <-chan *Peer) {
 }
 
 func (s *Server) handleRequest(ctx context.Context, peer *Peer) {
-	defer func() {
-		err := peer.Close()
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		fmt.Printf("connect %v closed ", peer.conn.RemoteAddr().String())
-		fmt.Println()
-	}()
+	defer peer.Close()
 
 	securedConnect, err := transport.ClientHandshake(peer.conn, s.KeyStore)
 	if err != nil {
@@ -182,6 +170,8 @@ func (s *Server) listenClients(ctx context.Context, clientChan chan<- *Peer) {
 		return
 	}
 
+	var connsCounter int32
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -195,8 +185,11 @@ func (s *Server) listenClients(ctx context.Context, clientChan chan<- *Peer) {
 				log.Println("Failed to accept connection:", err.Error())
 			}
 
-			fmt.Printf("client %v connected ", conn.RemoteAddr().String())
-			fmt.Println()
+			atomic.AddInt32(&connsCounter, 1)
+
+			if connsCounter%10 == 0 {
+				fmt.Println(connsCounter)
+			}
 
 			peer := NewPeer(conn)
 
