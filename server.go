@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/Oringik/crypto-chateau/dh"
 	"github.com/Oringik/crypto-chateau/generated"
 	"github.com/Oringik/crypto-chateau/transport"
 	"log"
@@ -19,6 +20,7 @@ const (
 type Server struct {
 	Config   *Config
 	Handlers map[string]*Handler
+	KeyStore *dh.KeyStore
 	// key: ip address  value: client peer
 	Clients    map[string]*Peer
 	shutdownCh chan struct{}
@@ -29,9 +31,10 @@ type Config struct {
 	Port int
 }
 
-func NewServer(cfg *Config) *Server {
+func NewServer(cfg *Config, keyStore *dh.KeyStore) *Server {
 	return &Server{
 		Config:     cfg,
+		KeyStore:   keyStore,
 		Handlers:   make(map[string]*Handler),
 		Clients:    make(map[string]*Peer),
 		shutdownCh: make(chan struct{}),
@@ -89,7 +92,7 @@ func (s *Server) handleRequest(ctx context.Context, peer *Peer) {
 		fmt.Println()
 	}()
 
-	securedConnect, err := transport.ClientHandshake(peer.conn)
+	securedConnect, err := transport.ClientHandshake(peer.conn, s.KeyStore)
 	if err != nil {
 		log.Println(err)
 		return

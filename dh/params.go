@@ -1,6 +1,9 @@
 package dh
 
-import "math/big"
+import (
+	"crypto/sha1"
+	"math/big"
+)
 
 // This file contains the predefined MODP groups with 2048
 // and 8192 bits (for 128-bit and 256-bit key agreement),
@@ -45,4 +48,14 @@ var primeRaw = []byte{
 var (
 	Generator = big.NewInt(2)
 	Prime     = new(big.Int).SetBytes(primeRaw)
+
+	PrimeHash []byte
 )
+
+func init() {
+	h := sha1.New()
+
+	h.Write(Prime.Bytes())
+
+	PrimeHash = h.Sum(nil)
+}

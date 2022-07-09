@@ -13,24 +13,23 @@ const (
 	maxWriteTime = 3 * time.Second
 )
 
-func ClientHandshake(tcpConn net.Conn) (net.Conn, error) {
+func ClientHandshake(tcpConn net.Conn, keyStore *dh.KeyStore) (net.Conn, error) {
 	conn := newConn(tcpConn, connCfg{readDeadline: maxReadTime, writeDeadline: maxWriteTime})
 
-	keyStore := dh.KeyStore{}
-	keyStore.GeneratePrivateKey()
+	if !dh.IsKeyValid(keyStore.PrivateKey) {
+		return nil, errors.New("incorrect private key")
+	}
+	if !dh.IsKeyValid(keyStore.PublicKey) {
+		return nil, errors.New("incorrect public key")
+	}
 
 	_, err := conn.Write([]byte("handshake"))
 	if err != nil {
 		return nil, err
 	}
 
-	dhParams := dhParamsInitMsg{g: dh.Generator, p: dh.Prime}
-	_, err = conn.Write(formatMsg(dhParams.g.Bytes(), dhParams.p.Bytes()))
-	if err != nil {
-		return nil, err
-	}
-
-	err = keyStore.GeneratePublicKey()
+	dhParams := dhParamsInitMsg{g: dh.Generator, pHash: dh.PrimeHash}
+	_, err = conn.Write(formatMsg(dhParams.g.Bytes(), dhParams.pHash))
 	if err != nil {
 		return nil, err
 	}

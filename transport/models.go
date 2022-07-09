@@ -6,8 +6,8 @@ import (
 )
 
 type dhParamsInitMsg struct {
-	g *big.Int
-	p *big.Int
+	g     *big.Int
+	pHash []byte
 }
 
 type publicKeyInitMsg struct {
