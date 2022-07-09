@@ -175,27 +175,22 @@ func (s *Server) listenClients(ctx context.Context, clientChan chan<- *Peer) {
 	var connsCounter int32
 
 	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			conn, err := listener.Accept()
-			if err != nil {
-				if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
-					continue
-				}
-				log.Println("Failed to accept connection:", err.Error())
+		conn, err := listener.Accept()
+		if err != nil {
+			if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
+				continue
 			}
-
-			atomic.AddInt32(&connsCounter, 1)
-
-			if connsCounter%10 == 0 {
-				fmt.Println(connsCounter)
-			}
-
-			peer := NewPeer(conn)
-
-			clientChan <- peer
+			log.Println("Failed to accept connection:", err.Error())
 		}
+
+		atomic.AddInt32(&connsCounter, 1)
+
+		if connsCounter%10 == 0 {
+			fmt.Println(connsCounter)
+		}
+
+		peer := NewPeer(conn)
+
+		clientChan <- peer
 	}
 }
