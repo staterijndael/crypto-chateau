@@ -10,7 +10,6 @@ import (
 	"net"
 	"strconv"
 	"sync"
-	"time"
 )
 
 type Server struct {
@@ -96,7 +95,6 @@ func (s *Server) handleRequest(ctx context.Context, peer *Peer) {
 		s.logger.Info("error establishing secured connect",
 			zap.String("connIP", peer.conn.RemoteAddr().String()),
 			zap.Error(err),
-			zap.Time("time", time.Now()),
 		)
 		return
 	}
@@ -108,7 +106,6 @@ func (s *Server) handleRequest(ctx context.Context, peer *Peer) {
 		s.logger.Info("error handling method for peer",
 			zap.String("connIP", peer.conn.RemoteAddr().String()),
 			zap.Error(err),
-			zap.Time("time", time.Now()),
 		)
 		return
 	}
