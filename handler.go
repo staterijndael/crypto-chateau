@@ -3,7 +3,6 @@ package crypto_chateau
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/Oringik/crypto-chateau/generated"
 )
 
@@ -42,7 +41,6 @@ func callFuncToHandlerFunc(fnc interface{}) (func(context.Context, Message) (Mes
 			convertedMessage, ok := message.(*generated.GetUserRequest)
 			if !ok {
 				err := errors.New("error converting message to GetUserRequest")
-				fmt.Println(err)
 				return nil, err
 			}
 
@@ -56,7 +54,6 @@ func callFuncToHandlerFunc(fnc interface{}) (func(context.Context, Message) (Mes
 			convertedMessage, ok := message.(*generated.SendCodeRequest)
 			if !ok {
 				err := errors.New("error converting message to GetUserRequest")
-				fmt.Println(err)
 				return nil, err
 			}
 

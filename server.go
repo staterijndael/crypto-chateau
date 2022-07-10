@@ -3,15 +3,14 @@ package crypto_chateau
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/Oringik/crypto-chateau/dh"
 	"github.com/Oringik/crypto-chateau/generated"
 	"github.com/Oringik/crypto-chateau/transport"
-	"log"
+	"go.uber.org/zap"
 	"net"
 	"strconv"
 	"sync"
-	"sync/atomic"
+	"time"
 )
 
 type Server struct {
@@ -20,7 +19,8 @@ type Server struct {
 	KeyStore *dh.KeyStore
 	// key: ip address  value: client peer
 	Clients    map[string]*Peer
-	shutdownCh chan struct{}
+	shutdownCh chan error
+	logger     *zap.Logger
 }
 
 type Config struct {
@@ -28,7 +28,7 @@ type Config struct {
 	Port int
 }
 
-func NewServer(cfg *Config) *Server {
+func NewServer(cfg *Config, logger *zap.Logger) *Server {
 	keyStore := &dh.KeyStore{}
 
 	keyStore.GeneratePrivateKey()
@@ -39,7 +39,8 @@ func NewServer(cfg *Config) *Server {
 		KeyStore:   keyStore,
 		Handlers:   make(map[string]*Handler),
 		Clients:    make(map[string]*Peer),
-		shutdownCh: make(chan struct{}),
+		shutdownCh: make(chan error),
+		logger:     logger,
 	}
 }
 
@@ -58,7 +59,10 @@ func (s *Server) Run(ctx context.Context, endpoint generated.Endpoint) error {
 	clientCh := make(chan *Peer)
 
 	go func() {
-		s.listenClients(ctx, clientCh)
+		err := s.listenClients(clientCh)
+		if err != nil {
+			s.shutdownCh <- err
+		}
 		wg.Done()
 	}()
 
@@ -89,7 +93,11 @@ func (s *Server) handleRequest(ctx context.Context, peer *Peer) {
 
 	securedConnect, err := transport.ClientHandshake(peer.conn, s.KeyStore)
 	if err != nil {
-		log.Println(err)
+		s.logger.Info("error establishing secured connect",
+			zap.String("connIP", peer.conn.RemoteAddr().String()),
+			zap.Error(err),
+			zap.Time("time", time.Now()),
+		)
 		return
 	}
 
@@ -97,7 +105,11 @@ func (s *Server) handleRequest(ctx context.Context, peer *Peer) {
 
 	err = s.handleMethod(ctx, peer)
 	if err != nil {
-		log.Println(err)
+		s.logger.Info("error handling method for peer",
+			zap.String("connIP", peer.conn.RemoteAddr().String()),
+			zap.Error(err),
+			zap.Time("time", time.Now()),
+		)
 		return
 	}
 }
@@ -164,15 +176,11 @@ func (s *Server) handleMethod(ctx context.Context, peer *Peer) error {
 	return nil
 }
 
-func (s *Server) listenClients(ctx context.Context, clientChan chan<- *Peer) {
+func (s *Server) listenClients(clientChan chan<- *Peer) error {
 	listener, err := net.Listen("tcp", s.Config.IP+":"+strconv.Itoa(s.Config.Port))
 	if err != nil {
-		log.Println(err)
-		s.shutdownCh <- struct{}{}
-		return
+		return err
 	}
-
-	var connsCounter int32
 
 	for {
 		conn, err := listener.Accept()
@@ -180,13 +188,6 @@ func (s *Server) listenClients(ctx context.Context, clientChan chan<- *Peer) {
 			if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
 				continue
 			}
-			log.Println("Failed to accept connection:", err.Error())
-		}
-
-		atomic.AddInt32(&connsCounter, 1)
-
-		if connsCounter%10 == 0 {
-			fmt.Println(connsCounter)
 		}
 
 		peer := NewPeer(conn)
