@@ -21,7 +21,7 @@ type StreamI interface {
 type UserEndpoint interface {
 	SendCode(context.Context, *SendCodeRequest) (*SendCodeResponse, error)
 	GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error)
-	CreateUser(context.Context, *CreateUserRequest) (*CreateUserRequest, error)
+	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 	GetUsers(context.Context, *GetUsersRequest) (*GetUsersResponse, error)
 	GetUserUpdates(context.Context, StreamI) error
 }
