@@ -75,9 +75,26 @@ func (i *SendCodeResponse) Marshal() []byte {
 }
 
 func (i *User) Marshal() []byte {
-	marshalStr := fmt.Sprintf("(Id: %d, Nickname: %s, Age: %d, Gender: %t, Status: %s)",
-		i.Id, i.Nickname, i.Age, i.Gender, i.Status)
-	return []byte(marshalStr)
+	idBytes, ageBytes := make([]byte, 8), make([]byte, 8)
+	binary.BigEndian.PutUint64(idBytes, i.Id)
+	binary.BigEndian.PutUint64(ageBytes, uint64(i.Age))
+	var gender byte
+	if i.Gender {
+		gender = 1
+	} else {
+		gender = 0
+	}
+
+	marshalBytes := []byte("(Id:")
+	marshalBytes = append(marshalBytes, idBytes...)
+	marshalBytes = append(marshalBytes, []byte(",Nickname:"+i.Nickname+",Age:")...)
+	marshalBytes = append(marshalBytes, ageBytes...)
+	marshalBytes = append(marshalBytes, []byte(",Gender:")...)
+	marshalBytes = append(marshalBytes, gender)
+	marshalBytes = append(marshalBytes, []byte(i.Status)...)
+	marshalBytes = append(marshalBytes, []byte(")")...)
+
+	return marshalBytes
 }
 
 func (i *GetUserRequest) Marshal() []byte {
@@ -85,8 +102,9 @@ func (i *GetUserRequest) Marshal() []byte {
 }
 
 func (i *GetUserResponse) Marshal() []byte {
-	marshalStr := fmt.Sprintf("GetUser# User: %s", string(i.User.Marshal()))
-	return []byte(marshalStr)
+	strBytes := []byte("GetUser# User:")
+	strBytes = append(strBytes, i.User.Marshal()...)
+	return strBytes
 }
 
 func (i *GetUsersRequest) Marshal() []byte {
