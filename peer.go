@@ -1,6 +1,9 @@
 package crypto_chateau
 
-import "net"
+import (
+	"github.com/Oringik/crypto-chateau/message"
+	"net"
+)
 
 type Peer struct {
 	conn net.Conn
@@ -12,13 +15,10 @@ func NewPeer(conn net.Conn) *Peer {
 	}
 }
 
-func (p *Peer) WriteResponse(msg Message) error {
-	bytesMsg, err := msg.Marshal()
-	if err != nil {
-		return err
-	}
+func (p *Peer) WriteResponse(msg message.Message) error {
+	bytesMsg := msg.Marshal()
 
-	_, err = p.conn.Write(bytesMsg)
+	_, err := p.conn.Write(bytesMsg)
 	return err
 }
 

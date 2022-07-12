@@ -1,4 +1,4 @@
-package crypto_chateau
+package message
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -11,8 +11,8 @@ type TestMessage struct {
 	SomeString string
 }
 
-func (t *TestMessage) Marshal() {
-	// do something useful
+func (t *TestMessage) Marshal() []byte {
+	return nil
 }
 
 func Test_ParseMessage(t *testing.T) {
@@ -36,4 +36,20 @@ func Test_ParseMessage2(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, "handlerName", string(handlerName))
+}
+
+type Of struct {
+	Users []*Ms
+}
+
+type Ms struct {
+}
+
+func (s *Of) Marshal() []byte {
+	return nil
+}
+
+func Test_GenerateMessage(t *testing.T) {
+	_, err := generateMessage(map[string][]byte{"Users": []byte("{1,2,3}")}, &Of{})
+	assert.NoError(t, err)
 }

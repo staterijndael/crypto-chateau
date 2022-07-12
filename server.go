@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/Oringik/crypto-chateau/dh"
 	"github.com/Oringik/crypto-chateau/generated"
+	"github.com/Oringik/crypto-chateau/message"
 	"github.com/Oringik/crypto-chateau/transport"
 	"go.uber.org/zap"
 	"net"
@@ -120,7 +121,7 @@ func (s *Server) handleMethod(ctx context.Context, peer *Peer) error {
 
 	msg = msg[:n]
 
-	handlerName, n, err := GetHandlerName(msg)
+	handlerName, n, err := message.GetHandlerName(msg)
 	if err != nil {
 		return err
 	}
@@ -134,7 +135,14 @@ func (s *Server) handleMethod(ctx context.Context, peer *Peer) error {
 		return errors.New("incorrect message")
 	}
 
-	requestMsg, err := ParseMessage(msg[n:], handler.requestMsgType)
+	reqMsgParams, err := message.GetParams(msg[n:])
+	if err != nil {
+		return err
+	}
+
+	requestMsg := handler.requestMsgType
+
+	err = requestMsg.Unmarshal(reqMsgParams)
 	if err != nil {
 		return err
 	}

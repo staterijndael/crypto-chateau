@@ -3,28 +3,14 @@ package crypto_chateau
 import (
 	"context"
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"testing"
+	"github.com/Oringik/crypto-chateau/message"
 )
 
 type mockUserEndpoint struct {
 }
 
-func (m *mockUserEndpoint) InsertUser(ctx context.Context, msg Message) (Message, error) {
+func (m *mockUserEndpoint) InsertUser(ctx context.Context, msg message.Message) (message.Message, error) {
 	fmt.Println("user inserted")
 
 	return nil, nil
-}
-
-func Test_InitHandlers(t *testing.T) {
-	s := &Server{
-		Handlers: make(map[string]interface{}),
-	}
-
-	mock := &mockUserEndpoint{}
-
-	err := s.initHandlers(generated.Endpoint{UserEndpoint: mock})
-	assert.NoError(t, err)
-
-	fmt.Println(s.Handlers)
 }

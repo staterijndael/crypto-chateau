@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/Oringik/crypto-chateau/generated"
+	"github.com/Oringik/crypto-chateau/message"
 )
 
 type HandlerType int
@@ -14,7 +15,7 @@ var StreamT HandlerType = 1
 type Handler struct {
 	callFunc interface{}
 	HandlerType
-	requestMsgType Message
+	requestMsgType message.Message
 }
 
 func initHandlers(endpoint generated.Endpoint, handlers map[string]*Handler) {
@@ -32,12 +33,20 @@ func initHandlers(endpoint generated.Endpoint, handlers map[string]*Handler) {
 		callFunc:    endpoint.UserEndpoint.GetUserUpdates,
 		HandlerType: StreamT,
 	}
+	handlers["CreateUser"] = &Handler{
+		callFunc:    endpoint.UserEndpoint.CreateUser,
+		HandlerType: HandlerT,
+	}
+	handlers["GetUsers"] = &Handler{
+		callFunc:    endpoint.UserEndpoint.GetUsers,
+		HandlerType: HandlerT,
+	}
 }
 
-func callFuncToHandlerFunc(fnc interface{}) (func(context.Context, Message) (Message, error), error) {
+func callFuncToHandlerFunc(fnc interface{}) (func(context.Context, message.Message) (message.Message, error), error) {
 	switch fnc.(type) {
 	case func(context.Context, *generated.GetUserRequest) (*generated.GetUserResponse, error):
-		callFunc := func(ctx context.Context, message Message) (Message, error) {
+		callFunc := func(ctx context.Context, message message.Message) (message.Message, error) {
 			convertedMessage, ok := message.(*generated.GetUserRequest)
 			if !ok {
 				err := errors.New("error converting message to GetUserRequest")
@@ -50,7 +59,7 @@ func callFuncToHandlerFunc(fnc interface{}) (func(context.Context, Message) (Mes
 
 		return callFunc, nil
 	case func(ctx context.Context, request *generated.SendCodeRequest) (*generated.SendCodeResponse, error):
-		callFunc := func(ctx context.Context, message Message) (Message, error) {
+		callFunc := func(ctx context.Context, message message.Message) (message.Message, error) {
 			convertedMessage, ok := message.(*generated.SendCodeRequest)
 			if !ok {
 				err := errors.New("error converting message to GetUserRequest")
@@ -58,6 +67,32 @@ func callFuncToHandlerFunc(fnc interface{}) (func(context.Context, Message) (Mes
 			}
 
 			resp, err := fnc.(func(context.Context, *generated.SendCodeRequest) (*generated.SendCodeResponse, error))(ctx, convertedMessage)
+			return resp, err
+		}
+
+		return callFunc, nil
+	case func(ctx context.Context, request *generated.GetUsersRequest) (*generated.GetUsersResponse, error):
+		callFunc := func(ctx context.Context, message message.Message) (message.Message, error) {
+			convertedMessage, ok := message.(*generated.GetUsersRequest)
+			if !ok {
+				err := errors.New("error converting message to GetUsersRequest")
+				return nil, err
+			}
+
+			resp, err := fnc.(func(context.Context, *generated.GetUsersRequest) (*generated.GetUsersResponse, error))(ctx, convertedMessage)
+			return resp, err
+		}
+
+		return callFunc, nil
+	case func(ctx context.Context, request *generated.CreateUserRequest) (*generated.CreateUserResponse, error):
+		callFunc := func(ctx context.Context, message message.Message) (message.Message, error) {
+			convertedMessage, ok := message.(*generated.CreateUserRequest)
+			if !ok {
+				err := errors.New("error converting message to GetUsersRequest")
+				return nil, err
+			}
+
+			resp, err := fnc.(func(context.Context, *generated.CreateUserRequest) (*generated.CreateUserResponse, error))(ctx, convertedMessage)
 			return resp, err
 		}
 
