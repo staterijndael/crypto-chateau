@@ -33,8 +33,11 @@ func GetParams(p []byte) (map[string][]byte, error) {
 	var paramFilled bool
 	var stringParsing bool
 
+	var objectOpenBracketsCount int
+	var objectCloseBracketsCount int
+
 	for i, b := range p {
-		if b == ',' || i == len(p)-1 {
+		if (b == ',' && (objectCloseBracketsCount == objectOpenBracketsCount)) || i == len(p)-1 {
 			if (i != len(p)-1) && (p[i+1] == ',') {
 				continue
 			}
@@ -51,13 +54,20 @@ func GetParams(p []byte) (map[string][]byte, error) {
 			paramBufLast = len(paramBuf) - 1
 			valueBufLast = len(valueBuf) - 1
 
+			objectOpenBracketsCount = 0
+			objectCloseBracketsCount = 0
+
 			paramFilled = false
 		} else if b == ':' && stringParsing == false {
 			paramFilled = true
-		} else if (b == ' ' && stringParsing == false) || b == '(' || b == ')' {
+		} else if b == ' ' && stringParsing == false {
 			continue
 		} else if b == '"' {
 			stringParsing = !stringParsing
+		} else if b == '(' {
+			objectOpenBracketsCount++
+		} else if b == ')' {
+			objectCloseBracketsCount++
 		} else {
 			if !paramFilled {
 				paramBuf = append(paramBuf, b)
