@@ -91,6 +91,7 @@ func (i *User) Marshal() []byte {
 	marshalBytes = append(marshalBytes, ageBytes...)
 	marshalBytes = append(marshalBytes, []byte(",Gender:")...)
 	marshalBytes = append(marshalBytes, gender)
+	marshalBytes = append(marshalBytes, []byte(",Status:")...)
 	marshalBytes = append(marshalBytes, []byte(i.Status)...)
 	marshalBytes = append(marshalBytes, []byte(")")...)
 
