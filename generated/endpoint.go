@@ -137,7 +137,7 @@ func (i *CreateUserResponse) Marshal() []byte {
 // unmarshal
 
 func (i *SendCodeRequest) Unmarshal(params map[string][]byte) error {
-	if len(params["ParamsHash"]) == 0 || len(params["Number"]) == 0 {
+	if len(params["PassHash"]) == 0 || len(params["Number"]) == 0 {
 		return errors.New("incorrect number or pass hash")
 	}
 
