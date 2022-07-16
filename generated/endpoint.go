@@ -71,7 +71,7 @@ func (i *SendCodeRequest) Marshal() []byte {
 }
 
 func (i *SendCodeResponse) Marshal() []byte {
-	return nil
+	return []byte("SendCode#")
 }
 
 func (i *User) Marshal() []byte {
