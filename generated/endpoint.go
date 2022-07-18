@@ -50,7 +50,8 @@ type User struct {
 }
 
 type HandleCodeRequest struct {
-	Code uint8
+	Number string
+	Code   uint8
 }
 
 type HandleCodeResponse struct {
@@ -65,7 +66,7 @@ func (i *RegisterResponse) Marshal() []byte {
 }
 
 func (i *HandleCodeRequest) Marshal() []byte {
-	return []byte(fmt.Sprintf("HandleCode# Code: %d", i.Code))
+	return []byte(fmt.Sprintf("HandleCode# Code: %d, Number: %s", i.Code, i.Number))
 }
 
 func (i *HandleCodeResponse) Marshal() []byte {
@@ -149,6 +150,7 @@ func (i *User) Unmarshal(params map[string][]byte) error {
 
 func (i *HandleCodeRequest) Unmarshal(params map[string][]byte) error {
 	i.Code = uint8(binary.BigEndian.Uint16(params["Code"]))
+	i.Number = string(params["Number"])
 
 	return nil
 }
