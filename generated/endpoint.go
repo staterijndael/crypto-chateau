@@ -18,7 +18,17 @@ type StreamI interface {
 
 type UserEndpoint interface {
 	SendCode(context.Context, *SendCodeRequest) (*SendCodeResponse, error)
+	HandleCode(context.Context, *HandleCodeRequest) (*HandleCodeResponse, error)
+	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
 	GetEvents(context.Context, StreamI) error
+}
+
+type RegisterRequest struct {
+	Nickname string
+	Status   string
+}
+
+type RegisterResponse struct {
 }
 
 type SendCodeRequest struct {
@@ -35,6 +45,29 @@ type User struct {
 	Age      int
 	Gender   bool
 	Status   string
+}
+
+type HandleCodeRequest struct {
+	Code uint8
+}
+
+type HandleCodeResponse struct {
+}
+
+func (i *RegisterRequest) Marshal() []byte {
+	return []byte(fmt.Sprintf("Register# Nickname: %s, Status: %s", i.Nickname, i.Status))
+}
+
+func (i *RegisterResponse) Marshal() []byte {
+	return nil
+}
+
+func (i *HandleCodeRequest) Marshal() []byte {
+	return []byte(fmt.Sprintf("HandleCode# Code: %d", i.Code))
+}
+
+func (i *HandleCodeResponse) Marshal() []byte {
+	return nil
 }
 
 func (i *SendCodeRequest) Marshal() []byte {
@@ -71,6 +104,17 @@ func (i *User) Marshal() []byte {
 
 // unmarshal
 
+func (i *RegisterRequest) Unmarshal(params map[string][]byte) error {
+	i.Status = string(params["Status"])
+	i.Nickname = string(params["Nickname"])
+
+	return nil
+}
+
+func (i *RegisterResponse) Unmarshal(params map[string][]byte) error {
+	return nil
+}
+
 func (i *SendCodeRequest) Unmarshal(params map[string][]byte) error {
 	if len(params["PassHash"]) == 0 || len(params["Number"]) == 0 {
 		return errors.New("incorrect number or pass hash")
@@ -95,6 +139,12 @@ func (i *User) Unmarshal(params map[string][]byte) error {
 		i.Gender = false
 	}
 	i.Status = string(params["Status"])
+
+	return nil
+}
+
+func (i *HandleCodeRequest) Unmarshal(params map[string][]byte) error {
+	i.Code = uint8(binary.BigEndian.Uint16(params["Code"]))
 
 	return nil
 }
