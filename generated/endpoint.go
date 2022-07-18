@@ -24,6 +24,7 @@ type UserEndpoint interface {
 }
 
 type RegisterRequest struct {
+	Code     uint8
 	Nickname string
 	Status   string
 }
@@ -55,7 +56,7 @@ type HandleCodeResponse struct {
 }
 
 func (i *RegisterRequest) Marshal() []byte {
-	return []byte(fmt.Sprintf("Register# Nickname: %s, Status: %s", i.Nickname, i.Status))
+	return []byte(fmt.Sprintf("Register# Nickname:%s,Status:%s,Code:%d", i.Nickname, i.Status, i.Code))
 }
 
 func (i *RegisterResponse) Marshal() []byte {
@@ -107,6 +108,7 @@ func (i *User) Marshal() []byte {
 func (i *RegisterRequest) Unmarshal(params map[string][]byte) error {
 	i.Status = string(params["Status"])
 	i.Nickname = string(params["Nickname"])
+	i.Code = uint8(binary.BigEndian.Uint16(params["Code"]))
 
 	return nil
 }
