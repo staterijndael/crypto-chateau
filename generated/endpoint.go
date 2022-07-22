@@ -20,7 +20,24 @@ type UserEndpoint interface {
 	SendCode(context.Context, *SendCodeRequest) (*SendCodeResponse, error)
 	HandleCode(context.Context, *HandleCodeRequest) (*HandleCodeResponse, error)
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
+	AuthToken(context.Context, *AuthTokenRequest) (*AuthTokenResponse, error)
+	AuthCredentials(context.Context, *AuthCredentialsRequest) (*AuthCredentialsResponse, error)
 	GetEvents(context.Context, StreamI) error
+}
+
+type AuthTokenRequest struct {
+	SessionToken string
+}
+
+type AuthTokenResponse struct {
+}
+
+type AuthCredentialsRequest struct {
+	Number   string
+	PassHash string
+}
+
+type AuthCredentialsResponse struct {
 }
 
 type RegisterRequest struct {
