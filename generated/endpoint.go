@@ -38,6 +38,7 @@ type AuthCredentialsRequest struct {
 }
 
 type AuthCredentialsResponse struct {
+	SessionToken string
 }
 
 type RegisterRequest struct {
