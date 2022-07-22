@@ -75,6 +75,14 @@ type HandleCodeRequest struct {
 type HandleCodeResponse struct {
 }
 
+func (i *AuthTokenRequest) Marshal() []byte {
+	return []byte(fmt.Sprintf("AuthToken# SessionToken:%s", i.SessionToken))
+}
+
+func (i *AuthTokenResponse) Marshal() []byte {
+	return nil
+}
+
 func (i *RegisterRequest) Marshal() []byte {
 	return []byte(fmt.Sprintf("Register# Nickname:%s,Status:%s", i.Nickname, i.Status))
 }
@@ -151,6 +159,16 @@ func (i *SendCodeRequest) Unmarshal(params map[string][]byte) error {
 }
 
 func (i *SendCodeResponse) Unmarshal(params map[string][]byte) error {
+	return nil
+}
+
+func (i *AuthTokenRequest) Unmarshal(params map[string][]byte) error {
+	i.SessionToken = string(params["SessionToken"])
+
+	return nil
+}
+
+func (i *AuthTokenResponse) Unmarshal(params map[string][]byte) error {
 	return nil
 }
 
