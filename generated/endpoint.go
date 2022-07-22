@@ -30,6 +30,7 @@ type RegisterRequest struct {
 }
 
 type RegisterResponse struct {
+	SessionToken string
 }
 
 type SendCodeRequest struct {
@@ -115,6 +116,8 @@ func (i *RegisterRequest) Unmarshal(params map[string][]byte) error {
 }
 
 func (i *RegisterResponse) Unmarshal(params map[string][]byte) error {
+	i.SessionToken = string(params["SessionToken"])
+
 	return nil
 }
 
