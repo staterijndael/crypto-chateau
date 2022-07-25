@@ -1,6 +1,7 @@
 package crypto_chateau
 
 import (
+	"fmt"
 	"github.com/Oringik/crypto-chateau/message"
 	"net"
 )
@@ -22,8 +23,8 @@ func (p *Peer) WriteResponse(msg message.Message) error {
 	return err
 }
 
-func (p *Peer) WriteError(err error) error {
-	msg := "error: " + err.Error()
+func (p *Peer) WriteError(handlerName string, err error) error {
+	msg := fmt.Sprintf("%s# error: %s", handlerName, err.Error())
 
 	_, writeErr := p.conn.Write([]byte(msg))
 

@@ -156,7 +156,7 @@ func (s *Server) handleMethod(ctx context.Context, peer *Peer) error {
 
 		responseMsg, err := fnc(ctx, requestMsg)
 		if err != nil {
-			writeErr := peer.WriteError(err)
+			writeErr := peer.WriteError(string(handlerName), err)
 			return writeErr
 		}
 
@@ -171,7 +171,7 @@ func (s *Server) handleMethod(ctx context.Context, peer *Peer) error {
 		}
 		err := fnc(ctx, stream)
 		if err != nil {
-			writeErr := peer.WriteError(err)
+			writeErr := peer.WriteError(string(handlerName), err)
 			return writeErr
 		}
 	default:
