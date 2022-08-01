@@ -43,7 +43,7 @@ type AuthCredentialsResponse struct {
 
 type RegisterRequest struct {
 	Number   string
-	Code     string
+	Code     uint8
 	Nickname string
 	Bio      string
 	PassHash string
@@ -114,7 +114,7 @@ func (i *RegisterRequest) Unmarshal(params map[string][]byte) error {
 	i.Bio = string(params["Bio"])
 	i.Nickname = string(params["Nickname"])
 	i.Number = string(params["Number"])
-	i.Code = string(params["Code"])
+	i.Code = uint8(binary.BigEndian.Uint16(params["Code"]))
 	i.PassHash = string(params["PassHash"])
 
 	return nil
