@@ -45,7 +45,7 @@ type RegisterRequest struct {
 	Number   string
 	Code     string
 	Nickname string
-	Status   string
+	Bio      string
 	PassHash string
 }
 
@@ -58,14 +58,6 @@ type SendCodeRequest struct {
 }
 
 type SendCodeResponse struct {
-}
-
-type User struct {
-	Id       uint64
-	Nickname string
-	Age      int
-	Gender   bool
-	Status   string
 }
 
 type HandleCodeRequest struct {
@@ -93,7 +85,7 @@ func (i *AuthTokenResponse) Marshal() []byte {
 }
 
 func (i *RegisterRequest) Marshal() []byte {
-	return []byte(fmt.Sprintf("Register# Nickname:%s,Status:%s", i.Nickname, i.Status))
+	return []byte(fmt.Sprintf("Register# Nickname:%s,Bio:%s", i.Nickname, i.Bio))
 }
 
 func (i *RegisterResponse) Marshal() []byte {
@@ -116,34 +108,10 @@ func (i *SendCodeResponse) Marshal() []byte {
 	return []byte("SendCode#")
 }
 
-func (i *User) Marshal() []byte {
-	idBytes, ageBytes := make([]byte, 8), make([]byte, 8)
-	binary.BigEndian.PutUint64(idBytes, i.Id)
-	binary.BigEndian.PutUint64(ageBytes, uint64(i.Age))
-	var gender byte
-	if i.Gender {
-		gender = 1
-	} else {
-		gender = 0
-	}
-
-	marshalBytes := []byte("(Id:")
-	marshalBytes = append(marshalBytes, idBytes...)
-	marshalBytes = append(marshalBytes, []byte(",Nickname:"+i.Nickname+",Age:")...)
-	marshalBytes = append(marshalBytes, ageBytes...)
-	marshalBytes = append(marshalBytes, []byte(",Gender:")...)
-	marshalBytes = append(marshalBytes, gender)
-	marshalBytes = append(marshalBytes, []byte(",Status:")...)
-	marshalBytes = append(marshalBytes, []byte(i.Status)...)
-	marshalBytes = append(marshalBytes, []byte(")")...)
-
-	return marshalBytes
-}
-
 // unmarshal
 
 func (i *RegisterRequest) Unmarshal(params map[string][]byte) error {
-	i.Status = string(params["Status"])
+	i.Bio = string(params["Bio"])
 	i.Nickname = string(params["Nickname"])
 	i.Number = string(params["Number"])
 	i.Code = string(params["Code"])
@@ -190,19 +158,6 @@ func (i *AuthTokenRequest) Unmarshal(params map[string][]byte) error {
 }
 
 func (i *AuthTokenResponse) Unmarshal(params map[string][]byte) error {
-	return nil
-}
-
-func (i *User) Unmarshal(params map[string][]byte) error {
-	i.Id = binary.BigEndian.Uint64(params["Id"])
-	i.Age = int(binary.BigEndian.Uint64(params["Age"]))
-	if params["Gender"][0] == '1' {
-		i.Gender = true
-	} else {
-		i.Gender = false
-	}
-	i.Status = string(params["Status"])
-
 	return nil
 }
 
