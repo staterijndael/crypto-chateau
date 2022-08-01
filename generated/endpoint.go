@@ -43,8 +43,10 @@ type AuthCredentialsResponse struct {
 
 type RegisterRequest struct {
 	Number   string
+	Code     string
 	Nickname string
 	Status   string
+	PassHash string
 }
 
 type RegisterResponse struct {
@@ -52,8 +54,7 @@ type RegisterResponse struct {
 }
 
 type SendCodeRequest struct {
-	Number   string
-	PassHash string
+	Number string
 }
 
 type SendCodeResponse struct {
@@ -75,18 +76,8 @@ type HandleCodeRequest struct {
 type HandleCodeResponse struct {
 }
 
-func (i *HandleCodeResponse) Unmarshal(m map[string][]byte) error {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (a AuthCredentialsResponse) Marshal() []byte {
 	return []byte(fmt.Sprintf("AuthCreds# SessionToken:%s", a.SessionToken))
-}
-
-func (a AuthCredentialsResponse) Unmarshal(m map[string][]byte) error {
-	//TODO implement me
-	panic("implement me")
 }
 
 func (i *AuthCredentialsRequest) Marshal() []byte {
@@ -118,7 +109,7 @@ func (i *HandleCodeResponse) Marshal() []byte {
 }
 
 func (i *SendCodeRequest) Marshal() []byte {
-	return []byte(fmt.Sprintf("SendCode# Number:%s,PassHash:%s", i.Number, i.PassHash))
+	return []byte(fmt.Sprintf("SendCode# Number:%s", i.Number))
 }
 
 func (i *SendCodeResponse) Marshal() []byte {
@@ -155,6 +146,8 @@ func (i *RegisterRequest) Unmarshal(params map[string][]byte) error {
 	i.Status = string(params["Status"])
 	i.Nickname = string(params["Nickname"])
 	i.Number = string(params["Number"])
+	i.Code = string(params["Code"])
+	i.PassHash = string(params["PassHash"])
 
 	return nil
 }
@@ -170,7 +163,6 @@ func (i *SendCodeRequest) Unmarshal(params map[string][]byte) error {
 		return errors.New("incorrect number or pass hash")
 	}
 
-	i.PassHash = string(params["PassHash"])
 	i.Number = string(params["Number"])
 
 	return nil
@@ -219,4 +211,14 @@ func (i *HandleCodeRequest) Unmarshal(params map[string][]byte) error {
 	i.Number = string(params["Number"])
 
 	return nil
+}
+
+func (i *HandleCodeResponse) Unmarshal(m map[string][]byte) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a AuthCredentialsResponse) Unmarshal(m map[string][]byte) error {
+	//TODO implement me
+	panic("implement me")
 }
