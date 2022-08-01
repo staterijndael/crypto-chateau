@@ -25,20 +25,24 @@ func initHandlers(endpoint generated.Endpoint, handlers map[string]*Handler) {
 		requestMsgType: &generated.SendCodeRequest{},
 	}
 	handlers["HandleCode"] = &Handler{
-		callFunc:    endpoint.UserEndpoint.HandleCode,
-		HandlerType: HandlerT,
+		callFunc:       endpoint.UserEndpoint.HandleCode,
+		HandlerType:    HandlerT,
+		requestMsgType: &generated.HandleCodeRequest{},
 	}
 	handlers["Register"] = &Handler{
-		callFunc:    endpoint.UserEndpoint.Register,
-		HandlerType: StreamT,
+		callFunc:       endpoint.UserEndpoint.Register,
+		HandlerType:    HandlerT,
+		requestMsgType: &generated.RegisterRequest{},
 	}
 	handlers["AuthToken"] = &Handler{
-		callFunc:    endpoint.UserEndpoint.AuthToken,
-		HandlerType: StreamT,
+		callFunc:       endpoint.UserEndpoint.AuthToken,
+		HandlerType:    HandlerT,
+		requestMsgType: &generated.AuthTokenRequest{},
 	}
 	handlers["AuthCredentials"] = &Handler{
-		callFunc:    endpoint.UserEndpoint.AuthCredentials,
-		HandlerType: StreamT,
+		callFunc:       endpoint.UserEndpoint.AuthCredentials,
+		HandlerType:    HandlerT,
+		requestMsgType: &generated.AuthCredentialsRequest{},
 	}
 }
 
