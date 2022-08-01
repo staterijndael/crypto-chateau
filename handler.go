@@ -24,8 +24,20 @@ func initHandlers(endpoint generated.Endpoint, handlers map[string]*Handler) {
 		HandlerType:    HandlerT,
 		requestMsgType: &generated.SendCodeRequest{},
 	}
-	handlers["GetEvents"] = &Handler{
-		callFunc:    endpoint.UserEndpoint.GetEvents,
+	handlers["HandleCode"] = &Handler{
+		callFunc:    endpoint.UserEndpoint.HandleCode,
+		HandlerType: HandlerT,
+	}
+	handlers["Register"] = &Handler{
+		callFunc:    endpoint.UserEndpoint.Register,
+		HandlerType: StreamT,
+	}
+	handlers["AuthToken"] = &Handler{
+		callFunc:    endpoint.UserEndpoint.AuthToken,
+		HandlerType: StreamT,
+	}
+	handlers["AuthCredentials"] = &Handler{
+		callFunc:    endpoint.UserEndpoint.AuthCredentials,
 		HandlerType: StreamT,
 	}
 }
@@ -43,7 +55,54 @@ func callFuncToHandlerFunc(fnc interface{}) (func(context.Context, message.Messa
 			resp, err := fnc.(func(context.Context, *generated.SendCodeRequest) (*generated.SendCodeResponse, error))(ctx, convertedMessage)
 			return resp, err
 		}
+		return callFunc, nil
+	case func(ctx context.Context, request *generated.HandleCodeRequest) (*generated.HandleCodeResponse, error):
+		callFunc := func(ctx context.Context, message message.Message) (message.Message, error) {
+			convertedMessage, ok := message.(*generated.HandleCodeRequest)
+			if !ok {
+				err := errors.New("error converting message to GetUserRequest")
+				return nil, err
+			}
 
+			resp, err := fnc.(func(context.Context, *generated.HandleCodeRequest) (*generated.HandleCodeResponse, error))(ctx, convertedMessage)
+			return resp, err
+		}
+		return callFunc, nil
+	case func(ctx context.Context, request *generated.AuthTokenRequest) (*generated.AuthTokenResponse, error):
+		callFunc := func(ctx context.Context, message message.Message) (message.Message, error) {
+			convertedMessage, ok := message.(*generated.AuthTokenRequest)
+			if !ok {
+				err := errors.New("error converting message to GetUserRequest")
+				return nil, err
+			}
+
+			resp, err := fnc.(func(context.Context, *generated.AuthTokenRequest) (*generated.AuthTokenResponse, error))(ctx, convertedMessage)
+			return resp, err
+		}
+		return callFunc, nil
+	case func(ctx context.Context, request *generated.RegisterRequest) (*generated.RegisterResponse, error):
+		callFunc := func(ctx context.Context, message message.Message) (message.Message, error) {
+			convertedMessage, ok := message.(*generated.RegisterRequest)
+			if !ok {
+				err := errors.New("error converting message to GetUserRequest")
+				return nil, err
+			}
+
+			resp, err := fnc.(func(context.Context, *generated.RegisterRequest) (*generated.RegisterResponse, error))(ctx, convertedMessage)
+			return resp, err
+		}
+		return callFunc, nil
+	case func(ctx context.Context, request *generated.AuthCredentialsRequest) (*generated.AuthCredentialsResponse, error):
+		callFunc := func(ctx context.Context, message message.Message) (message.Message, error) {
+			convertedMessage, ok := message.(*generated.AuthCredentialsRequest)
+			if !ok {
+				err := errors.New("error converting message to GetUserRequest")
+				return nil, err
+			}
+
+			resp, err := fnc.(func(context.Context, *generated.AuthCredentialsRequest) (*generated.AuthCredentialsResponse, error))(ctx, convertedMessage)
+			return resp, err
+		}
 		return callFunc, nil
 	default:
 		return nil, errors.New("incorrect handler func type")

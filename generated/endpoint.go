@@ -75,6 +75,24 @@ type HandleCodeRequest struct {
 type HandleCodeResponse struct {
 }
 
+func (i *HandleCodeResponse) Unmarshal(m map[string][]byte) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a AuthCredentialsResponse) Marshal() []byte {
+	return []byte(fmt.Sprintf("AuthCredentials# SessionToken:%s", a.SessionToken))
+}
+
+func (a AuthCredentialsResponse) Unmarshal(m map[string][]byte) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (i *AuthCredentialsRequest) Marshal() []byte {
+	return nil
+}
+
 func (i *AuthTokenRequest) Marshal() []byte {
 	return []byte(fmt.Sprintf("AuthToken# SessionToken:%s", i.SessionToken))
 }
@@ -148,6 +166,17 @@ func (i *RegisterResponse) Unmarshal(params map[string][]byte) error {
 }
 
 func (i *SendCodeRequest) Unmarshal(params map[string][]byte) error {
+	if len(params["PassHash"]) == 0 || len(params["Number"]) == 0 {
+		return errors.New("incorrect number or pass hash")
+	}
+
+	i.PassHash = string(params["PassHash"])
+	i.Number = string(params["Number"])
+
+	return nil
+}
+
+func (i *AuthCredentialsRequest) Unmarshal(params map[string][]byte) error {
 	if len(params["PassHash"]) == 0 || len(params["Number"]) == 0 {
 		return errors.New("incorrect number or pass hash")
 	}
