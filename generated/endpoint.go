@@ -81,7 +81,7 @@ func (i *HandleCodeResponse) Unmarshal(m map[string][]byte) error {
 }
 
 func (a AuthCredentialsResponse) Marshal() []byte {
-	return []byte(fmt.Sprintf("AuthCredentials# SessionToken:%s", a.SessionToken))
+	return []byte(fmt.Sprintf("AuthCreds# SessionToken:%s", a.SessionToken))
 }
 
 func (a AuthCredentialsResponse) Unmarshal(m map[string][]byte) error {

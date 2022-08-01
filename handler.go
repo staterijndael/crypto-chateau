@@ -39,7 +39,7 @@ func initHandlers(endpoint generated.Endpoint, handlers map[string]*Handler) {
 		HandlerType:    HandlerT,
 		requestMsgType: &generated.AuthTokenRequest{},
 	}
-	handlers["AuthCredentials"] = &Handler{
+	handlers["AuthCreds"] = &Handler{
 		callFunc:       endpoint.UserEndpoint.AuthCredentials,
 		HandlerType:    HandlerT,
 		requestMsgType: &generated.AuthCredentialsRequest{},
