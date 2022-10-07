@@ -1,65 +1,14 @@
 package dh
 
-import (
-	"crypto/rand"
-	"errors"
-	"math/big"
-)
+import "golang.org/x/crypto/curve25519"
 
-type KeyStore struct {
-	PrivateKey *big.Int
-	PublicKey  *big.Int
-	SharedKey  *big.Int
-}
-
-func (k *KeyStore) GenerateSharedKey(receivedPublicKey *big.Int) error {
-	sharedKey := new(big.Int)
-
-	if !IsKeyValid(receivedPublicKey) {
-		return errors.New("incorrect received public key")
-	}
-	if !IsKeyValid(k.PrivateKey) {
-		return errors.New("incorrect private key")
+func DH(priv [32]byte, pub [32]byte) ([32]byte, error) {
+	sharedKey, err := curve25519.X25519(priv[:], pub[:])
+	if err != nil {
+		return [32]byte{}, err
 	}
 
-	sharedKey.Exp(receivedPublicKey, k.PrivateKey, Prime)
-
-	k.SharedKey = sharedKey
-
-	return nil
-}
-
-func (k *KeyStore) GeneratePublicKey() error {
-	if !IsKeyValid(k.PrivateKey) {
-		return errors.New("incorrect private key")
-	}
-
-	publicKey := new(big.Int)
-	publicKey.Exp(Generator, k.PrivateKey, Prime)
-
-	k.PublicKey = publicKey
-
-	return nil
-}
-
-func (k *KeyStore) GeneratePrivateKey() {
-	privateKey, _ := rand.Int(rand.Reader, Prime)
-
-	k.PrivateKey = privateKey
-}
-
-func IsValidParams(g *big.Int, p *big.Int) error {
-	if g.Cmp(Generator) != 0 {
-		return errors.New("incorrect generator")
-	}
-
-	if p.Cmp(Prime) != 0 {
-		return errors.New("incorrect prime")
-	}
-
-	return nil
-}
-
-func IsKeyValid(key *big.Int) bool {
-	return key.BitLen() != 0
+	var buf [32]byte
+	copy(buf[:], sharedKey)
+	return buf, nil
 }

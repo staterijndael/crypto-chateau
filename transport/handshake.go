@@ -1,9 +1,11 @@
 package transport
 
 import (
+	"crypto/rand"
 	"errors"
 	"github.com/Oringik/crypto-chateau/dh"
-	"math/big"
+	"golang.org/x/crypto/curve25519"
+	"io"
 	"net"
 	"time"
 )
@@ -13,15 +15,8 @@ const (
 	maxWriteTime = 3 * time.Second
 )
 
-func ClientHandshake(tcpConn net.Conn, keyStore *dh.KeyStore) (net.Conn, error) {
+func ClientHandshake(tcpConn net.Conn) (net.Conn, error) {
 	conn := newConn(tcpConn, connCfg{readDeadline: maxReadTime, writeDeadline: maxWriteTime})
-
-	if !dh.IsKeyValid(keyStore.PrivateKey) {
-		return nil, errors.New("incorrect private key")
-	}
-	if !dh.IsKeyValid(keyStore.PublicKey) {
-		return nil, errors.New("incorrect public key")
-	}
 
 	msg := make([]byte, 9)
 	_, err := conn.Read(msg)
@@ -32,26 +27,28 @@ func ClientHandshake(tcpConn net.Conn, keyStore *dh.KeyStore) (net.Conn, error) 
 		return nil, errors.New("incorrect init message")
 	}
 
-	dhParams := dhParamsInitMsg{g: dh.Generator, pHash: dh.PrimeHash}
-	_, err = conn.Write(formatMsg(dhParams.g.Bytes(), dhParams.pHash))
+	var priv [32]byte
+	if _, err := io.ReadFull(rand.Reader, priv[:]); err != nil {
+		panic(err)
+	}
+
+	priv[0] &= 248
+	priv[31] &= 63
+	priv[31] |= 64
+
+	var pub [32]byte
+	curve25519.ScalarBaseMult(&pub, &priv)
+
+	publicKeyMsg := publicKeyInitMsg{publicKey: pub}
+
+	_, err = conn.Write(formatMsg(publicKeyMsg.publicKey[:]))
 	if err != nil {
 		return nil, err
 	}
 
-	publicKeyMsg := publicKeyInitMsg{publicKey: keyStore.PublicKey}
-
-	_, err = conn.Write(formatMsg(publicKeyMsg.publicKey.Bytes()))
+	connPublicKey, err := readConnPubKey(conn)
 	if err != nil {
 		return nil, err
-	}
-
-	connPublicKey, err := readConnBigInt(conn)
-	if err != nil {
-		return nil, err
-	}
-
-	if !dh.IsKeyValid(connPublicKey) {
-		return nil, errors.New("invalid public key")
 	}
 
 	_, err = conn.Write([]byte{'1'})
@@ -59,12 +56,12 @@ func ClientHandshake(tcpConn net.Conn, keyStore *dh.KeyStore) (net.Conn, error) 
 		return nil, err
 	}
 
-	err = keyStore.GenerateSharedKey(connPublicKey)
+	sharedKey, err := dh.DH(priv, connPublicKey)
 	if err != nil {
 		return nil, err
 	}
 
-	err = conn.enableEncryption(keyStore.SharedKey)
+	err = conn.enableEncryption(sharedKey)
 	if err != nil {
 		return nil, err
 	}
@@ -72,15 +69,14 @@ func ClientHandshake(tcpConn net.Conn, keyStore *dh.KeyStore) (net.Conn, error) 
 	return conn, nil
 }
 
-func readConnBigInt(conn *Conn) (*big.Int, error) {
-	buf := make([]byte, 256)
+func readConnPubKey(conn *Conn) ([32]byte, error) {
+	buf := make([]byte, 32)
 	_, err := conn.Read(buf)
 	if err != nil {
-		return nil, err
+		return [32]byte{}, err
 	}
 
-	convertedBigIntBytes := new(big.Int)
-	convertedBigIntBytes.SetBytes(buf)
-
-	return convertedBigIntBytes, nil
+	var s [32]byte
+	copy(s[:], buf)
+	return s, nil
 }

@@ -2,16 +2,10 @@ package transport
 
 import (
 	"errors"
-	"math/big"
 )
 
-type dhParamsInitMsg struct {
-	g     *big.Int
-	pHash []byte
-}
-
 type publicKeyInitMsg struct {
-	publicKey *big.Int
+	publicKey [32]byte
 }
 
 func formatMsg(fields ...[]byte) []byte {

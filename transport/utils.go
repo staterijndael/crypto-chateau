@@ -2,12 +2,11 @@ package transport
 
 import (
 	"crypto/sha256"
-	"math/big"
 )
 
-func getSha256FromBigInt(num *big.Int) ([]byte, error) {
+func getSha256FromBytes(bytes [32]byte) ([]byte, error) {
 	hasher := sha256.New()
-	_, err := hasher.Write(num.Bytes())
+	_, err := hasher.Write(bytes[:])
 	if err != nil {
 		return nil, err
 	}

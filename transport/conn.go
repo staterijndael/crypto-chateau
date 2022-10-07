@@ -3,8 +3,6 @@ package transport
 import (
 	"errors"
 	"github.com/Oringik/crypto-chateau/aes-256"
-	"github.com/Oringik/crypto-chateau/dh"
-	"math/big"
 	"net"
 	"time"
 )
@@ -33,16 +31,12 @@ func newConn(tcpConn net.Conn, cfg connCfg) *Conn {
 	}
 }
 
-func (cn *Conn) enableEncryption(sharedKey *big.Int) error {
+func (cn *Conn) enableEncryption(sharedKey [32]byte) error {
 	if cn.encryption.enabled {
 		return errors.New("encryption already enabled")
 	}
 
-	if !dh.IsKeyValid(sharedKey) {
-		return errors.New("invalid shared key")
-	}
-
-	sharedKeyHash, err := getSha256FromBigInt(sharedKey)
+	sharedKeyHash, err := getSha256FromBytes(sharedKey)
 	if err != nil {
 		return err
 	}
