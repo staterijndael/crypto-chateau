@@ -3,7 +3,6 @@ package crypto_chateau
 import (
 	"context"
 	"errors"
-	"github.com/Oringik/crypto-chateau/dh"
 	"github.com/Oringik/crypto-chateau/generated"
 	"github.com/Oringik/crypto-chateau/message"
 	"github.com/Oringik/crypto-chateau/transport"
@@ -16,7 +15,6 @@ import (
 type Server struct {
 	Config   *Config
 	Handlers map[string]*Handler
-	KeyStore *dh.KeyStore
 	// key: ip address  value: client peer
 	Clients    map[string]*Peer
 	shutdownCh chan error
@@ -29,14 +27,8 @@ type Config struct {
 }
 
 func NewServer(cfg *Config, logger *zap.Logger) *Server {
-	keyStore := &dh.KeyStore{}
-
-	keyStore.GeneratePrivateKey()
-	keyStore.GeneratePublicKey()
-
 	return &Server{
 		Config:     cfg,
-		KeyStore:   keyStore,
 		Handlers:   make(map[string]*Handler),
 		Clients:    make(map[string]*Peer),
 		shutdownCh: make(chan error),
@@ -91,7 +83,7 @@ func (s *Server) handleRequests(ctx context.Context, clientChan <-chan *Peer) {
 func (s *Server) handleRequest(ctx context.Context, peer *Peer) {
 	defer peer.Close()
 
-	securedConnect, err := transport.ClientHandshake(peer.conn, s.KeyStore)
+	securedConnect, err := transport.ClientHandshake(peer.conn)
 	if err != nil {
 		s.logger.Info("error establishing secured connect",
 			zap.String("connIP", peer.conn.RemoteAddr().String()),
