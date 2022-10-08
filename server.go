@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/Oringik/crypto-chateau/generated"
 	"github.com/Oringik/crypto-chateau/message"
+	"github.com/Oringik/crypto-chateau/peer"
 	"github.com/Oringik/crypto-chateau/transport"
 	"go.uber.org/zap"
 	"net"
@@ -14,9 +15,9 @@ import (
 
 type Server struct {
 	Config   *Config
-	Handlers map[string]*Handler
+	Handlers map[string]*generated.Handler
 	// key: ip address  value: client peer
-	Clients    map[string]*Peer
+	Clients    map[string]*peer.Peer
 	shutdownCh chan error
 	logger     *zap.Logger
 }
@@ -29,8 +30,8 @@ type Config struct {
 func NewServer(cfg *Config, logger *zap.Logger) *Server {
 	return &Server{
 		Config:     cfg,
-		Handlers:   make(map[string]*Handler),
-		Clients:    make(map[string]*Peer),
+		Handlers:   make(map[string]*generated.Handler),
+		Clients:    make(map[string]*peer.Peer),
 		shutdownCh: make(chan error),
 		logger:     logger,
 	}
@@ -42,13 +43,13 @@ func (s *Server) Run(ctx context.Context, endpoint generated.Endpoint) error {
 		return err
 	}
 
-	initHandlers(endpoint, s.Handlers)
+	generated.InitHandlers(endpoint, s.Handlers)
 
 	wg := sync.WaitGroup{}
 
 	wg.Add(1)
 
-	clientCh := make(chan *Peer)
+	clientCh := make(chan *peer.Peer)
 
 	go func() {
 		err := s.listenClients(clientCh)
@@ -65,46 +66,43 @@ func (s *Server) Run(ctx context.Context, endpoint generated.Endpoint) error {
 	return nil
 }
 
-func (s *Server) handleRequests(ctx context.Context, clientChan <-chan *Peer) {
+func (s *Server) handleRequests(ctx context.Context, clientChan <-chan *peer.Peer) {
 	for {
 		//select {
 		//case <-ctx.Done():
 		//	return
 		//case client := <-clientChan:
 		//	go s.handleRequest(ctx, client)
-		//default:
-		//	continue
-		//}
 		client := <-clientChan
 		go s.handleRequest(ctx, client)
 	}
 }
 
-func (s *Server) handleRequest(ctx context.Context, peer *Peer) {
+func (s *Server) handleRequest(ctx context.Context, peer *peer.Peer) {
 	defer peer.Close()
 
-	securedConnect, err := transport.ClientHandshake(peer.conn)
+	securedConnect, err := transport.ClientHandshake(peer.Conn)
 	if err != nil {
 		s.logger.Info("error establishing secured connect",
-			zap.String("connIP", peer.conn.RemoteAddr().String()),
+			zap.String("connIP", peer.Conn.RemoteAddr().String()),
 			zap.Error(err),
 		)
 		return
 	}
 
-	peer.conn = securedConnect
+	peer.Conn = securedConnect
 
 	err = s.handleMethod(ctx, peer)
 	if err != nil {
 		s.logger.Info("error handling method for peer",
-			zap.String("connIP", peer.conn.RemoteAddr().String()),
+			zap.String("connIP", peer.Conn.RemoteAddr().String()),
 			zap.Error(err),
 		)
 		return
 	}
 }
 
-func (s *Server) handleMethod(ctx context.Context, peer *Peer) error {
+func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
 	msg := make([]byte, 1024)
 	n, err := peer.Read(msg)
 	if err != nil {
@@ -132,7 +130,7 @@ func (s *Server) handleMethod(ctx context.Context, peer *Peer) error {
 		return err
 	}
 
-	requestMsg := handler.requestMsgType
+	requestMsg := handler.RequestMsgType
 
 	err = requestMsg.Unmarshal(reqMsgParams)
 	if err != nil {
@@ -140,31 +138,33 @@ func (s *Server) handleMethod(ctx context.Context, peer *Peer) error {
 	}
 
 	switch handler.HandlerType {
-	case HandlerT:
-		fnc, err := callFuncToHandlerFunc(handler.callFunc)
-		if err != nil {
-			return err
-		}
-
-		responseMsg, err := fnc(ctx, requestMsg)
+	case generated.HandlerT:
+		responseMessage, err := handler.CallFuncHandler(ctx, requestMsg)
 		if err != nil {
 			writeErr := peer.WriteError(string(handlerName), err)
 			return writeErr
 		}
 
-		err = peer.WriteResponse(responseMsg)
+		err = peer.WriteResponse(responseMessage)
 		if err != nil {
 			return err
 		}
-	case StreamT:
-		fnc := handler.callFunc.(func(context.Context, *Stream) error)
-		stream := &Stream{
-			peer: peer,
-		}
-		err := fnc(ctx, stream)
-		if err != nil {
-			writeErr := peer.WriteError(string(handlerName), err)
-			return writeErr
+	case generated.StreamT:
+		if _, ok := handler.RequestMsgType.(generated.StreamReq); ok {
+			streamReq := handler.RequestMsgType.(generated.StreamReq)
+			err = streamReq.Init(peer, requestMsg)
+			if err != nil {
+				writeErr := peer.WriteError(string(handlerName), err)
+				return writeErr
+			}
+
+			err = handler.CallFuncStream(ctx, streamReq)
+			if err != nil {
+				writeErr := peer.WriteError(string(handlerName), err)
+				return writeErr
+			}
+		} else {
+			return errors.New("unknown type of callFunc")
 		}
 	default:
 		return errors.New("incorrect handler format: InternalError")
@@ -173,7 +173,7 @@ func (s *Server) handleMethod(ctx context.Context, peer *Peer) error {
 	return nil
 }
 
-func (s *Server) listenClients(clientChan chan<- *Peer) error {
+func (s *Server) listenClients(clientChan chan<- *peer.Peer) error {
 	listener, err := net.Listen("tcp", s.Config.IP+":"+strconv.Itoa(s.Config.Port))
 	if err != nil {
 		return err
@@ -187,7 +187,7 @@ func (s *Server) listenClients(clientChan chan<- *Peer) error {
 			}
 		}
 
-		peer := NewPeer(conn)
+		peer := peer.NewPeer(conn)
 
 		clientChan <- peer
 	}

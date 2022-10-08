@@ -1,4 +1,4 @@
-package crypto_chateau
+package peer
 
 import (
 	"fmt"
@@ -7,44 +7,44 @@ import (
 )
 
 type Peer struct {
-	conn net.Conn
+	Conn net.Conn
 }
 
 func NewPeer(conn net.Conn) *Peer {
 	return &Peer{
-		conn: conn,
+		Conn: conn,
 	}
 }
 
 func (p *Peer) WriteResponse(msg message.Message) error {
 	bytesMsg := msg.Marshal()
 
-	_, err := p.conn.Write(bytesMsg)
+	_, err := p.Conn.Write(bytesMsg)
 	return err
 }
 
 func (p *Peer) WriteError(handlerName string, err error) error {
 	msg := fmt.Sprintf("%s# error: %s", handlerName, err.Error())
 
-	_, writeErr := p.conn.Write([]byte(msg))
+	_, writeErr := p.Conn.Write([]byte(msg))
 
 	return writeErr
 }
 
 func (p *Peer) Write(data []byte) (int, error) {
-	n, err := p.conn.Write(data)
+	n, err := p.Conn.Write(data)
 
 	return n, err
 }
 
 func (p *Peer) Read(b []byte) (int, error) {
-	n, err := p.conn.Read(b)
+	n, err := p.Conn.Read(b)
 
 	return n, err
 }
 
 func (p *Peer) Close() error {
-	err := p.conn.Close()
+	err := p.Conn.Close()
 
 	return err
 }
