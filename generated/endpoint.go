@@ -22,7 +22,6 @@ type UserEndpoint interface {
 	RequiredOPK(context.Context, *RequiredOPKRequest) (*RequiredOPKResponse, error)
 	LoadOPK(context.Context, *LoadOPKRequest) (*LoadOPKResponse, error)
 	FindUsersByPartNickname(context.Context, *FindUsersByPartNicknameRequest) (*FindUsersByPartNicknameResponse, error)
-	GetInitMsgKeys(context.Context, *GetInitMsgKeysRequest) (*GetInitMsgKeysResponse, error)
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
 	AuthToken(context.Context, *AuthTokenRequest) (*AuthTokenResponse, error)
 	AuthCredentials(context.Context, *AuthCredentialsRequest) (*AuthCredentialsResponse, error)
@@ -67,16 +66,6 @@ func FindUsersByPartNicknameSqueeze(fnc func(context.Context, *FindUsersByPartNi
 			return fnc(ctx, msg.(*FindUsersByPartNicknameRequest))
 		} else {
 			return nil, errors.New("unknown message type: expected FindUsersByPartNickname")
-		}
-	}
-}
-
-func GetInitMsgKeysSqueeze(fnc func(context.Context, *GetInitMsgKeysRequest) (*GetInitMsgKeysResponse, error)) HandlerFunc {
-	return func(ctx context.Context, msg message.Message) (message.Message, error) {
-		if _, ok := msg.(*GetInitMsgKeysRequest); ok {
-			return fnc(ctx, msg.(*GetInitMsgKeysRequest))
-		} else {
-			return nil, errors.New("unknown message type: expected GetInitMsgKeysRequest")
 		}
 	}
 }
@@ -154,23 +143,6 @@ type EventStreamInitMessage struct {
 
 func (e *EventStreamInitMessage) Marshal() []byte {
 	return nil
-}
-
-func (r *GetInitMsgKeysResponse) Marshal() []byte {
-	var buf []byte
-	buf = append(buf, []byte("GetInitMsgKeys# OPK:")...)
-	buf = append(buf, r.OPK[:]...)
-	buf = append(buf, ",SignedLTPK:"...)
-	buf = append(buf, r.SignedLTPK[:]...)
-	buf = append(buf, ",Signature:"...)
-	buf = append(buf, r.Signature[:]...)
-	buf = append(buf, ",OPKId:"...)
-	var bufOpkID []byte
-	// this method mutate first 4 bytes of buffer
-	binary.BigEndian.PutUint32(bufOpkID, r.OPKId)
-	buf = append(buf, bufOpkID...)
-
-	return buf
 }
 
 func (e *EventStreamInitMessage) Unmarshal(params map[string][]byte) error {
@@ -255,17 +227,6 @@ func (f *FindUsersByPartNicknameResponse) Unmarshal(params map[string][]byte) er
 	return nil
 }
 
-type GetInitMsgKeysRequest struct {
-	IdentityKey [32]byte
-}
-
-type GetInitMsgKeysResponse struct {
-	OPKId      uint32
-	OPK        [32]byte
-	SignedLTPK [32]byte
-	Signature  [64]byte
-}
-
 type OPKPair struct {
 	OPKId uint32
 	OPK   [32]byte
@@ -343,10 +304,6 @@ type HandleCodeRequest struct {
 type HandleCodeResponse struct {
 }
 
-func (r *GetInitMsgKeysRequest) Marshal() []byte {
-	return nil
-}
-
 func (r *RequiredOPKResponse) Marshal() []byte {
 	return []byte(fmt.Sprintf("RequiredOPK# Count: %d", r.Count))
 }
@@ -408,16 +365,6 @@ func (i *SendCodeResponse) Marshal() []byte {
 }
 
 // unmarshal
-
-func (r *GetInitMsgKeysResponse) Unmarshal(params map[string][]byte) error {
-	return nil
-}
-
-func (r *GetInitMsgKeysRequest) Unmarshal(params map[string][]byte) error {
-	copy(r.IdentityKey[:], params["IdentityKey"])
-
-	return nil
-}
 
 func (l *LoadOPKResponse) Unmarshal(params map[string][]byte) error {
 	return nil
