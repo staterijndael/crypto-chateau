@@ -282,6 +282,7 @@ type RegisterRequest struct {
 	PassHash string
 
 	DeviceID    string
+	DeviceName  string
 	IdentityKey [32]byte
 }
 
@@ -338,7 +339,7 @@ func (i *AuthTokenResponse) Marshal() []byte {
 
 func (i *RegisterRequest) Marshal() []byte {
 	var buf []byte
-	buf = append(buf, fmt.Sprintf("Register# Nickname:%s,Number:%s,Code:%d,PassHash:%s,DeviceID:%s,IdentityKey:", i.Nickname, i.Number, i.Code, i.PassHash, i.DeviceID)...)
+	buf = append(buf, fmt.Sprintf("Register# DeviceName:%s,Nickname:%s,Number:%s,Code:%d,PassHash:%s,DeviceID:%s,IdentityKey:", i.DeviceName, i.Nickname, i.Number, i.Code, i.PassHash, i.DeviceID)...)
 	buf = append(buf, i.IdentityKey[:]...)
 
 	return buf
