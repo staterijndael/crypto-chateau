@@ -218,14 +218,19 @@ func (f *FindUsersByPartNicknameRequest) Unmarshal(params map[string][]byte) err
 }
 
 type PresentUser struct {
-	IdentityKey string
+	IdentityKey [32]byte
 	Nickname    string
 	PictureID   string
 	Status      string
 }
 
 func (p *PresentUser) Marshal() []byte {
-	return []byte(fmt.Sprintf("FindUserByPartNickname# IdentityKey:%s,Nickname%s,PictureID:%s,Status:%s", p.IdentityKey, p.Nickname, p.PictureID, p.Status))
+	var buf []byte
+	buf = append(buf, []byte("FindUserByPartNickname# IdentityKey:")...)
+	buf = append(buf, p.IdentityKey[:]...)
+	buf = append(buf, fmt.Sprintf(",Nickname%s,PictureID:%s,Status:%s", p.Nickname, p.PictureID, p.Status)...)
+
+	return buf
 }
 
 type FindUsersByPartNicknameResponse struct {
@@ -375,7 +380,11 @@ func (i *AuthTokenResponse) Marshal() []byte {
 }
 
 func (i *RegisterRequest) Marshal() []byte {
-	return []byte(fmt.Sprintf("Register# Nickname:%s,Number:%s,Code:%d,PassHash:%s,DeviceID:%s,IdentityKey:%s", i.Nickname, i.Number, i.Code, i.PassHash, i.DeviceID, i.IdentityKey))
+	var buf []byte
+	buf = append(buf, fmt.Sprintf("Register# Nickname:%s,Number:%s,Code:%d,PassHash:%s,DeviceID:%s,IdentityKey:", i.Nickname, i.Number, i.Code, i.PassHash, i.DeviceID)...)
+	buf = append(buf, i.IdentityKey[:]...)
+
+	return buf
 }
 
 func (i *RegisterResponse) Marshal() []byte {
