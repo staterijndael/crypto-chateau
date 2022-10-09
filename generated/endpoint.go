@@ -320,9 +320,11 @@ type RegisterRequest struct {
 	Nickname string
 	PassHash string
 
-	DeviceID    string
-	DeviceName  string
-	IdentityKey [32]byte
+	DeviceID      string
+	DeviceName    string
+	LTPK          [32]byte
+	LTPKSignature [64]byte
+	IdentityKey   [32]byte
 }
 
 type RegisterResponse struct {
@@ -458,6 +460,11 @@ func (i *RegisterRequest) Unmarshal(params map[string][]byte) error {
 	i.PassHash = string(params["PassHash"])
 
 	i.DeviceID = string(params["DeviceID"])
+	i.DeviceName = string(params["DeviceName"])
+
+	copy(i.IdentityKey[:], params["IdentityKey"])
+	copy(i.LTPK[:], params["LTPK"])
+	copy(i.LTPKSignature[:], params["LTPKSignature"])
 
 	return nil
 }
