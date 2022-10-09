@@ -261,9 +261,25 @@ type GetInitMsgKeysResponse struct {
 	Signature  [64]byte
 }
 
+type OPKPair struct {
+	OPKId uint32
+	OPK   [32]byte
+}
+
+func (o *OPKPair) Marshal() []byte {
+	return nil
+}
+
+func (o *OPKPair) Unmarshal(params map[string][]byte) error {
+	o.OPKId = binary.BigEndian.Uint32(params["OPKId"])
+	copy(o.OPK[:], params["OPK"])
+
+	return nil
+}
+
 type LoadOPKRequest struct {
 	SessionToken [16]byte
-	OPK          [][32]byte
+	OPK          []OPKPair
 }
 
 type LoadOPKResponse struct{}
@@ -406,11 +422,20 @@ func (l *LoadOPKRequest) Unmarshal(params map[string][]byte) error {
 		return err
 	}
 
-	l.OPK = make([][32]byte, 0, len(OPKArr))
+	l.OPK = make([]OPKPair, 0, len(OPKArr))
 	for _, opk := range OPKArr {
-		var opkBuf [32]byte
-		copy(opkBuf[:], opk)
-		l.OPK = append(l.OPK, opkBuf)
+		opkParams, err := message.GetParams(opk)
+		if err != nil {
+			return err
+		}
+
+		var opkPair OPKPair
+		err = opkPair.Unmarshal(opkParams)
+		if err != nil {
+			return err
+		}
+
+		l.OPK = append(l.OPK, opkPair)
 	}
 
 	return nil
