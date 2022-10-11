@@ -1,27 +1,5 @@
 package generated
 
-import (
-	"context"
-	"github.com/Oringik/crypto-chateau/message"
-	"github.com/Oringik/crypto-chateau/peer"
-)
-
-type HandlerType int
-
-var HandlerT HandlerType = 0
-var StreamT HandlerType = 1
-
-type Handler struct {
-	CallFuncHandler HandlerFunc
-	CallFuncStream  StreamFunc
-	HandlerType
-	RequestMsgType message.Message
-}
-
-type StreamReq interface {
-	Init(ctx context.Context, peer *peer.Peer, initMessage message.Message) error
-}
-
 func InitHandlers(endpoint Endpoint, handlers map[string]*Handler) {
 	handlers["SendCode"] = &Handler{
 		CallFuncHandler: SendCodeSqueeze(endpoint.UserEndpoint.SendCode),

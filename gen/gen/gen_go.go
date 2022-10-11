@@ -6,6 +6,7 @@ import (
 	"github.com/Oringik/crypto-chateau/gen/conv"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 var result string
@@ -16,11 +17,13 @@ func GenerateDefinitions(astLocal *ast2.Ast) string {
 
 	fillPackage()
 	fillImports()
-	fillMethodTypes()
 	fillServices()
 	fillSqueezes()
 	fillObjects()
 	fillPeers()
+	fillPeersSqueezes()
+	fillInitHandlers()
+	fillNewServer()
 
 	return result
 }
@@ -30,16 +33,13 @@ func fillImports() {
 	result += "import \"context\"\n"
 	result += "import \"github.com/Oringik/crypto-chateau/gen/conv\"\n"
 	result += "import \"github.com/Oringik/crypto-chateau/peer\"\n"
-	result += "import \"github.com/Oringik/crypto-chateau/message\"\n\n"
+	result += "import \"github.com/Oringik/crypto-chateau/message\"\n"
+	result += "import crypto_chateau \"github.com/Oringik/crypto-chateau\"\n"
+	result += "import \"go.uber.org/zap\"\n\n"
 }
 
 func fillPackage() {
 	result += "package " + ast.Chateau.PackageName + "\n\n"
-}
-
-func fillMethodTypes() {
-	result += `type HandlerFunc func(ctx context.Context, msg message.Message) (message.Message, error)
-type StreamFunc func(ctx context.Context, peer *peer.Peer, msg message.Message) error` + "\n\n"
 }
 
 func fillServices() {
@@ -48,7 +48,7 @@ func fillServices() {
 		for _, method := range service.Methods {
 			result += "\t" + method.Name + "(ctx context.Context, "
 			if method.MethodType == ast2.Stream {
-				result += "peer *peer.Peer, "
+				result += fmt.Sprintf("peer *Peer%s, ", method.Name)
 			}
 			for i, param := range method.Params {
 				result += param.Name + " "
@@ -69,26 +69,34 @@ func fillServices() {
 					result += ", "
 				}
 			}
-			result += ") ("
-			for i, ret := range method.Returns {
-				if ret.Type.IsArray {
-					result += "["
-					if ret.Type.ArrSize != 0 {
-						result += strconv.Itoa(ret.Type.ArrSize)
+			result += ") "
+			if method.MethodType != ast2.Stream {
+				result += "("
+				for i, ret := range method.Returns {
+					if ret.Type.IsArray {
+						result += "["
+						if ret.Type.ArrSize != 0 {
+							result += strconv.Itoa(ret.Type.ArrSize)
+						}
+						result += "]"
 					}
-					result += "]"
-				}
 
-				if ret.Type.Type == ast2.Object {
-					result += "*" + ret.Type.ObjectName
-				} else {
-					result += ast2.AstTypeToGoType[ret.Type.Type]
+					if ret.Type.Type == ast2.Object {
+						result += "*" + ret.Type.ObjectName
+					} else {
+						result += ast2.AstTypeToGoType[ret.Type.Type]
+					}
+					if i != len(method.Returns)-1 {
+						result += ", "
+					}
 				}
-				if i != len(method.Returns)-1 {
-					result += ", "
-				}
+				result += ", "
 			}
-			result += ", error)\n"
+			result += "error"
+			if method.MethodType != ast2.Stream {
+				result += ")"
+			}
+			result += "\n"
 		}
 		result += "}\n\n"
 	}
@@ -98,7 +106,7 @@ func fillSqueezes() {
 	for _, service := range ast.Chateau.Services {
 		for _, method := range service.Methods {
 			if method.MethodType == ast2.Handler {
-				result += fmt.Sprintf(`func %sSqueeze(fnc func(context.Context, *%s) (*%s, error)) HandlerFunc {
+				result += fmt.Sprintf(`func %sSqueeze(fnc func(context.Context, *%s) (*%s, error)) crypto_chateau.HandlerFunc {
 	return func(ctx context.Context, msg message.Message) (message.Message, error) {
 		if _, ok := msg.(*%s); ok {
 			return fnc(ctx, msg.(*%s))
@@ -108,15 +116,15 @@ func fillSqueezes() {
 	}
 }`+"\n\n", method.Name, method.Params[0].Type.ObjectName, method.Returns[0].Type.ObjectName, method.Params[0].Type.ObjectName, method.Params[0].Type.ObjectName, method.Params[0].Type.ObjectName)
 			} else {
-				result += fmt.Sprintf(`func %sSqueeze(fnc func(context.Context, *peer.Peer, *%s) error) StreamFunc {
-	return func(ctx context.Context, peer *peer.Peer, msg message.Message) error {
+				result += fmt.Sprintf(`func %sSqueeze(fnc func(context.Context, *Peer%s, *%s) error) crypto_chateau.StreamFunc {
+	return func(ctx context.Context, peer interface{}, msg message.Message) error {
 		if _, ok := msg.(*%s); ok {
-			return fnc(ctx, peer, msg.(*%s))
+			return fnc(ctx, peer.(*Peer%s), msg.(*%s))
 		} else {
 			return errors.New("unknown message type: expected %s")
 		}
 	}
-}`+"\n\n", method.Name, method.Params[0].Type.ObjectName, method.Params[0].Type.ObjectName, method.Params[0].Type.ObjectName, method.Params[0].Type.ObjectName)
+}`+"\n\n", method.Name, method.Name, method.Params[0].Type.ObjectName, method.Params[0].Type.ObjectName, method.Name, method.Params[0].Type.ObjectName, method.Params[0].Type.ObjectName)
 			}
 		}
 	}
@@ -227,18 +235,94 @@ func fillPeers() {
 		for _, method := range service.Methods {
 			if method.MethodType == ast2.Stream {
 				result += "type Peer" + method.Name + " struct {\n"
-				result += "\thandlerName string\n"
 				result += "\tpeer *peer.Peer\n"
-				result += "}\n"
+				result += "}\n\n"
 
-				result += "func (p *Peer" + method.Name + ") WriteResponse(ctx context.Context, msg *" + method.Returns[0].Type.ObjectName + ") error {\n"
-				result += "\treturn p.peer.WriteResponse(p.handlerName, msg)\n"
-				result += "}\n"
+				result += "func (p *Peer" + method.Name + ") WriteResponse(msg *" + method.Returns[0].Type.ObjectName + ") error {\n"
+				result += fmt.Sprintf("\t"+`return p.peer.WriteResponse("%s", msg)`+"\n", method.Name)
+				result += "}\n\n"
 
-				result += "func (p *Peer" + method.Name + ") WriteError(ctx context.Context, err error) error"
-				result += "\treturn p.peer.WriteError(p.handlerName, err)\n"
-				result += "}\n"
+				result += "func (p *Peer" + method.Name + ") WriteError(err error) error {\n"
+				result += fmt.Sprintf("\t"+`return p.peer.WriteError("%s", err)`+"\n", method.Name)
+				result += "}\n\n"
 			}
 		}
 	}
+}
+
+func fillPeersSqueezes() {
+	result += "func getPeerByHandlerName(handlerName string, peer *peer.Peer) interface{}{\n"
+	for _, service := range ast.Chateau.Services {
+		for _, method := range service.Methods {
+			if method.MethodType == ast2.Stream {
+				result += "\tif handlerName == \"" + method.Name + "\" {\n"
+				result += "\t\treturn Peer" + method.Name + "{peer}\n"
+				result += "\t}\n\n"
+			}
+		}
+	}
+	result += "\treturn nil\n"
+	result += "}\n\n"
+}
+
+func fillInitHandlers() {
+	var endpointArgs string
+	for i, service := range ast.Chateau.Services {
+		endpointArgs += string(unicode.ToLower(rune(service.Name[0])))
+		if len(service.Name) > 1 {
+			endpointArgs += service.Name[1:]
+		}
+		endpointArgs += " " + service.Name
+
+		if i != len(ast.Chateau.Services)-1 {
+			endpointArgs += ","
+		}
+	}
+	result += fmt.Sprintf("func initHandlers(%s) map[string]*crypto_chateau.Handler {\n", endpointArgs)
+	result += "\thandlers := make(map[string]*crypto_chateau.Handler)\n\n"
+	for _, service := range ast.Chateau.Services {
+		for _, method := range service.Methods {
+			var methodType string
+			if method.MethodType == ast2.Handler {
+				methodType = "crypto_chateau.HandlerT"
+			} else if method.MethodType == ast2.Stream {
+				methodType = "crypto_chateau.StreamT"
+			}
+			var serviceNameLower string
+			serviceNameLower += string(unicode.ToLower(rune(service.Name[0])))
+			if len(service.Name) > 1 {
+				serviceNameLower += service.Name[1:]
+			}
+			result += fmt.Sprintf("\t"+`handlers["%s"] = &crypto_chateau.Handler{
+		CallFunc%s: %sSqueeze(%s.%s),
+		HandlerType:     %s,
+		RequestMsgType:  &%s{},
+	}`+"\n\n", method.Name, string(method.MethodType), method.Name, serviceNameLower, method.Name, methodType, method.Params[0].Type.ObjectName)
+		}
+	}
+	result += "\treturn handlers\n"
+	result += "}\n\n"
+}
+
+func fillNewServer() {
+	var endpointArgs string
+	var endpointNames string
+	for i, service := range ast.Chateau.Services {
+		endpointArgs += string(unicode.ToLower(rune(service.Name[0])))
+		endpointNames += string(unicode.ToLower(rune(service.Name[0])))
+		if len(service.Name) > 1 {
+			endpointArgs += service.Name[1:]
+			endpointNames += service.Name[1:]
+		}
+		endpointArgs += " " + service.Name
+
+		if i != len(ast.Chateau.Services)-1 {
+			endpointArgs += ","
+		}
+	}
+
+	result += fmt.Sprintf("func NewServer(cfg *crypto_chateau.Config, logger *zap.Logger, %s) *crypto_chateau.Server {\n", endpointArgs)
+	result += fmt.Sprintf("\thandlers := initHandlers(%s)\n\n", endpointNames)
+	result += "\treturn crypto_chateau.NewServer(cfg, logger, handlers)\n"
+	result += "}"
 }

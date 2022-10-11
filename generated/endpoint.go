@@ -13,9 +13,6 @@ type Endpoint struct {
 	UserEndpoint UserEndpoint
 }
 
-type HandlerFunc func(context.Context, message.Message) (message.Message, error)
-type StreamFunc func(ctx context.Context, req StreamReq) error
-
 type UserEndpoint interface {
 	SendCode(context.Context, *SendCodeRequest) (*SendCodeResponse, error)
 	HandleCode(context.Context, *HandleCodeRequest) (*HandleCodeResponse, error)

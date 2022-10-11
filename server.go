@@ -3,7 +3,8 @@ package crypto_chateau
 import (
 	"context"
 	"errors"
-	"github.com/Oringik/crypto-chateau/generated"
+	"fmt"
+	"github.com/Oringik/crypto-chateau/gen/conv"
 	"github.com/Oringik/crypto-chateau/message"
 	"github.com/Oringik/crypto-chateau/peer"
 	"github.com/Oringik/crypto-chateau/transport"
@@ -13,9 +14,24 @@ import (
 	"sync"
 )
 
+type HandlerFunc func(context.Context, message.Message) (message.Message, error)
+type StreamFunc func(ctx context.Context, peer interface{}, message message.Message) error
+
+type HandlerType int
+
+var HandlerT HandlerType = 0
+var StreamT HandlerType = 1
+
+type Handler struct {
+	CallFuncHandler HandlerFunc
+	CallFuncStream  StreamFunc
+	HandlerType
+	RequestMsgType message.Message
+}
+
 type Server struct {
 	Config   *Config
-	Handlers map[string]*generated.Handler
+	Handlers map[string]*Handler
 	// key: ip address  value: client peer
 	Clients    map[string]*peer.Peer
 	shutdownCh chan error
@@ -27,23 +43,21 @@ type Config struct {
 	Port int
 }
 
-func NewServer(cfg *Config, logger *zap.Logger) *Server {
+func NewServer(cfg *Config, logger *zap.Logger, handlers map[string]*Handler) *Server {
 	return &Server{
 		Config:     cfg,
-		Handlers:   make(map[string]*generated.Handler),
+		Handlers:   handlers,
 		Clients:    make(map[string]*peer.Peer),
 		shutdownCh: make(chan error),
 		logger:     logger,
 	}
 }
 
-func (s *Server) Run(ctx context.Context, endpoint generated.Endpoint) error {
+func (s *Server) Run(ctx context.Context) error {
 	_, err := net.ResolveTCPAddr("tcp", s.Config.IP+":"+strconv.Itoa(s.Config.Port))
 	if err != nil {
 		return err
 	}
-
-	generated.InitHandlers(endpoint, s.Handlers)
 
 	wg := sync.WaitGroup{}
 
@@ -111,7 +125,7 @@ func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
 
 	msg = msg[:n]
 
-	handlerName, n, err := message.GetHandlerName(msg)
+	handlerName, n, err := conv.GetHandlerName(msg)
 	if err != nil {
 		return err
 	}
@@ -125,7 +139,7 @@ func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
 		return errors.New("incorrect message")
 	}
 
-	reqMsgParams, err := message.GetParams(msg[n:])
+	_, reqMsgParams, err := conv.GetParams(msg[n:])
 	if err != nil {
 		return err
 	}
@@ -138,34 +152,28 @@ func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
 	}
 
 	switch handler.HandlerType {
-	case generated.HandlerT:
+	case HandlerT:
 		responseMessage, err := handler.CallFuncHandler(ctx, requestMsg)
 		if err != nil {
 			writeErr := peer.WriteError(string(handlerName), err)
 			return writeErr
 		}
 
-		err = peer.WriteResponse(responseMessage)
+		err = peer.WriteResponse(string(handlerName), responseMessage)
 		if err != nil {
 			return err
 		}
-	case generated.StreamT:
-		if _, ok := handler.RequestMsgType.(generated.StreamReq); ok {
-			streamReq := handler.RequestMsgType.(generated.StreamReq)
-			err = streamReq.Init(peer, requestMsg)
+	case StreamT:
+		go func() {
+			err = handler.CallFuncStream(ctx, peer, requestMsg)
 			if err != nil {
 				writeErr := peer.WriteError(string(handlerName), err)
-				return writeErr
+				if writeErr != nil {
+					fmt.Println(writeErr)
+				}
+				return
 			}
-
-			err = handler.CallFuncStream(ctx, streamReq)
-			if err != nil {
-				writeErr := peer.WriteError(string(handlerName), err)
-				return writeErr
-			}
-		} else {
-			return errors.New("unknown type of callFunc")
-		}
+		}()
 	default:
 		return errors.New("incorrect handler format: InternalError")
 	}
