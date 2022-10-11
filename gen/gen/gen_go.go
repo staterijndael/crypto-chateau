@@ -34,7 +34,7 @@ func fillImports() {
 	result += "import \"github.com/Oringik/crypto-chateau/gen/conv\"\n"
 	result += "import \"github.com/Oringik/crypto-chateau/peer\"\n"
 	result += "import \"github.com/Oringik/crypto-chateau/message\"\n"
-	result += "import crypto_chateau \"github.com/Oringik/crypto-chateau\"\n"
+	result += "import \"github.com/Oringik/crypto-chateau/server\"\n"
 	result += "import \"go.uber.org/zap\"\n\n"
 }
 
@@ -106,7 +106,7 @@ func fillSqueezes() {
 	for _, service := range ast.Chateau.Services {
 		for _, method := range service.Methods {
 			if method.MethodType == ast2.Handler {
-				result += fmt.Sprintf(`func %sSqueeze(fnc func(context.Context, *%s) (*%s, error)) crypto_chateau.HandlerFunc {
+				result += fmt.Sprintf(`func %sSqueeze(fnc func(context.Context, *%s) (*%s, error)) server.HandlerFunc {
 	return func(ctx context.Context, msg message.Message) (message.Message, error) {
 		if _, ok := msg.(*%s); ok {
 			return fnc(ctx, msg.(*%s))
@@ -116,7 +116,7 @@ func fillSqueezes() {
 	}
 }`+"\n\n", method.Name, method.Params[0].Type.ObjectName, method.Returns[0].Type.ObjectName, method.Params[0].Type.ObjectName, method.Params[0].Type.ObjectName, method.Params[0].Type.ObjectName)
 			} else {
-				result += fmt.Sprintf(`func %sSqueeze(fnc func(context.Context, *Peer%s, *%s) error) crypto_chateau.StreamFunc {
+				result += fmt.Sprintf(`func %sSqueeze(fnc func(context.Context, *Peer%s, *%s) error) server.StreamFunc {
 	return func(ctx context.Context, peer interface{}, msg message.Message) error {
 		if _, ok := msg.(*%s); ok {
 			return fnc(ctx, peer.(*Peer%s), msg.(*%s))
@@ -278,22 +278,22 @@ func fillInitHandlers() {
 			endpointArgs += ","
 		}
 	}
-	result += fmt.Sprintf("func initHandlers(%s) map[string]*crypto_chateau.Handler {\n", endpointArgs)
-	result += "\thandlers := make(map[string]*crypto_chateau.Handler)\n\n"
+	result += fmt.Sprintf("func initHandlers(%s) map[string]*server.Handler {\n", endpointArgs)
+	result += "\thandlers := make(map[string]*server.Handler)\n\n"
 	for _, service := range ast.Chateau.Services {
 		for _, method := range service.Methods {
 			var methodType string
 			if method.MethodType == ast2.Handler {
-				methodType = "crypto_chateau.HandlerT"
+				methodType = "server.HandlerT"
 			} else if method.MethodType == ast2.Stream {
-				methodType = "crypto_chateau.StreamT"
+				methodType = "server.StreamT"
 			}
 			var serviceNameLower string
 			serviceNameLower += string(unicode.ToLower(rune(service.Name[0])))
 			if len(service.Name) > 1 {
 				serviceNameLower += service.Name[1:]
 			}
-			result += fmt.Sprintf("\t"+`handlers["%s"] = &crypto_chateau.Handler{
+			result += fmt.Sprintf("\t"+`handlers["%s"] = &server.Handler{
 		CallFunc%s: %sSqueeze(%s.%s),
 		HandlerType:     %s,
 		RequestMsgType:  &%s{},
@@ -321,8 +321,8 @@ func fillNewServer() {
 		}
 	}
 
-	result += fmt.Sprintf("func NewServer(cfg *crypto_chateau.Config, logger *zap.Logger, %s) *crypto_chateau.Server {\n", endpointArgs)
+	result += fmt.Sprintf("func NewServer(cfg *server.Config, logger *zap.Logger, %s) *server.Server {\n", endpointArgs)
 	result += fmt.Sprintf("\thandlers := initHandlers(%s)\n\n", endpointNames)
-	result += "\treturn crypto_chateau.NewServer(cfg, logger, handlers)\n"
+	result += "\treturn server.NewServer(cfg, logger, handlers)\n"
 	result += "}"
 }
