@@ -329,6 +329,6 @@ func fillNewServer() {
 
 	result += fmt.Sprintf("func NewServer(cfg *server.Config, logger *zap.Logger, %s) *server.Server {\n", endpointArgs)
 	result += fmt.Sprintf("\thandlers := initHandlers(%s)\n\n", endpointNames)
-	result += "\treturn server.NewServer(cfg, logger, handlers)\n"
+	result += "\treturn server.NewServer(cfg, logger, handlers, getPeerByHandlerName)\n"
 	result += "}"
 }

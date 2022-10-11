@@ -36,6 +36,8 @@ type Server struct {
 	Clients    map[string]*peer.Peer
 	shutdownCh chan error
 	logger     *zap.Logger
+
+	getPeerByHandlerName func(handlerName string, peer *peer.Peer) interface{}
 }
 
 type Config struct {
@@ -43,13 +45,15 @@ type Config struct {
 	Port int
 }
 
-func NewServer(cfg *Config, logger *zap.Logger, handlers map[string]*Handler) *Server {
+func NewServer(cfg *Config, logger *zap.Logger, handlers map[string]*Handler, getPeerByHandlerName func(handlerName string, peer *peer.Peer) interface{}) *Server {
 	return &Server{
 		Config:     cfg,
 		Handlers:   handlers,
 		Clients:    make(map[string]*peer.Peer),
 		shutdownCh: make(chan error),
 		logger:     logger,
+
+		getPeerByHandlerName: getPeerByHandlerName,
 	}
 }
 
@@ -165,7 +169,8 @@ func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
 		}
 	case StreamT:
 		go func() {
-			err = handler.CallFuncStream(ctx, peer, requestMsg)
+			decoratedPeer := s.getPeerByHandlerName(string(handlerName), peer)
+			err = handler.CallFuncStream(ctx, decoratedPeer, requestMsg)
 			if err != nil {
 				writeErr := peer.WriteError(string(handlerName), err)
 				if writeErr != nil {
