@@ -172,7 +172,7 @@ func astObject() *ObjectDefinition {
 
 func astFields() []*Field {
 	if lexem.Type != lexem2.TypeL && lexem.Type != lexem2.IdentefierL {
-		panic("expected type or identifier")
+		panic("expected type or identifier " + lexem.Value)
 	}
 
 	var fields []*Field
