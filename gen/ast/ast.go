@@ -222,7 +222,7 @@ func astField() *Field {
 		} else {
 			astTypeLocal, ok := lexerTypeToAstType[lexem.Value]
 			if !ok {
-				panic("unexpected type")
+				panic("unexpected type " + lexem.Value)
 			}
 
 			astType = astTypeLocal
