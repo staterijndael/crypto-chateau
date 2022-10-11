@@ -186,7 +186,7 @@ func fillObjects() {
 
 		// unmarshal
 
-		alreadyWasArraySymb := ""
+		alreadyWasArraySymb := ":"
 
 		result += "func (o *" + object.Name + ") Unmarshal(params map[string][]byte) error {\n"
 		for _, field := range object.Fields {
@@ -201,7 +201,7 @@ func fillObjects() {
 					result += fmt.Sprintf("\t\to.%s = append(o.%s, curObj)\n", field.Name, field.Name)
 					result += "\t}\n"
 
-					alreadyWasArraySymb = ":"
+					alreadyWasArraySymb = ""
 				} else {
 					result += fmt.Sprintf("\to.%s = &%s{}\n", field.Name, field.Type.ObjectName)
 					result += fmt.Sprintf("\t"+`conv.%s(o.%s,params["%s"])`+"\n", convFunction, field.Name, field.Name)
@@ -226,7 +226,7 @@ func fillObjects() {
 					}
 					result += "\t}\n"
 
-					alreadyWasArraySymb = ":"
+					alreadyWasArraySymb = ""
 				} else {
 					result += fmt.Sprintf("\t"+`o.%s = conv.%s(params["%s"])`+"\n", field.Name, convFunction, field.Name)
 				}
