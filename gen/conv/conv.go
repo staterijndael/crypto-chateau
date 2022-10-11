@@ -38,6 +38,10 @@ func ConvFunctionMarhsalByType(t ast.Type) string {
 		return "ConvertByteToBytes"
 	}
 
+	if t == ast.Uint16 {
+		return "ConvertUint16ToBytes"
+	}
+
 	return ""
 }
 
@@ -70,7 +74,22 @@ func ConvFunctionUnmarshalByType(t ast.Type) string {
 		return "ConvertBytesToByte"
 	}
 
+	if t == ast.Uint16 {
+		return "ConvertBytesToUint16"
+	}
+
 	return ""
+}
+
+func ConvertUint16ToBytes(num uint16) []byte {
+	buf := make([]byte, 2)
+	binary.BigEndian.PutUint16(buf, num)
+
+	return buf
+}
+
+func ConvertBytesToUint16(b []byte) uint16 {
+	return binary.BigEndian.Uint16(b)
 }
 
 func ConvertByteToBytes(b byte) []byte {

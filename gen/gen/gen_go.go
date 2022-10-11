@@ -186,25 +186,29 @@ func fillObjects() {
 
 		// unmarshal
 
+		alreadyWasArraySymb := ""
+
 		result += "func (o *" + object.Name + ") Unmarshal(params map[string][]byte) error {\n"
 		for _, field := range object.Fields {
 			convFunction := conv.ConvFunctionUnmarshalByType(field.Type.Type)
 			if field.Type.Type == ast2.Object {
 				if field.Type.IsArray {
-					result += fmt.Sprintf("\t"+`_, arr, err := conv.GetArray(params["%s"])`+"\n", field.Name)
+					result += fmt.Sprintf("\t"+`_, arr, err %s= conv.GetArray(params["%s"])`+"\n", alreadyWasArraySymb, field.Name)
 					result += "\tif err != nil {\n\t\treturn err\n\t}\n"
 					result += "\tfor _, objBytes := range arr {\n"
-					result += "\t\tvar curObj " + field.Type.ObjectName + "\n"
+					result += "\t\tvar curObj *" + field.Type.ObjectName + "\n"
 					result += fmt.Sprintf("\t\t"+`conv.%s(&curObj,objBytes)`+"\n", convFunction)
 					result += fmt.Sprintf("\t\to.%s = append(o.%s, curObj)\n", field.Name, field.Name)
 					result += "\t}\n"
+
+					alreadyWasArraySymb = ":"
 				} else {
 					result += fmt.Sprintf("\to.%s = &%s{}\n", field.Name, field.Type.ObjectName)
 					result += fmt.Sprintf("\t"+`conv.%s(o.%s,params["%s"])`+"\n", convFunction, field.Name, field.Name)
 				}
 			} else {
 				if field.Type.IsArray {
-					result += fmt.Sprintf("\t"+`_, arr, err := conv.GetArray(params["%s"])`+"\n", field.Name)
+					result += fmt.Sprintf("\t"+`_, arr, err %s= conv.GetArray(params["%s"])`+"\n", alreadyWasArraySymb, field.Name)
 					result += "\tif err != nil {\n\t\treturn err\n\t}\n"
 					var iOrMiss string
 					if field.Type.ArrSize != 0 {
@@ -221,6 +225,8 @@ func fillObjects() {
 						result += fmt.Sprintf("\t\to.%s = append(o.%s, curVal)\n", field.Name, field.Name)
 					}
 					result += "\t}\n"
+
+					alreadyWasArraySymb = ":"
 				} else {
 					result += fmt.Sprintf("\t"+`o.%s = conv.%s(params["%s"])`+"\n", field.Name, convFunction, field.Name)
 				}

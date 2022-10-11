@@ -11,6 +11,7 @@ type Type int
 const (
 	Uint32 Type = iota
 	Uint64
+	Uint16
 	Uint8
 	Byte
 	Bool
@@ -23,6 +24,7 @@ var lexerTypeToAstType = map[string]Type{
 	"uint32": Uint32,
 	"uint64": Uint64,
 	"uint8":  Uint8,
+	"uint16": Uint16,
 	"string": String,
 	"bool":   Bool,
 }
@@ -30,6 +32,7 @@ var lexerTypeToAstType = map[string]Type{
 var AstTypeToGoType = map[Type]string{
 	Uint32: "uint32",
 	Uint64: "uint64",
+	Uint16: "uint16",
 	Uint8:  "uint8",
 	Byte:   "byte",
 	String: "string",
