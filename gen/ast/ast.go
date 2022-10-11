@@ -1,7 +1,7 @@
 package ast
 
 import (
-	lexem2 "github.com/Oringik/crypto-chateau/gen/lexem"
+	lexem2 "github.com/oringik/crypto-chateau/gen/lexem"
 	"strconv"
 	"strings"
 )

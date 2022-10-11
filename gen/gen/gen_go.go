@@ -2,8 +2,8 @@ package gen
 
 import (
 	"fmt"
-	ast2 "github.com/Oringik/crypto-chateau/gen/ast"
-	"github.com/Oringik/crypto-chateau/gen/conv"
+	ast2 "github.com/oringik/crypto-chateau/gen/ast"
+	"github.com/oringik/crypto-chateau/gen/conv"
 	"strconv"
 	"strings"
 	"unicode"

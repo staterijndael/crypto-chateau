@@ -3,7 +3,7 @@ package transport
 import (
 	"crypto/rand"
 	"errors"
-	"github.com/Oringik/crypto-chateau/dh"
+	"github.com/oringik/crypto-chateau/dh"
 	"golang.org/x/crypto/curve25519"
 	"io"
 	"net"

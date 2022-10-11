@@ -1,4 +1,4 @@
-module github.com/Oringik/crypto-chateau
+module github.com/oringik/crypto-chateau
 
 go 1.18
 

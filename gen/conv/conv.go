@@ -5,8 +5,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/Oringik/crypto-chateau/gen/ast"
-	"github.com/Oringik/crypto-chateau/message"
+	"github.com/oringik/crypto-chateau/gen/ast"
+	"github.com/oringik/crypto-chateau/message"
 )
 
 func ConvFunctionMarhsalByType(t ast.Type) string {

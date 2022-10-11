@@ -2,7 +2,7 @@ package transport
 
 import (
 	"errors"
-	"github.com/Oringik/crypto-chateau/aes-256"
+	"github.com/oringik/crypto-chateau/aes-256"
 	"net"
 	"time"
 )

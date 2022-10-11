@@ -2,7 +2,7 @@ package peer
 
 import (
 	"fmt"
-	"github.com/Oringik/crypto-chateau/message"
+	"github.com/oringik/crypto-chateau/message"
 	"net"
 )
 
