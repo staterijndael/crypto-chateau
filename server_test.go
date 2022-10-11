@@ -1,4 +1,4 @@
-package crypto_chateau
+package main
 
 import (
 	"context"

@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	ast2 "github.com/Oringik/crypto-chateau/gen/ast"
+	"github.com/Oringik/crypto-chateau/gen/gen"
 	lexem2 "github.com/Oringik/crypto-chateau/gen/lexem"
-	"github.com/oringik/crypto-chateau/tree/master/gen/gen"
 	"io/ioutil"
 	"os"
 )
