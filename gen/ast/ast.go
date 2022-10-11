@@ -144,7 +144,7 @@ func astChateau() *Chateau {
 			chateau.ObjectDefinitions = append(chateau.ObjectDefinitions, astObject())
 			getNextLexem()
 		} else {
-			panic("expected service or object")
+			panic("expected service or object " + lexem.Value)
 		}
 	}
 
