@@ -1,0 +1,22 @@
+package endpoints
+
+service UserEndpoint {
+    Handler GetUserAHAAHAHHAHAH(GetUserRequest req) -> (GetUserResponse)
+    Stream GetUserArar(GetUserRequest asdasd) -> (GetUserResponse)
+}
+
+object GetUserRequest {
+    [32]byte identityKey
+    uint32 aa
+    uint64 oo
+    User user
+}
+
+object User {
+    GetUserResponse resp
+}
+
+object GetUserResponse {
+    string sessionToken
+    [32]byte identityKey
+}

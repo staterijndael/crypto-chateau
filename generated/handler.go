@@ -1,6 +1,7 @@
 package generated
 
 import (
+	"context"
 	"github.com/Oringik/crypto-chateau/message"
 	"github.com/Oringik/crypto-chateau/peer"
 )
@@ -18,7 +19,7 @@ type Handler struct {
 }
 
 type StreamReq interface {
-	Init(peer *peer.Peer, initMessage message.Message) error
+	Init(ctx context.Context, peer *peer.Peer, initMessage message.Message) error
 }
 
 func InitHandlers(endpoint Endpoint, handlers map[string]*Handler) {

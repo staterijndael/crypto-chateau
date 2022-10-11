@@ -16,10 +16,13 @@ func NewPeer(conn net.Conn) *Peer {
 	}
 }
 
-func (p *Peer) WriteResponse(msg message.Message) error {
-	bytesMsg := msg.Marshal()
+func (p *Peer) WriteResponse(handlerName string, msg message.Message) error {
+	var resp []byte
 
-	_, err := p.Conn.Write(bytesMsg)
+	resp = append(resp, []byte(handlerName+"#")...)
+	resp = append(resp, msg.Marshal()...)
+
+	_, err := p.Conn.Write(resp)
 	return err
 }
 
