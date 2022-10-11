@@ -31,10 +31,10 @@ func GenerateDefinitions(astLocal *ast2.Ast) string {
 func fillImports() {
 	result += "import \"errors\"\n"
 	result += "import \"context\"\n"
-	result += "import \"github.com/Oringik/crypto-chateau/gen/conv\"\n"
-	result += "import \"github.com/Oringik/crypto-chateau/peer\"\n"
-	result += "import \"github.com/Oringik/crypto-chateau/message\"\n"
-	result += "import \"github.com/Oringik/crypto-chateau/server\"\n"
+	result += "import \"github.com/oringik/crypto-chateau/gen/conv\"\n"
+	result += "import \"github.com/oringik/crypto-chateau/peer\"\n"
+	result += "import \"github.com/oringik/crypto-chateau/message\"\n"
+	result += "import \"github.com/oringik/crypto-chateau/server\"\n"
 	result += "import \"go.uber.org/zap\"\n\n"
 }
 
