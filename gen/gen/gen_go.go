@@ -197,7 +197,7 @@ func fillObjects() {
 					result += "\tif err != nil {\n\t\treturn err\n\t}\n"
 					result += "\tfor _, objBytes := range arr {\n"
 					result += "\t\tvar curObj *" + field.Type.ObjectName + "\n"
-					result += fmt.Sprintf("\t\t"+`conv.%s(&curObj,objBytes)`+"\n", convFunction)
+					result += fmt.Sprintf("\t\t"+`conv.%s(curObj,objBytes)`+"\n", convFunction)
 					result += fmt.Sprintf("\t\to.%s = append(o.%s, curObj)\n", field.Name, field.Name)
 					result += "\t}\n"
 
