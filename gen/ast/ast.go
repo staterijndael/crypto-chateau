@@ -171,6 +171,10 @@ func astObject() *ObjectDefinition {
 }
 
 func astFields() []*Field {
+	if lexem.Type == lexem2.CloseBraceL {
+		return nil
+	}
+
 	if lexem.Type != lexem2.TypeL && lexem.Type != lexem2.IdentefierL {
 		panic("expected type or identifier " + lexem.Value)
 	}
