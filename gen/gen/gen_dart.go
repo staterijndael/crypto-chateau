@@ -176,11 +176,9 @@ func fillMethodsDart() {
 				resultDart += fmt.Sprintf("\t\t\t%s res = %s();\n", method.Returns[0].Type.ObjectName, method.Returns[0].Type.ObjectName)
 				resultDart += fmt.Sprintf("\t\t\tUint8List decoratedMsg = decorateRawDataByHandlerName(\"%s\", request.Marshal());\n", method.Name)
 				resultDart += fmt.Sprintf("\t\t\tUint8List rawResponse = await handleMessage(decoratedMsg);\n")
-				resultDart += `int lastMethodNameIndex = getLastMethodNameIndex(data);
-    String methodName =
-        String.fromCharCodes(data.sublist(0, lastMethodNameIndex));
-
-    Uint8List body = data.sublist(lastMethodNameIndex + 1);`
+				resultDart += "\t\t\tint lastMethodNameIndex = getLastMethodNameIndex(rawResponse);\n"
+				resultDart += "\t\t\tString methodName = String.fromCharCodes(rawResponse.sublist(0, lastMethodNameIndex));\n"
+				resultDart += "\t\t\tUint8List body = rawResponse.sublist(lastMethodNameIndex + 1);\n"
 				resultDart += fmt.Sprintf("\t\t\tMap<String, Uint8List> params = GetParams(body)[1];\n")
 				resultDart += fmt.Sprintf("\t\t\tres.Unmarshal(params);\n")
 				resultDart += fmt.Sprintf("\t\t\treturn res;\n")
