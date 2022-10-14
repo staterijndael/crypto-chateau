@@ -41,7 +41,7 @@ func main() {
 		definitionsGeneratedOutput = gen.GenerateDefinitionsDart(ast)
 	}
 
-	err = ioutil.WriteFile(*outputCodegenFile+"/gen_definitions.dart", []byte(definitionsGeneratedOutput), 0644)
+	err = ioutil.WriteFile(*outputCodegenFile+"/gen_definitions."+*language, []byte(definitionsGeneratedOutput), 0644)
 	if err != nil {
 		panic(err)
 	}
