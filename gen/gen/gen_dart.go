@@ -176,7 +176,12 @@ func fillMethodsDart() {
 				resultDart += fmt.Sprintf("\t\t\t%s res = %s();\n", method.Returns[0].Type.ObjectName, method.Returns[0].Type.ObjectName)
 				resultDart += fmt.Sprintf("\t\t\tUint8List decoratedMsg = decorateRawDataByHandlerName(\"%s\", request.Marshal());\n", method.Name)
 				resultDart += fmt.Sprintf("\t\t\tUint8List rawResponse = await handleMessage(decoratedMsg);\n")
-				resultDart += fmt.Sprintf("\t\t\tMap<String, Uint8List> params = GetParams(rawResponse)[1];\n")
+				resultDart += `int lastMethodNameIndex = getLastMethodNameIndex(data);
+    String methodName =
+        String.fromCharCodes(data.sublist(0, lastMethodNameIndex));
+
+    Uint8List body = data.sublist(lastMethodNameIndex + 1);`
+				resultDart += fmt.Sprintf("\t\t\tMap<String, Uint8List> params = GetParams(body)[1];\n")
 				resultDart += fmt.Sprintf("\t\t\tres.Unmarshal(params);\n")
 				resultDart += fmt.Sprintf("\t\t\treturn res;\n")
 				resultDart += fmt.Sprintf("\t}\n\n")
@@ -245,7 +250,13 @@ func fillMethodsDart() {
 
         Uint8List gotMessage = await futureValueReceived.future;
 
-        Map<String, Uint8List> params = GetParams(gotMessage)[1];
+		int lastMethodNameIndex = getLastMethodNameIndex(data);
+    String methodName =
+        String.fromCharCodes(data.sublist(0, lastMethodNameIndex));
+
+    Uint8List body = data.sublist(lastMethodNameIndex + 1);
+
+        Map<String, Uint8List> params = GetParams(body)[1];
         (respType as Message).Unmarshal(params);
 
         onGotMessage(respType);
