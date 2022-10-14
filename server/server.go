@@ -12,6 +12,7 @@ import (
 	"net"
 	"strconv"
 	"sync"
+	"time"
 )
 
 type HandlerFunc func(context.Context, message.Message) (message.Message, error)
@@ -43,6 +44,9 @@ type Server struct {
 type Config struct {
 	IP   string
 	Port int
+
+	ConnReadDeadline  *time.Duration
+	ConnWriteDeadline *time.Duration
 }
 
 func NewServer(cfg *Config, logger *zap.Logger, handlers map[string]*Handler, getPeerByHandlerName func(handlerName string, peer *peer.Peer) interface{}) *Server {
@@ -210,6 +214,21 @@ func (s *Server) listenClients(clientChan chan<- *peer.Peer) error {
 		conn, err := listener.Accept()
 		if err != nil {
 			if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
+				continue
+			}
+		}
+
+		if s.Config.ConnReadDeadline != nil {
+			err = conn.SetReadDeadline(time.Now().Add(*s.Config.ConnReadDeadline))
+			if err != nil {
+				s.logger.Error("error setting read deadline", zap.Error(err))
+				continue
+			}
+		}
+		if s.Config.ConnWriteDeadline != nil {
+			err = conn.SetWriteDeadline(time.Now().Add(*s.Config.ConnWriteDeadline))
+			if err != nil {
+				s.logger.Error("error setting write deadline", zap.Error(err))
 				continue
 			}
 		}
