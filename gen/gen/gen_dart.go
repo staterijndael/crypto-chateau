@@ -167,114 +167,30 @@ func fillMethodsDart() {
 
 	resultDart += "class Client {\n"
 	resultDart += "\tConnectParams connectParams;\n\n"
-	resultDart += "\tClient({required this.connectParams});\n\n"
+	resultDart += "\tInternalClient internalClient;\n"
+	resultDart += "\tClient({required this.connectParams}){\n"
+	resultDart += "\t\tinternalClient = InternalClient(host: connectParams.host,port: connectParams.port,isEncryptionEnabled: connectParams.isEncryptionEnabled);\n"
+	resultDart += "\t}"
 	resultDart += "// handlers\n\n"
+	resultDart += "InternalClient internalClient = InternalClient(host: )"
 	for _, service := range astDart.Chateau.Services {
 		for _, method := range service.Methods {
 			if method.MethodType == ast2.Handler {
 				resultDart += fmt.Sprintf("\tFuture<%s> %s(%s request) async {\n", method.Returns[0].Type.ObjectName, method.Name, method.Params[0].Type.ObjectName)
 				resultDart += fmt.Sprintf("\t\t\t%s res = %s();\n", method.Returns[0].Type.ObjectName, method.Returns[0].Type.ObjectName)
 				resultDart += fmt.Sprintf("\t\t\tUint8List decoratedMsg = decorateRawDataByHandlerName(\"%s\", request.Marshal());\n", method.Name)
-				resultDart += fmt.Sprintf("\t\t\tUint8List rawResponse = await handleMessage(decoratedMsg);\n")
-				resultDart += "\t\t\tint lastMethodNameIndex = getLastMethodNameIndex(rawResponse);\n"
-				resultDart += "\t\t\tString methodName = String.fromCharCodes(rawResponse.sublist(0, lastMethodNameIndex));\n"
-				resultDart += "\t\t\tUint8List body = rawResponse.sublist(lastMethodNameIndex + 1);\n"
+				resultDart += fmt.Sprintf("\t\t\tUint8List rawResponse = await internalClient.handleMessage(decoratedMsg);\n")
 				resultDart += fmt.Sprintf("\t\t\tMap<String, Uint8List> params = GetParams(body)[1];\n")
 				resultDart += fmt.Sprintf("\t\t\tres.Unmarshal(params);\n")
 				resultDart += fmt.Sprintf("\t\t\treturn res;\n")
 				resultDart += fmt.Sprintf("\t}\n\n")
 			} else if method.MethodType == ast2.Stream {
 				resultDart += fmt.Sprintf("\tFuture<void Function(SendMessage msg)> %s(void Function() onEncryptEnabled, void Function(%s msg) onGotMessage, %s initMessage) {\n", method.Name, method.Returns[0].Type.ObjectName, method.Params[0].Type.ObjectName)
-				resultDart += fmt.Sprintf("\t\treturn ListenUpdates(\"%s\", onEncryptEnabled, %s(), onGotMessage, initMessage);\n", method.Name, method.Returns[0].Type.ObjectName)
+				resultDart += fmt.Sprintf("\t\treturn internalClient.listenUpdates(\"%s\", onEncryptEnabled, %s(), onGotMessage, initMessage);\n", method.Name, method.Returns[0].Type.ObjectName)
 				resultDart += "\t}\n\n"
 			}
 		}
 	}
-
-	// default handler func
-	resultDart += `  Future<Uint8List> handleMessage(Uint8List data) async {
-    TcpBloc tcpBloc = TcpBloc();
-
-    onEncryptEnabled() {
-      tcpBloc.sendMessage(SendMessage(message: data));
-    }
-
-    StreamController streamController = StreamController();
-
-    Stream responseStream = streamController.stream;
-
-    tcpBloc.connect(
-        onEncryptEnabled,
-        streamController,
-        Connect(
-            host: connectParams.host,
-            port: connectParams.port,
-            encryptionEnabled: connectParams.isEncryptionEnabled));
-
-    var firstValueReceived = Completer<Uint8List>();
-
-    responseStream.listen((event) {
-      if (!firstValueReceived.isCompleted) {
-        firstValueReceived.complete(event);
-      }
-    });
-
-    Uint8List rawResponse = await firstValueReceived.future;
-
-    tcpBloc.close();
-
-    return rawResponse;
-  }` + "\n\n"
-
-	resultDart += `  Future<void Function(SendMessage msg)> ListenUpdates<T>(
-      String handlerName,
-      void Function() onEncryptEnabled,
-      T respType,
-      void Function(T msg) onGotMessage,
-      Message initMessage) async {
-    TcpBloc tcpBloc = TcpBloc();
-    StreamController streamController = StreamController();
-
-    onEncryptEnabled() {
-      Uint8List decoratedMsg =
-          decorateRawDataByHandlerName(handlerName, initMessage.Marshal());
-      tcpBloc.sendMessage(SendMessage(message: decoratedMsg));
-
-      onEncryptEnabled();
-
-      streamController.stream.listen((event) async {
-        var futureValueReceived = Completer<Uint8List>();
-        futureValueReceived.complete(event);
-
-        Uint8List gotMessage = await futureValueReceived.future;
-
-		int lastMethodNameIndex = getLastMethodNameIndex(data);
-    String methodName =
-        String.fromCharCodes(data.sublist(0, lastMethodNameIndex));
-
-    Uint8List body = data.sublist(lastMethodNameIndex + 1);
-
-        Map<String, Uint8List> params = GetParams(body)[1];
-        (respType as Message).Unmarshal(params);
-
-        onGotMessage(respType);
-      });
-    }
-
-    onSendMessage(SendMessage msg) {
-      tcpBloc.sendMessage(msg);
-    }
-
-    tcpBloc.connect(
-        onEncryptEnabled,
-        streamController,
-        Connect(
-            host: connectParams.host,
-            port: connectParams.port,
-            encryptionEnabled: connectParams.isEncryptionEnabled));
-
-    return onSendMessage;
-  }` + "\n\n"
 
 	resultDart += "}\n\n"
 }
