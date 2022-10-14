@@ -121,7 +121,7 @@ func fillObjectsDart() {
 			convFunction := conv.ConvFunctionUnmarshalByType(field.Type.Type)
 			if field.Type.Type == ast2.Object {
 				if field.Type.IsArray {
-					resultDart += fmt.Sprintf("\t\t\t"+`var arr = GetArray(params["%s"]!)[1];`+"\n", field.Name)
+					resultDart += fmt.Sprintf("\t\t\t"+`var arr = GetArray(params["%s"]!)[1];`+"\n", strings.Title(field.Name))
 					resultDart += "\t\t\tfor (int i = 0; i < arr.length; i++) {\n"
 					resultDart += "\t\t\tUint8List objBytes = arr[i];\n"
 					resultDart += fmt.Sprintf("\t\t\t"+"%s curObj = new %s();\n", field.Type.ObjectName, field.Type.ObjectName)
@@ -130,11 +130,11 @@ func fillObjectsDart() {
 					resultDart += "\t}\n"
 				} else {
 					resultDart += fmt.Sprintf("\t\t%s = new %s();\n", field.Name, field.Type.ObjectName)
-					resultDart += fmt.Sprintf("\t\t"+`%s(%s!,params["%s"]!);`+"\n", convFunction, field.Name, field.Name)
+					resultDart += fmt.Sprintf("\t\t"+`%s(%s!,params["%s"]!);`+"\n", convFunction, field.Name, strings.Title(field.Name))
 				}
 			} else {
 				if field.Type.IsArray {
-					resultDart += fmt.Sprintf("\t\t"+`var arr%s = GetArray(params["%s"]!)[1];`+"\n", field.Name, field.Name)
+					resultDart += fmt.Sprintf("\t\t"+`var arr%s = GetArray(params["%s"]!)[1];`+"\n", field.Name, strings.Title(field.Name))
 					resultDart += fmt.Sprintf("\t\tfor (int i = 0;i < arr%s.length; i++) {\n", field.Name)
 					resultDart += fmt.Sprintf("\t\t\tvar valByte = arr%s[i];", field.Name)
 					resultDart += "\t\t\t" + ast2.AstTypeToDartType[field.Type.Type] + " curVal;\n"
@@ -142,7 +142,7 @@ func fillObjectsDart() {
 					resultDart += fmt.Sprintf("\t\t\t%s!.add(curVal);\n", field.Name)
 					resultDart += "\t\t}\n"
 				} else {
-					resultDart += fmt.Sprintf("\t\t"+`%s = %s(params["%s"]!);`+"\n", field.Name, convFunction, field.Name)
+					resultDart += fmt.Sprintf("\t\t"+`%s = %s(params["%s"]!);`+"\n", field.Name, convFunction, strings.Title(field.Name))
 				}
 			}
 
