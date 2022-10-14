@@ -170,9 +170,8 @@ func fillMethodsDart() {
 	resultDart += "\tInternalClient internalClient;\n"
 	resultDart += "\tClient({required this.connectParams}){\n"
 	resultDart += "\t\tinternalClient = InternalClient(host: connectParams.host,port: connectParams.port,isEncryptionEnabled: connectParams.isEncryptionEnabled);\n"
-	resultDart += "\t}"
+	resultDart += "\t}\n"
 	resultDart += "// handlers\n\n"
-	resultDart += "InternalClient internalClient = InternalClient(host: )"
 	for _, service := range astDart.Chateau.Services {
 		for _, method := range service.Methods {
 			if method.MethodType == ast2.Handler {
