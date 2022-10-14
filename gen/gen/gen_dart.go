@@ -95,6 +95,7 @@ func fillObjectsDart() {
 				resultDart += fmt.Sprintf("\t\t"+`resultDart%s.addAll('['.codeUnits);`, field.Name) + "\n"
 				resultDart += "\t\tfor (int i = 0; i < " + field.Name + "!.length; i++) {\n"
 				resultDart += "\t\t\tvar val = " + field.Name + "![i];\n"
+				resultDart += fmt.Sprintf("\t\tresultDart%s.addAll('%s:'.codeUnits);\n", field.Name, strings.Title(field.Name))
 				resultDart += fmt.Sprintf("\t\t\tresultDart%s.addAll(%s(val));\n", field.Name, convFunction)
 				resultDart += "\t\t\tif (i != " + field.Name + "!.length - 1) {\n"
 				resultDart += "\t\t\t\t" + fmt.Sprintf(`resultDart%s.addAll(','.codeUnits);`, field.Name) + "\n"
@@ -102,6 +103,7 @@ func fillObjectsDart() {
 				resultDart += "\t\t}\n"
 				resultDart += fmt.Sprintf("\t\t"+`resultDart%s.addAll(']'.codeUnits);`, field.Name) + "\n\n"
 			} else {
+				resultDart += fmt.Sprintf("\t\tresultDart%s.addAll('%s:'.codeUnits);\n", field.Name, strings.Title(field.Name))
 				resultDart += fmt.Sprintf("\t\tresultDart%s.addAll(%s(%s!));\n", field.Name, convFunction, field.Name)
 			}
 			resultDart += fmt.Sprintf("\t\tbuf.addAll(resultDart%s);\n", field.Name)
