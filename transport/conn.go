@@ -135,16 +135,20 @@ func (cn *Conn) Read(p []byte) (int, error) {
 	}
 
 	packetLength := uint16(buf[0]) | uint16(buf[1])<<8
-	if int(packetLength) > len(buf) {
-		return 0, errors.New("incorrect packet length")
+
+	var packet []byte
+	var toReserve []byte
+
+	if int(packetLength) > n {
+		packet = buf[2:n]
+	} else {
+		packet = buf[2 : 2+packetLength]
+		if len(buf) > 1+int(packetLength) {
+			toReserve = buf[2+packetLength:]
+		}
 	}
 
-	packet := buf[2 : 2+packetLength]
-
-	toReserve := buf[2+packetLength : n]
-	if len(toReserve) > 0 {
-		cn.reservedData = append(cn.reservedData, toReserve...)
-	}
+	cn.reservedData = append(cn.reservedData, toReserve...)
 
 	var data []byte
 

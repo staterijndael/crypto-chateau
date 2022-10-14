@@ -39,6 +39,16 @@ var AstTypeToGoType = map[Type]string{
 	Bool:   "bool",
 }
 
+var AstTypeToDartType = map[Type]string{
+	Uint32: "int",
+	Uint64: "int",
+	Uint16: "int",
+	Uint8:  "int",
+	Byte:   "int",
+	String: "String",
+	Bool:   "bool",
+}
+
 type MethodType string
 
 var (

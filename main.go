@@ -12,7 +12,12 @@ import (
 func main() {
 	inputFile := flag.String("chateau_file", "", "chateau file")
 	outputCodegenFile := flag.String("codegen_output", "", "codegenOutput")
+	language := flag.String("language", "", "language")
 	flag.Parse()
+
+	if *language != "go" && *language != "dart" {
+		panic("supported languages: go, dart")
+	}
 
 	file, err := os.Open(*inputFile)
 	if err != nil {
@@ -28,9 +33,15 @@ func main() {
 
 	ast := ast2.GenerateAst(lexems)
 
-	definitionsGeneratedOutput := gen.GenerateDefinitions(ast)
+	var definitionsGeneratedOutput string
 
-	err = ioutil.WriteFile(*outputCodegenFile+"/gen_definitions.go", []byte(definitionsGeneratedOutput), 0644)
+	if *language == "go" {
+		definitionsGeneratedOutput = gen.GenerateDefinitions(ast)
+	} else if *language == "dart" {
+		definitionsGeneratedOutput = gen.GenerateDefinitionsDart(ast)
+	}
+
+	err = ioutil.WriteFile(*outputCodegenFile+"/gen_definitions.dart", []byte(definitionsGeneratedOutput), 0644)
 	if err != nil {
 		panic(err)
 	}

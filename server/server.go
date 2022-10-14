@@ -121,13 +121,27 @@ func (s *Server) handleRequest(ctx context.Context, peer *peer.Peer) {
 }
 
 func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
-	msg := make([]byte, 1024)
-	n, err := peer.Read(msg)
-	if err != nil {
-		return err
-	}
+	msg := make([]byte, 0, 1024)
 
-	msg = msg[:n]
+	for {
+		buf := make([]byte, 1024)
+		n, err := peer.Read(buf)
+		if err != nil {
+			return err
+		}
+
+		if n == 0 {
+			break
+		}
+
+		if n < len(buf) {
+			buf = buf[:n]
+			msg = append(msg, buf...)
+			break
+		}
+
+		msg = append(msg, buf...)
+	}
 
 	handlerName, n, err := conv.GetHandlerName(msg)
 	if err != nil {
