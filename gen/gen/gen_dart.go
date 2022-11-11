@@ -135,12 +135,7 @@ func fillObjectsDart() {
 			} else {
 				if field.Type.IsArray {
 					resultDart += fmt.Sprintf("\t\t"+`var arr%s = GetArray(params["%s"]!)[1];`+"\n", field.Name, strings.Title(field.Name))
-					resultDart += fmt.Sprintf("\t\tfor (int i = 0;i < arr%s.length; i++) {\n", field.Name)
-					resultDart += fmt.Sprintf("\t\t\tvar valByte = arr%s[i];", field.Name)
-					resultDart += "\t\t\t" + ast2.AstTypeToDartType[field.Type.Type] + " curVal;\n"
-					resultDart += fmt.Sprintf("\t\t\t"+`curVal = %s(valByte);`+"\n", convFunction)
-					resultDart += fmt.Sprintf("\t\t\t%s!.add(curVal);\n", field.Name)
-					resultDart += "\t\t}\n"
+					resultDart += fmt.Sprintf("\t\t%s = List.generate(arr%s.length, (index) => %s(arr%s[index]));\n", field.Name, field.Name, convFunction, field.Name)
 				} else {
 					resultDart += fmt.Sprintf("\t\t"+`%s = %s(params["%s"]!);`+"\n", field.Name, convFunction, strings.Title(field.Name))
 				}

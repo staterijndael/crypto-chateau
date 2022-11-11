@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/Oringik/crypto-chateau/message"
+	"github.com/oringik/crypto-chateau/message"
 )
 
 type mockUserEndpoint struct {
