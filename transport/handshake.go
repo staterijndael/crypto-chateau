@@ -69,6 +69,62 @@ func ClientHandshake(tcpConn net.Conn) (net.Conn, error) {
 	return conn, nil
 }
 
+func ServerHandshake(tcpConn net.Conn) (net.Conn, error) {
+	conn := newConn(tcpConn, connCfg{readDeadline: maxReadTime, writeDeadline: maxWriteTime})
+
+	_, err := conn.Write([]byte("handshake"))
+	if err != nil {
+		return nil, err
+	}
+
+	connPublicKey, err := readConnPubKey(conn)
+	if err != nil {
+		return nil, err
+	}
+
+	var priv [32]byte
+	if _, err := io.ReadFull(rand.Reader, priv[:]); err != nil {
+		panic(err)
+	}
+
+	priv[0] &= 248
+	priv[31] &= 63
+	priv[31] |= 64
+
+	var pub [32]byte
+	curve25519.ScalarBaseMult(&pub, &priv)
+
+	publicKeyMsg := publicKeyInitMsg{publicKey: pub}
+
+	_, err = conn.Write(formatMsg(publicKeyMsg.publicKey[:]))
+	if err != nil {
+		return nil, err
+	}
+
+	buf := make([]byte, 1)
+
+	_, err = conn.Read(buf)
+	if err != nil {
+		return nil, err
+	}
+
+	if buf[0] != '1' {
+		return nil, errors.New("incorrect result byte")
+	}
+
+	sharedKey, err := dh.DH(priv, connPublicKey)
+	if err != nil {
+		return nil, err
+	}
+
+	err = conn.enableEncryption(sharedKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
+}
+
 func readConnPubKey(conn *Conn) ([32]byte, error) {
 	buf := make([]byte, 32)
 	_, err := conn.Read(buf)
