@@ -5,7 +5,7 @@ import (
 	ast2 "github.com/oringik/crypto-chateau/gen/ast"
 	"github.com/oringik/crypto-chateau/gen/gen"
 	lexem2 "github.com/oringik/crypto-chateau/gen/lexem"
-	"io/ioutil"
+	"io"
 	"os"
 )
 
@@ -24,7 +24,7 @@ func main() {
 		panic(err)
 	}
 
-	content, err := ioutil.ReadAll(file)
+	content, err := io.ReadAll(file)
 	if err != nil {
 		panic(err)
 	}
