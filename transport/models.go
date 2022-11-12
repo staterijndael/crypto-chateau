@@ -8,22 +8,6 @@ type publicKeyInitMsg struct {
 	publicKey [32]byte
 }
 
-func formatMsg(fields ...[]byte) []byte {
-	if len(fields) == 0 {
-		return []byte{}
-	}
-
-	result := make([]byte, 0, 1024)
-
-	for i := 0; i < len(fields); i++ {
-		convertedNum := uint16(len(fields[i]))
-		result = append(result, byte(convertedNum), byte(convertedNum>>8))
-		result = append(result, fields[i]...)
-	}
-
-	return result
-}
-
 func parseMsg(msg []byte) ([][]byte, error) {
 	if len(msg) == 0 {
 		return nil, errors.New("empty message")

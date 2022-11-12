@@ -12,8 +12,8 @@ func main() {
 	zapInstance, _ := zap2.NewProduction()
 	reverseEndpoint := &ReverseEndpoint{}
 
-	connWriteDeadline := 5 * time.Second
-	connReadDeadline := 5 * time.Second
+	connWriteDeadline := 500 * time.Second
+	connReadDeadline := 500 * time.Second
 
 	server := endpoints.NewServer(&server2.Config{
 		IP:                "0.0.0.0",
@@ -37,14 +37,16 @@ func (r *ReverseEndpoint) ReverseMagicString(ctx context.Context, req *endpoints
 
 	for left < right {
 		magicStringRunes[left] = magicStringRunes[left] ^ magicStringRunes[right]
-		magicStringRunes[left] = magicStringRunes[left] ^ magicStringRunes[right]
 		magicStringRunes[right] = magicStringRunes[left] ^ magicStringRunes[right]
+		magicStringRunes[left] = magicStringRunes[left] ^ magicStringRunes[right]
 
 		left++
 		right--
 	}
 
+	reversedMsg := string(magicStringRunes)
+
 	return &endpoints.ReverseMagicStringResponse{
-		ReversedMagicString: string(magicStringRunes),
+		ReversedMagicString: reversedMsg,
 	}, nil
 }

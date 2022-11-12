@@ -118,7 +118,7 @@ func fillClients() {
 				result += ")"
 			}
 			result += "{\n"
-			result += "\t_, err := c.peer.Write(" + method.Params[0].Name + ".Marshal())\n\n"
+			result += "\terr := c.peer.WriteResponse(\"" + method.Name + "\"," + method.Params[0].Name + ")\n\n"
 			result += fmt.Sprintf(`msg := make([]byte, 0, 1024)
 
 	for {

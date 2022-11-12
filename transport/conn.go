@@ -139,7 +139,7 @@ func (cn *Conn) Read(p []byte) (int, error) {
 	var packet []byte
 	var toReserve []byte
 
-	if int(packetLength) > n {
+	if int(packetLength) >= n {
 		packet = buf[2:n]
 	} else {
 		packet = buf[2 : 2+packetLength]

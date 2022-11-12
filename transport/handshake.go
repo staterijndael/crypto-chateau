@@ -41,7 +41,7 @@ func ClientHandshake(tcpConn net.Conn) (net.Conn, error) {
 
 	publicKeyMsg := publicKeyInitMsg{publicKey: pub}
 
-	_, err = conn.Write(formatMsg(publicKeyMsg.publicKey[:]))
+	_, err = conn.Write(publicKeyMsg.publicKey[:])
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func ServerHandshake(tcpConn net.Conn) (net.Conn, error) {
 
 	publicKeyMsg := publicKeyInitMsg{publicKey: pub}
 
-	_, err = conn.Write(formatMsg(publicKeyMsg.publicKey[:]))
+	_, err = conn.Write(publicKeyMsg.publicKey[:])
 	if err != nil {
 		return nil, err
 	}
