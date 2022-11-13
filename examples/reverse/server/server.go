@@ -34,7 +34,7 @@ func main() {
 type ReverseEndpoint struct{}
 
 func (r *ReverseEndpoint) ReverseMagicString(ctx context.Context, req *endpoints.ReverseMagicStringRequest) (*endpoints.ReverseMagicStringResponse, error) {
-	log.Printf("resived %s", req.MagicString)
+	log.Printf("recived %s", req.MagicString)
 	magicStringRunes := []rune(req.MagicString)
 	left := 0
 	right := len(magicStringRunes) - 1

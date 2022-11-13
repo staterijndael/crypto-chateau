@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
-	"fmt"
 	endpoints "github.com/oringik/crypto-chateau/examples/reverse/codegen"
+	"log"
+	"time"
 )
 
 func main() {
+	t := time.Now()
+
 	client, err := endpoints.NewClientReverse("0.0.0.0", 8080)
 	if err != nil {
 		panic(err)
@@ -18,6 +21,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	log.Printf("time to send - recive is %s", time.Since(t))
 
-	fmt.Println(resp.ReversedMagicString)
+	log.Printf("recived response is: %s", resp.ReversedMagicString)
 }
