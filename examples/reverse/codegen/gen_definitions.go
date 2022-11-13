@@ -39,11 +39,13 @@ func (o *ReverseMagicStringRequest) Marshal() []byte {
 	resultMagicString = append(resultMagicString, conv.ConvertStringToBytes(o.MagicString)...)
 	buf = append(buf, resultMagicString...)
 	buf = append(buf, '}')
+
 	return buf
 }
 
 func (o *ReverseMagicStringRequest) Unmarshal(params map[string][]byte) error {
 	o.MagicString = conv.ConvertBytesToString(params["MagicString"])
+
 	return nil
 }
 
@@ -59,11 +61,13 @@ func (o *ReverseMagicStringResponse) Marshal() []byte {
 	resultReversedMagicString = append(resultReversedMagicString, conv.ConvertStringToBytes(o.ReversedMagicString)...)
 	buf = append(buf, resultReversedMagicString...)
 	buf = append(buf, '}')
+
 	return buf
 }
 
 func (o *ReverseMagicStringResponse) Unmarshal(params map[string][]byte) error {
 	o.ReversedMagicString = conv.ConvertBytesToString(params["ReversedMagicString"])
+
 	return nil
 }
 
