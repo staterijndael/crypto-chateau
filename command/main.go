@@ -2,6 +2,7 @@ package command
 
 import (
 	"flag"
+	"fmt"
 	ast2 "github.com/oringik/crypto-chateau/gen/ast"
 	"github.com/oringik/crypto-chateau/gen/gen"
 	lexem2 "github.com/oringik/crypto-chateau/gen/lexem"
@@ -22,13 +23,22 @@ func RunCustom(args []string, runOpts *RunOptions) int {
 	language := flag.String("language", "", "language")
 	flag.Parse()
 
+	if *language == "" {
+		fmt.Printf("your language flag is not set \n")
+
+		return 2
+	}
 	if *language != "go" && *language != "dart" {
-		panic("supported languages: go, dart")
+		fmt.Printf("language %s is unsupported; supported languages: go, dart \n", *language)
+
+		return 2
 	}
 
 	file, err := os.Open(*inputFile)
 	if err != nil {
-		panic(err)
+		fmt.Printf("cant read %s file; check your chateau_file flag \n", *inputFile)
+
+		return 2
 	}
 
 	content, err := io.ReadAll(file)
@@ -48,10 +58,17 @@ func RunCustom(args []string, runOpts *RunOptions) int {
 		definitionsGeneratedOutput = gen.GenerateDefinitionsDart(ast)
 	}
 
-	err = os.WriteFile(*outputCodegenFile+"/gen_definitions."+*language, []byte(definitionsGeneratedOutput), 0644)
-	if err != nil {
-		panic(err)
+	if *outputCodegenFile == "" {
+		*outputCodegenFile = "."
 	}
 
+	err = os.WriteFile(*outputCodegenFile+"/gen_definitions."+*language, []byte(definitionsGeneratedOutput), 0644)
+	if err != nil {
+		fmt.Printf("cant write your generated files; %s \n", err)
+
+		return 2
+	}
+
+	fmt.Println("successfully generated")
 	return 0
 }
