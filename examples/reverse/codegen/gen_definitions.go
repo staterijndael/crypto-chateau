@@ -13,6 +13,8 @@ import "go.uber.org/zap"
 import "github.com/oringik/crypto-chateau/transport"
 import "net"
 
+import json "github.com/json-iterator/go"
+
 type Reverse interface {
 	ReverseMagicString(ctx context.Context, req *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error)
 }
@@ -32,17 +34,9 @@ type ReverseMagicStringRequest struct {
 }
 
 func (o *ReverseMagicStringRequest) Marshal() []byte {
-	var buf []byte
-	buf = append(buf, '{')
-	var resultMagicString []byte
-	resultMagicString = append(resultMagicString, []byte("MagicString:")...)
-	resultMagicString = append(resultMagicString, conv.ConvertStringToBytes(o.MagicString)...)
-	buf = append(buf, resultMagicString...)
-	buf = append(buf, '}')
-
-	return buf
+	bts, _ := json.Marshal(o)
+	return bts
 }
-
 func (o *ReverseMagicStringRequest) Unmarshal(params map[string][]byte) error {
 	o.MagicString = conv.ConvertBytesToString(params["MagicString"])
 
@@ -54,17 +48,9 @@ type ReverseMagicStringResponse struct {
 }
 
 func (o *ReverseMagicStringResponse) Marshal() []byte {
-	var buf []byte
-	buf = append(buf, '{')
-	var resultReversedMagicString []byte
-	resultReversedMagicString = append(resultReversedMagicString, []byte("ReversedMagicString:")...)
-	resultReversedMagicString = append(resultReversedMagicString, conv.ConvertStringToBytes(o.ReversedMagicString)...)
-	buf = append(buf, resultReversedMagicString...)
-	buf = append(buf, '}')
-
-	return buf
+	bts, _ := json.Marshal(o)
+	return bts
 }
-
 func (o *ReverseMagicStringResponse) Unmarshal(params map[string][]byte) error {
 	o.ReversedMagicString = conv.ConvertBytesToString(params["ReversedMagicString"])
 

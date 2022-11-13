@@ -39,7 +39,7 @@ func fillImports() {
 	result += "import \"go.uber.org/zap\"\n"
 	result += "import \"github.com/oringik/crypto-chateau/transport\"\n"
 	result += "import \"net\"\n\n"
-
+	result += "import json \"github.com/json-iterator/go\"\n\n"
 }
 
 // fillPackage generates go package name
@@ -294,7 +294,7 @@ func fillObjects() {
 }
 
 func fillMarshalEncode(obj *ast2.ObjectDefinition) {
-	fillV1Marshal(obj)
+	fillV2Marshal(obj)
 }
 
 func fillUnmarshalEncode(obj *ast2.ObjectDefinition) {
