@@ -1,0 +1,13 @@
+package endpoints
+
+service Reverse {
+    Handler ReverseMagicString(ReverseMagicStringRequest req) -> (ReverseMagicStringResponse)
+}
+
+object ReverseMagicStringRequest {
+    string magicString
+}
+
+object ReverseMagicStringResponse {
+    string reversedMagicString
+}

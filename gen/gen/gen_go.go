@@ -25,6 +25,8 @@ func GenerateDefinitions(astLocal *ast2.Ast) string {
 	fillInitHandlers()
 	fillNewServer()
 
+	fillClients()
+
 	return result
 }
 
@@ -35,11 +37,137 @@ func fillImports() {
 	result += "import \"github.com/oringik/crypto-chateau/peer\"\n"
 	result += "import \"github.com/oringik/crypto-chateau/message\"\n"
 	result += "import \"github.com/oringik/crypto-chateau/server\"\n"
-	result += "import \"go.uber.org/zap\"\n\n"
+	result += "import \"go.uber.org/zap\"\n"
+	result += "import \"github.com/oringik/crypto-chateau/transport\"\n"
+	result += "import \"net\"\n\n"
+
 }
 
 func fillPackage() {
 	result += "package " + ast.Chateau.PackageName + "\n\n"
+}
+
+func fillClients() {
+	for _, service := range ast.Chateau.Services {
+		result += "type Client" + service.Name + " struct {\n"
+		result += "\tpeer *peer.Peer\n"
+		result += "}\n\n"
+
+		result += "func NewClient" + service.Name + "(host string, port int) (*Client" + service.Name + ", error) {\n"
+		result += "\tconn, err := net.Dial(\"tcp\", host + \":\" + strconv.Itoa(port))\n"
+		result += "\tif err != nil{\n"
+		result += "\t\treturn nil, err\n"
+		result += "\t}\n"
+		result += "\tconn, err = transport.ServerHandshake(conn)\n"
+		result += "\tif err != nil{\n"
+		result += "\t\treturn nil, err\n"
+		result += "\t}\n"
+		result += "securedPeer := peer.NewPeer(conn)\n"
+		result += "client := &Client" + service.Name + "{peer: securedPeer}\n"
+		result += "return client, nil\n"
+		result += "}\n\n"
+		for _, method := range service.Methods {
+			result += "\t" + "func (c *Client" + service.Name + ") " + method.Name + "(ctx context.Context, "
+			if method.MethodType == ast2.Stream {
+				result += fmt.Sprintf("peer *Peer%s, ", method.Name)
+			}
+			for i, param := range method.Params {
+				result += param.Name + " "
+				if param.Type.IsArray {
+					result += "["
+					if param.Type.ArrSize != 0 {
+						result += strconv.Itoa(param.Type.ArrSize)
+					}
+					result += "]"
+				}
+
+				if param.Type.Type == ast2.Object {
+					result += "*" + param.Type.ObjectName
+				} else {
+					result += ast2.AstTypeToGoType[param.Type.Type]
+				}
+				if i != len(method.Params)-1 {
+					result += ", "
+				}
+			}
+			result += ") "
+			if method.MethodType != ast2.Stream {
+				result += "("
+				for i, ret := range method.Returns {
+					if ret.Type.IsArray {
+						result += "["
+						if ret.Type.ArrSize != 0 {
+							result += strconv.Itoa(ret.Type.ArrSize)
+						}
+						result += "]"
+					}
+
+					if ret.Type.Type == ast2.Object {
+						result += "*" + ret.Type.ObjectName
+					} else {
+						result += ast2.AstTypeToGoType[ret.Type.Type]
+					}
+					if i != len(method.Returns)-1 {
+						result += ", "
+					}
+				}
+				result += ", "
+			}
+			result += "error"
+			if method.MethodType != ast2.Stream {
+				result += ")"
+			}
+			result += "{\n"
+			result += "\terr := c.peer.WriteResponse(\"" + method.Name + "\"," + method.Params[0].Name + ")\n\n"
+			result += fmt.Sprintf(`msg := make([]byte, 0, 1024)
+
+	for {
+		buf := make([]byte, 1024)
+		n, err := c.peer.Read(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		if n == 0 {
+			break
+		}
+
+		if n < len(buf) {
+			buf = buf[:n]
+			msg = append(msg, buf...)
+			break
+		}
+
+		msg = append(msg, buf...)
+	}
+
+	_, n, err := conv.GetHandlerName(msg)
+	if err != nil {
+		return nil, err
+	}
+
+	if n >= len(msg) {
+		return nil, errors.New("incorrect message")
+	}
+
+	_, responseMsgParams, err := conv.GetParams(msg[n:])
+	if err != nil {
+		return nil, err
+	}
+
+	respMsg := &%s{}
+
+	err = respMsg.Unmarshal(responseMsgParams)
+	if err != nil {
+		return nil, err
+	}
+	
+	return respMsg, nil
+`, method.Returns[0].Type.ObjectName)
+
+			result += "}\n\n"
+		}
+	}
 }
 
 func fillServices() {
@@ -330,5 +458,5 @@ func fillNewServer() {
 	result += fmt.Sprintf("func NewServer(cfg *server.Config, logger *zap.Logger, %s) *server.Server {\n", endpointArgs)
 	result += fmt.Sprintf("\thandlers := initHandlers(%s)\n\n", endpointNames)
 	result += "\treturn server.NewServer(cfg, logger, handlers, getPeerByHandlerName)\n"
-	result += "}"
+	result += "}\n\n"
 }
