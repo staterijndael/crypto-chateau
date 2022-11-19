@@ -263,7 +263,6 @@ func fillObjects() {
 		result += "type " + object.Name + " struct {\n"
 		for _, field := range object.Fields {
 			field.Name = strings.Title(field.Name)
-			field.Name = strings.TrimSuffix(field.Name, "\n")
 			field.Type.ObjectName = strings.Title(field.Type.ObjectName)
 
 			result += "\t" + field.Name + " "
@@ -281,6 +280,12 @@ func fillObjects() {
 			} else {
 				result += ast2.AstTypeToGoType[field.Type.Type] + "\n"
 			}
+
+			fmt.Sprintf("fieldName - %s", field.Name)
+			fmt.Println()
+			fmt.Sprintf("bytes - %v", []byte(field.Name))
+			fmt.Println()
+			fmt.Println()
 		}
 		result += "}\n\n"
 
