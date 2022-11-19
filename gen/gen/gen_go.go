@@ -281,9 +281,9 @@ func fillObjects() {
 				result += ast2.AstTypeToGoType[field.Type.Type] + "\n"
 			}
 
-			fmt.Sprintf("fieldName - %s", field.Name)
+			fmt.Println(fmt.Sprintf("fieldName - %s", field.Name))
 			fmt.Println()
-			fmt.Sprintf("bytes - %v", []byte(field.Name))
+			fmt.Println(fmt.Sprintf("bytes - %v", []byte(field.Name)))
 			fmt.Println()
 			fmt.Println()
 		}
