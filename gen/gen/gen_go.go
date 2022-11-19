@@ -263,6 +263,7 @@ func fillObjects() {
 		result += "type " + object.Name + " struct {\n"
 		for _, field := range object.Fields {
 			field.Name = strings.Title(field.Name)
+			field.Name = strings.TrimSuffix(field.Name, "\n")
 			field.Type.ObjectName = strings.Title(field.Type.ObjectName)
 
 			result += "\t" + field.Name + " "
