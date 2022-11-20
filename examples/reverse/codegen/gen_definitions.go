@@ -11,6 +11,8 @@ import "go.uber.org/zap"
 import "github.com/oringik/crypto-chateau/transport"
 import "net"
 
+// CODEGEN VERSION: v1.0
+
 type Reverse interface {
 	ReverseMagicString(ctx context.Context, req *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error)
 }

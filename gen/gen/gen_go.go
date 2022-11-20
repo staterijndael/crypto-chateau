@@ -9,12 +9,15 @@ import (
 	"unicode"
 )
 
+const CODEGEN_VERSION string = "v1.0"
+
 var result string
 var ast *ast2.Ast
 
 func GenerateDefinitions(astLocal *ast2.Ast) string {
 	ast = astLocal
 
+	fillVersion()
 	fillPackage()
 	fillImports()
 	fillServices()
@@ -46,6 +49,10 @@ func fillImports() {
 
 func fillPackage() {
 	result += "package " + ast.Chateau.PackageName + "\n\n"
+}
+
+func fillVersion() {
+	result += "// CODEGEN VERSION: " + CODEGEN_VERSION + "\n\n"
 }
 
 func fillClients() {
