@@ -2,47 +2,67 @@ package main
 
 import (
 	"flag"
-	ast2 "github.com/oringik/crypto-chateau/gen/ast"
-	"github.com/oringik/crypto-chateau/gen/gen"
-	lexem2 "github.com/oringik/crypto-chateau/gen/lexem"
-	"io/ioutil"
+	"fmt"
+	"io"
+	"log"
 	"os"
+
+	"github.com/oringik/crypto-chateau/gen/ast"
+	"github.com/oringik/crypto-chateau/gen/gen"
+	"github.com/oringik/crypto-chateau/gen/lexem"
 )
 
+var (
+	inputFilepath  string
+	outputFilepath string
+	language       string
+)
+
+func init() {
+	flag.StringVar(&inputFilepath, "chateau_file", "", "chateau file")
+	flag.StringVar(&outputFilepath, "codegen_output", "", "codegenOutput")
+	flag.StringVar(&language, "language", "", "currently supported: go, dart")
+}
+
 func main() {
-	inputFile := flag.String("chateau_file", "", "chateau file")
-	outputCodegenFile := flag.String("codegen_output", "", "codegenOutput")
-	language := flag.String("language", "", "language")
 	flag.Parse()
 
-	if *language != "go" && *language != "dart" {
-		panic("supported languages: go, dart")
+	var (
+		generator func(*ast.Ast) string
+		outputExt string
+	)
+
+	switch language {
+	case "":
+		log.Fatal("language is not specified")
+	case "go":
+		generator = gen.GenerateDefinitions
+		outputExt = "go"
+	case "dart":
+		generator = gen.GenerateDefinitionsDart
+		outputExt = "dart"
+	default:
+		log.Fatal(language + " is not supported, only go, dart")
 	}
 
-	file, err := os.Open(*inputFile)
+	file, err := os.Open(inputFilepath)
 	if err != nil {
-		panic(err)
+		log.Fatal("input file open failed: " + err.Error())
 	}
 
-	content, err := ioutil.ReadAll(file)
+	content, err := io.ReadAll(file)
 	if err != nil {
-		panic(err)
+		log.Fatal("input file read failed: " + err.Error())
 	}
 
-	lexems := lexem2.LexemParse(string(content))
+	definitions := generator(ast.GenerateAst(lexem.LexemParse(string(content))))
 
-	ast := ast2.GenerateAst(lexems)
+	outputFilename := fmt.Sprintf("%s%cgen_definitions.%s", outputFilepath, os.PathSeparator, outputExt)
 
-	var definitionsGeneratedOutput string
-
-	if *language == "go" {
-		definitionsGeneratedOutput = gen.GenerateDefinitions(ast)
-	} else if *language == "dart" {
-		definitionsGeneratedOutput = gen.GenerateDefinitionsDart(ast)
-	}
-
-	err = ioutil.WriteFile(*outputCodegenFile+"/gen_definitions."+*language, []byte(definitionsGeneratedOutput), 0644)
+	err = os.WriteFile(outputFilename, []byte(definitions), 0644)
 	if err != nil {
-		panic(err)
+		log.Fatal("failed to save in output file: " + err.Error())
 	}
+
+	log.Println("generated definitions saved in " + outputFilename)
 }
