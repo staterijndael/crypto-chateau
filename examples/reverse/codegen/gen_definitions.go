@@ -1,10 +1,8 @@
 package endpoints
 
-import (
-	"errors"
-	"strconv"
-)
+import "errors"
 import "context"
+import "strconv"
 import "github.com/oringik/crypto-chateau/gen/conv"
 import "github.com/oringik/crypto-chateau/peer"
 import "github.com/oringik/crypto-chateau/message"

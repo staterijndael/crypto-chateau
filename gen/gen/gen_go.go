@@ -33,7 +33,7 @@ func GenerateDefinitions(astLocal *ast2.Ast) string {
 func fillImports() {
 	result += "import \"errors\"\n"
 	result += "import \"context\"\n"
-	result += "import \"strconv\""
+	result += "import \"strconv\"\n"
 	result += "import \"github.com/oringik/crypto-chateau/gen/conv\"\n"
 	result += "import \"github.com/oringik/crypto-chateau/peer\"\n"
 	result += "import \"github.com/oringik/crypto-chateau/message\"\n"
