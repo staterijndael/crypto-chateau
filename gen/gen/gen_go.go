@@ -367,6 +367,8 @@ func fillObjects() {
 			}
 		}
 		result += "\treturn nil\n}\n\n"
+
+		result = strings.Trim(result, "\r\n")
 	}
 }
 
