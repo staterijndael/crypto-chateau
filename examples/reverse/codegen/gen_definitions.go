@@ -2,20 +2,16 @@
 
 package endpoints
 
-import (
-	"context"
-	"errors"
-	"net"
-	"strconv"
-
-	"go.uber.org/zap"
-
-	"github.com/oringik/crypto-chateau/gen/conv"
-	"github.com/oringik/crypto-chateau/message"
-	"github.com/oringik/crypto-chateau/peer"
-	"github.com/oringik/crypto-chateau/server"
-	"github.com/oringik/crypto-chateau/transport"
-)
+import "errors"
+import "context"
+import "strconv"
+import "github.com/oringik/crypto-chateau/gen/conv"
+import "github.com/oringik/crypto-chateau/peer"
+import "github.com/oringik/crypto-chateau/message"
+import "github.com/oringik/crypto-chateau/server"
+import "go.uber.org/zap"
+import "github.com/oringik/crypto-chateau/transport"
+import "net"
 
 type Reverse interface {
 	ReverseMagicString(ctx context.Context, req *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error)
