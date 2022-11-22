@@ -74,8 +74,13 @@ func getPeerByHandlerName(handlerName string, peer *peer.Peer) interface{} {
 func GetHandlers(reverse Reverse) map[string]*server.Handler {
 	handlers := make(map[string]*server.Handler)
 
+	var callFuncReverseMagicString server.HandlerFunc
+	if reverse != nil {
+		callFuncReverseMagicString = ReverseMagicStringSqueeze(reverse.ReverseMagicString)
+	}
+
 	handlers["ReverseMagicString"] = &server.Handler{
-		CallFuncHandler: ReverseMagicStringSqueeze(reverse.ReverseMagicString),
+		CallFuncHandler: callFuncReverseMagicString,
 		HandlerType:     server.HandlerT,
 		RequestMsgType:  &ReverseMagicStringRequest{},
 		ResponseMsgType: &ReverseMagicStringResponse{},

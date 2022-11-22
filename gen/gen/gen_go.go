@@ -438,12 +438,16 @@ func fillGetHandlers() {
 			if len(service.Name) > 1 {
 				serviceNameLower += service.Name[1:]
 			}
+			result += "\tvar callFunc" + method.Name + " server.HandlerFunc\n"
+			result += "\tif " + serviceNameLower + " != nil {\n"
+			result += "\t\tcallFunc" + method.Name + "= " + method.Name + "Squeeze(" + serviceNameLower + "." + method.Name + ")\n"
+			result += "\t}\n\n"
 			result += fmt.Sprintf("\t"+`handlers["%s"] = &server.Handler{
-		CallFunc%s: %sSqueeze(%s.%s),
+		CallFunc%s: callFunc%s,
 		HandlerType:     %s,
 		RequestMsgType:  &%s{},
 		ResponseMsgType: &%s{},
-	}`+"\n\n", method.Name, string(method.MethodType), method.Name, serviceNameLower, method.Name, methodType, method.Params[0].Type.ObjectName, method.Returns[0].Type.ObjectName)
+	}`+"\n\n", method.Name, string(method.MethodType), method.Name, methodType, method.Params[0].Type.ObjectName, method.Returns[0].Type.ObjectName)
 		}
 	}
 	result += "\treturn handlers\n"
