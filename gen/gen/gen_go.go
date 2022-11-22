@@ -25,7 +25,7 @@ func GenerateDefinitions(astLocal *ast2.Ast) string {
 	fillObjects()
 	fillPeers()
 	fillPeersSqueezes()
-	fillInitHandlers()
+	fillGetHandlers()
 	fillNewServer()
 
 	fillClients()
@@ -409,7 +409,7 @@ func fillPeersSqueezes() {
 	result += "}\n\n"
 }
 
-func fillInitHandlers() {
+func fillGetHandlers() {
 	var endpointArgs string
 	for i, service := range ast.Chateau.Services {
 		endpointArgs += string(unicode.ToLower(rune(service.Name[0])))
@@ -422,7 +422,7 @@ func fillInitHandlers() {
 			endpointArgs += ","
 		}
 	}
-	result += fmt.Sprintf("func initHandlers(%s) map[string]*server.Handler {\n", endpointArgs)
+	result += fmt.Sprintf("func GetHandlers(%s) map[string]*server.Handler {\n", endpointArgs)
 	result += "\thandlers := make(map[string]*server.Handler)\n\n"
 	for _, service := range ast.Chateau.Services {
 		for _, method := range service.Methods {
@@ -466,7 +466,7 @@ func fillNewServer() {
 	}
 
 	result += fmt.Sprintf("func NewServer(cfg *server.Config, logger *zap.Logger, %s) *server.Server {\n", endpointArgs)
-	result += fmt.Sprintf("\thandlers := initHandlers(%s)\n\n", endpointNames)
+	result += fmt.Sprintf("\thandlers := GetHandlers(%s)\n\n", endpointNames)
 	result += "\treturn server.NewServer(cfg, logger, handlers, getPeerByHandlerName)\n"
 	result += "}\n\n"
 }

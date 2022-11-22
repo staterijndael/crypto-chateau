@@ -71,7 +71,7 @@ func getPeerByHandlerName(handlerName string, peer *peer.Peer) interface{} {
 	return nil
 }
 
-func initHandlers(reverse Reverse) map[string]*server.Handler {
+func GetHandlers(reverse Reverse) map[string]*server.Handler {
 	handlers := make(map[string]*server.Handler)
 
 	handlers["ReverseMagicString"] = &server.Handler{
@@ -84,7 +84,7 @@ func initHandlers(reverse Reverse) map[string]*server.Handler {
 }
 
 func NewServer(cfg *server.Config, logger *zap.Logger, reverse Reverse) *server.Server {
-	handlers := initHandlers(reverse)
+	handlers := GetHandlers(reverse)
 
 	return server.NewServer(cfg, logger, handlers, getPeerByHandlerName)
 }
