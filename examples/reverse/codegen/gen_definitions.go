@@ -90,6 +90,20 @@ func NewServer(cfg *server.Config, logger *zap.Logger, reverse Reverse) *server.
 	return server.NewServer(cfg, logger, handlers, getPeerByHandlerName)
 }
 
+func CallClientMethod(ctx context.Context, host string, port int, serviceName string, methodName string, req message.Message) (message.Message, error) {
+	if serviceName == "Reverse" {
+		if methodName == "ReverseMagicString" {
+			client, err := NewClientReverse(host, port)
+			if err != nil {
+				return nil, err
+			}
+			return client.ReverseMagicString(ctx, req.(*ReverseMagicStringRequest))
+		}
+	}
+
+	return nil, errors.New("unknown service or method")
+}
+
 type ClientReverse struct {
 	peer *peer.Peer
 }

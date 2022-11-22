@@ -27,6 +27,7 @@ func GenerateDefinitions(astLocal *ast2.Ast) string {
 	fillPeersSqueezes()
 	fillGetHandlers()
 	fillNewServer()
+	fillCallClientMethod()
 
 	fillClients()
 
@@ -469,5 +470,24 @@ func fillNewServer() {
 	result += fmt.Sprintf("func NewServer(cfg *server.Config, logger *zap.Logger, %s) *server.Server {\n", endpointArgs)
 	result += fmt.Sprintf("\thandlers := GetHandlers(%s)\n\n", endpointNames)
 	result += "\treturn server.NewServer(cfg, logger, handlers, getPeerByHandlerName)\n"
+	result += "}\n\n"
+}
+
+func fillCallClientMethod() {
+	result += "func CallClientMethod(ctx context.Context, host string, port int, serviceName string, methodName string, req message.Message) (message.Message, error) {\n"
+	for _, service := range ast.Chateau.Services {
+		result += "\tif serviceName == \"" + service.Name + "\" {\n"
+		for _, method := range service.Methods {
+			result += "\t\tif methodName == \"" + method.Name + "\" {\n"
+			result += "\t\t\tclient, err := NewClient" + service.Name + "(host, port)\n"
+			result += "\t\t\tif err != nil {\n"
+			result += "\t\t\t\treturn nil, err\n"
+			result += "\t\t\t}\n"
+			result += "\t\t\treturn client." + method.Name + "(ctx, req.(*" + method.Params[0].Type.ObjectName + "))\n"
+			result += "\t\t}\n"
+		}
+		result += "\t}\n\n"
+	}
+	result += "\treturn nil, errors.New(\"unknown service or method\")\n"
 	result += "}\n\n"
 }
