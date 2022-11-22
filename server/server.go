@@ -27,7 +27,8 @@ type Handler struct {
 	CallFuncHandler HandlerFunc
 	CallFuncStream  StreamFunc
 	HandlerType
-	RequestMsgType message.Message
+	RequestMsgType  message.Message
+	ResponseMsgType message.Message
 }
 
 type Server struct {

@@ -441,7 +441,8 @@ func fillGetHandlers() {
 		CallFunc%s: %sSqueeze(%s.%s),
 		HandlerType:     %s,
 		RequestMsgType:  &%s{},
-	}`+"\n\n", method.Name, string(method.MethodType), method.Name, serviceNameLower, method.Name, methodType, method.Params[0].Type.ObjectName)
+		ResponseMsgType: &%s{},
+	}`+"\n\n", method.Name, string(method.MethodType), method.Name, serviceNameLower, method.Name, methodType, method.Params[0].Type.ObjectName, method.Returns[0].Type.ObjectName)
 		}
 	}
 	result += "\treturn handlers\n"
