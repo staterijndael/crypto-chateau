@@ -89,6 +89,18 @@ func GetHandlers(reverse Reverse) map[string]*server.Handler {
 	return handlers
 }
 
+func GetEmptyHandlers() map[string]*server.Handler {
+	handlers := make(map[string]*server.Handler)
+
+	handlers["ReverseMagicString"] = &server.Handler{
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &ReverseMagicStringRequest{},
+		ResponseMsgType: &ReverseMagicStringResponse{},
+	}
+
+	return handlers
+}
+
 func NewServer(cfg *server.Config, logger *zap.Logger, reverse Reverse) *server.Server {
 	handlers := GetHandlers(reverse)
 

@@ -26,6 +26,7 @@ func GenerateDefinitions(astLocal *ast2.Ast) string {
 	fillPeers()
 	fillPeersSqueezes()
 	fillGetHandlers()
+	fillEmptyGetHandlers()
 	fillNewServer()
 	fillCallClientMethod()
 
@@ -448,6 +449,45 @@ func fillGetHandlers() {
 		RequestMsgType:  &%s{},
 		ResponseMsgType: &%s{},
 	}`+"\n\n", method.Name, string(method.MethodType), method.Name, methodType, method.Params[0].Type.ObjectName, method.Returns[0].Type.ObjectName)
+		}
+	}
+	result += "\treturn handlers\n"
+	result += "}\n\n"
+}
+
+func fillEmptyGetHandlers() {
+	var endpointArgs string
+	for i, service := range ast.Chateau.Services {
+		endpointArgs += string(unicode.ToLower(rune(service.Name[0])))
+		if len(service.Name) > 1 {
+			endpointArgs += service.Name[1:]
+		}
+		endpointArgs += " " + service.Name
+
+		if i != len(ast.Chateau.Services)-1 {
+			endpointArgs += ","
+		}
+	}
+	result += "func GetEmptyHandlers() map[string]*server.Handler {\n"
+	result += "\thandlers := make(map[string]*server.Handler)\n\n"
+	for _, service := range ast.Chateau.Services {
+		for _, method := range service.Methods {
+			var methodType string
+			if method.MethodType == ast2.Handler {
+				methodType = "server.HandlerT"
+			} else if method.MethodType == ast2.Stream {
+				methodType = "server.StreamT"
+			}
+			var serviceNameLower string
+			serviceNameLower += string(unicode.ToLower(rune(service.Name[0])))
+			if len(service.Name) > 1 {
+				serviceNameLower += service.Name[1:]
+			}
+			result += fmt.Sprintf("\t"+`handlers["%s"] = &server.Handler{
+		HandlerType:     %s,
+		RequestMsgType:  &%s{},
+		ResponseMsgType: &%s{},
+	}`+"\n\n", method.Name, methodType, method.Params[0].Type.ObjectName, method.Returns[0].Type.ObjectName)
 		}
 	}
 	result += "\treturn handlers\n"
