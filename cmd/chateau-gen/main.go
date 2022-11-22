@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -27,6 +28,13 @@ func init() {
 func main() {
 	flag.Parse()
 
+	err := GenerateDefinitions(inputFilepath, outputFilepath, language)
+	if err != nil {
+		log.Fatalf("error generating file: " + err.Error())
+	}
+}
+
+func GenerateDefinitions(inputFile string, outputFilepath string, language string) error {
 	var (
 		generator func(*ast.Ast) string
 		outputExt string
@@ -42,17 +50,17 @@ func main() {
 		generator = gen.GenerateDefinitionsDart
 		outputExt = "dart"
 	default:
-		log.Fatal(language + " is not supported, only go, dart")
+		return errors.New(language + " is not supported, only go, dart")
 	}
 
 	file, err := os.Open(inputFilepath)
 	if err != nil {
-		log.Fatal("input file open failed: " + err.Error())
+		return errors.New("input file open failed: " + err.Error())
 	}
 
 	content, err := io.ReadAll(file)
 	if err != nil {
-		log.Fatal("input file read failed: " + err.Error())
+		return errors.New("input file read failed: " + err.Error())
 	}
 
 	definitions := generator(ast.GenerateAst(lexem.LexemParse(string(content))))
@@ -61,8 +69,10 @@ func main() {
 
 	err = os.WriteFile(outputFilename, []byte(definitions), 0644)
 	if err != nil {
-		log.Fatal("failed to save in output file: " + err.Error())
+		return errors.New("failed to save in output file: " + err.Error())
 	}
 
 	log.Println("generated definitions saved in " + outputFilename)
+
+	return nil
 }
