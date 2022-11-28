@@ -16,7 +16,7 @@ import (
 )
 
 type HandlerFunc func(context.Context, message.Message) (message.Message, error)
-type StreamFunc func(ctx context.Context, peer interface{}, message message.Message) error
+type StreamFunc func(ctx context.Context, peer *peer.Peer, message message.Message) error
 
 type HandlerType int
 
@@ -38,8 +38,6 @@ type Server struct {
 	Clients    map[string]*peer.Peer
 	shutdownCh chan error
 	logger     *zap.Logger
-
-	getPeerByHandlerName func(handlerName string, peer *peer.Peer) interface{}
 }
 
 type Config struct {
@@ -50,15 +48,13 @@ type Config struct {
 	ConnWriteDeadline *time.Duration
 }
 
-func NewServer(cfg *Config, logger *zap.Logger, handlers map[string]*Handler, getPeerByHandlerName func(handlerName string, peer *peer.Peer) interface{}) *Server {
+func NewServer(cfg *Config, logger *zap.Logger, handlers map[string]*Handler) *Server {
 	return &Server{
 		Config:     cfg,
 		Handlers:   handlers,
 		Clients:    make(map[string]*peer.Peer),
 		shutdownCh: make(chan error),
 		logger:     logger,
-
-		getPeerByHandlerName: getPeerByHandlerName,
 	}
 }
 
@@ -188,8 +184,7 @@ func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
 		}
 	case StreamT:
 		go func() {
-			decoratedPeer := s.getPeerByHandlerName(string(handlerName), peer)
-			err = handler.CallFuncStream(ctx, decoratedPeer, requestMsg)
+			err = handler.CallFuncStream(ctx, peer, requestMsg)
 			if err != nil {
 				writeErr := peer.WriteError(string(handlerName), err)
 				if writeErr != nil {

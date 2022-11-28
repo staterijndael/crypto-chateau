@@ -23,8 +23,6 @@ func GenerateDefinitions(astLocal *ast2.Ast) string {
 	fillServices()
 	fillSqueezes()
 	fillObjects()
-	fillPeers()
-	fillPeersSqueezes()
 	fillGetHandlers()
 	fillEmptyGetHandlers()
 	fillNewServer()
@@ -77,6 +75,9 @@ func fillClients() {
 		result += "return client, nil\n"
 		result += "}\n\n"
 		for _, method := range service.Methods {
+			if method.MethodType == ast2.Stream {
+				continue
+			}
 			result += "\t" + "func (c *Client" + service.Name + ") " + method.Name + "(ctx context.Context, "
 			if method.MethodType == ast2.Stream {
 				result += fmt.Sprintf("peer *Peer%s, ", method.Name)
@@ -186,7 +187,7 @@ func fillServices() {
 		for _, method := range service.Methods {
 			result += "\t" + method.Name + "(ctx context.Context, "
 			if method.MethodType == ast2.Stream {
-				result += fmt.Sprintf("peer *Peer%s, ", method.Name)
+				result += "peer *peer.Peer, "
 			}
 			for i, param := range method.Params {
 				result += param.Name + " "
@@ -254,15 +255,15 @@ func fillSqueezes() {
 	}
 }`+"\n\n", method.Name, method.Params[0].Type.ObjectName, method.Returns[0].Type.ObjectName, method.Params[0].Type.ObjectName, method.Params[0].Type.ObjectName, method.Params[0].Type.ObjectName)
 			} else {
-				result += fmt.Sprintf(`func %sSqueeze(fnc func(context.Context, *Peer%s, *%s) error) server.StreamFunc {
-	return func(ctx context.Context, peer interface{}, msg message.Message) error {
+				result += fmt.Sprintf(`func %sSqueeze(fnc func(context.Context, *peer.Peer, *%s) error) server.StreamFunc {
+	return func(ctx context.Context, peer *peer.Peer, msg message.Message) error {
 		if _, ok := msg.(*%s); ok {
-			return fnc(ctx, peer.(*Peer%s), msg.(*%s))
+			return fnc(ctx, peer, msg.(*%s))
 		} else {
 			return errors.New("unknown message type: expected %s")
 		}
 	}
-}`+"\n\n", method.Name, method.Name, method.Params[0].Type.ObjectName, method.Params[0].Type.ObjectName, method.Name, method.Params[0].Type.ObjectName, method.Params[0].Type.ObjectName)
+}`+"\n\n", method.Name, method.Params[0].Type.ObjectName, method.Params[0].Type.ObjectName, method.Params[0].Type.ObjectName, method.Params[0].Type.ObjectName)
 			}
 		}
 	}
@@ -374,41 +375,6 @@ func fillObjects() {
 	}
 }
 
-func fillPeers() {
-	for _, service := range ast.Chateau.Services {
-		for _, method := range service.Methods {
-			if method.MethodType == ast2.Stream {
-				result += "type Peer" + method.Name + " struct {\n"
-				result += "\tpeer *peer.Peer\n"
-				result += "}\n\n"
-
-				result += "func (p *Peer" + method.Name + ") WriteResponse(msg *" + method.Returns[0].Type.ObjectName + ") error {\n"
-				result += fmt.Sprintf("\t"+`return p.peer.WriteResponse("%s", msg)`+"\n", method.Name)
-				result += "}\n\n"
-
-				result += "func (p *Peer" + method.Name + ") WriteError(err error) error {\n"
-				result += fmt.Sprintf("\t"+`return p.peer.WriteError("%s", err)`+"\n", method.Name)
-				result += "}\n\n"
-			}
-		}
-	}
-}
-
-func fillPeersSqueezes() {
-	result += "func getPeerByHandlerName(handlerName string, peer *peer.Peer) interface{}{\n"
-	for _, service := range ast.Chateau.Services {
-		for _, method := range service.Methods {
-			if method.MethodType == ast2.Stream {
-				result += "\tif handlerName == \"" + method.Name + "\" {\n"
-				result += "\t\treturn Peer" + method.Name + "{peer}\n"
-				result += "\t}\n\n"
-			}
-		}
-	}
-	result += "\treturn nil\n"
-	result += "}\n\n"
-}
-
 func fillGetHandlers() {
 	var endpointArgs string
 	for i, service := range ast.Chateau.Services {
@@ -437,7 +403,7 @@ func fillGetHandlers() {
 			if len(service.Name) > 1 {
 				serviceNameLower += service.Name[1:]
 			}
-			result += "\tvar callFunc" + method.Name + " server.HandlerFunc\n"
+			result += "\tvar callFunc" + method.Name + " server." + string(method.MethodType) + "Func\n"
 			result += "\tif " + serviceNameLower + " != nil {\n"
 			result += "\t\tcallFunc" + method.Name + "= " + method.Name + "Squeeze(" + serviceNameLower + "." + method.Name + ")\n"
 			result += "\t}\n\n"
@@ -511,7 +477,7 @@ func fillNewServer() {
 
 	result += fmt.Sprintf("func NewServer(cfg *server.Config, logger *zap.Logger, %s) *server.Server {\n", endpointArgs)
 	result += fmt.Sprintf("\thandlers := GetHandlers(%s)\n\n", endpointNames)
-	result += "\treturn server.NewServer(cfg, logger, handlers, getPeerByHandlerName)\n"
+	result += "\treturn server.NewServer(cfg, logger, handlers)\n"
 	result += "}\n\n"
 }
 
@@ -521,6 +487,10 @@ func fillCallClientMethod() {
 		result += "\tif serviceName == \"" + service.Name + "\" {\n"
 		for _, method := range service.Methods {
 			result += "\t\tif methodName == \"" + method.Name + "\" {\n"
+			if method.MethodType == ast2.Stream {
+				result += "\t\t}\n\n"
+				continue
+			}
 			result += "\t\t\tclient, err := NewClient" + service.Name + "(host, port)\n"
 			result += "\t\t\tif err != nil {\n"
 			result += "\t\t\t\treturn nil, err\n"
