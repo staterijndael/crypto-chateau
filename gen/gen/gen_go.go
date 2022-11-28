@@ -371,8 +371,6 @@ func fillObjects() {
 			}
 		}
 		result += "\treturn nil\n}\n\n"
-
-		result = strings.ReplaceAll(result, "\r\n", "")
 	}
 }
 
