@@ -2,6 +2,7 @@ package peer
 
 import (
 	"fmt"
+	"github.com/oringik/crypto-chateau/gen/conv"
 	"github.com/oringik/crypto-chateau/message"
 	"net"
 )
@@ -23,6 +24,28 @@ func (p *Peer) WriteResponse(handlerName string, msg message.Message) error {
 	resp = append(resp, msg.Marshal()...)
 
 	_, err := p.Conn.Write(resp)
+	return err
+}
+
+func (p *Peer) ReadMessage(msg message.Message) error {
+	var msgRaw []byte
+
+	_, err := p.Conn.Read(msgRaw)
+	_, n, err := conv.GetHandlerName(msgRaw)
+	if err != nil {
+		return err
+	}
+
+	_, reqMsgParams, err := conv.GetParams(msgRaw[n:])
+	if err != nil {
+		return err
+	}
+
+	err = msg.Unmarshal(reqMsgParams)
+	if err != nil {
+		return err
+	}
+
 	return err
 }
 
