@@ -2,11 +2,12 @@ package gen
 
 import (
 	"fmt"
-	ast2 "github.com/oringik/crypto-chateau/gen/ast"
-	"github.com/oringik/crypto-chateau/gen/conv"
 	"strconv"
 	"strings"
 	"unicode"
+
+	ast2 "github.com/oringik/crypto-chateau/gen/ast"
+	"github.com/oringik/crypto-chateau/gen/conv"
 )
 
 const CODEGEN_VERSION string = "v1.0"
@@ -353,7 +354,7 @@ func fillObjects() {
 					if field.Type.ArrSize != 0 {
 						iOrMiss = "i"
 					} else {
-						iOrMiss = "-"
+						iOrMiss = "_"
 					}
 					result += fmt.Sprintf("\tfor %s, valByte := range arr {\n", iOrMiss)
 					if field.Type.ArrSize != 0 {
