@@ -13,6 +13,10 @@ import "go.uber.org/zap"
 import "github.com/oringik/crypto-chateau/transport"
 import "net"
 
+var tagsByHandlerName = map[string]map[string]string{
+	"ReverseMagicString": {"key": "val", "ajsdajsd": "asdasd"},
+}
+
 type Reverse interface {
 	ReverseMagicString(ctx context.Context, req *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error)
 }
@@ -80,6 +84,7 @@ func GetHandlers(reverse Reverse) map[string]*server.Handler {
 		HandlerType:     server.HandlerT,
 		RequestMsgType:  &ReverseMagicStringRequest{},
 		ResponseMsgType: &ReverseMagicStringResponse{},
+		Tags:            tagsByHandlerName["ReverseMagicString"],
 	}
 
 	return handlers

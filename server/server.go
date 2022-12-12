@@ -29,6 +29,7 @@ type Handler struct {
 	HandlerType
 	RequestMsgType  message.Message
 	ResponseMsgType message.Message
+	Tags            map[string]string
 }
 
 type Server struct {
@@ -182,6 +183,13 @@ func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
 		if err != nil {
 			return err
 		}
+
+		if val, ok2 := s.Handlers[string(handlerName)].Tags["keep_conn_alive"]; !ok2 || val != "true" {
+			err = peer.Close()
+			if err != nil {
+				return err
+			}
+		}
 	case StreamT:
 		go func() {
 			err = handler.CallFuncStream(ctx, peer, requestMsg)
@@ -191,6 +199,14 @@ func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
 					fmt.Println(writeErr)
 				}
 				return
+			}
+
+			if val, ok2 := s.Handlers[string(handlerName)].Tags["keep_conn_alive"]; !ok2 || val != "true" {
+				err = peer.Close()
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
 			}
 		}()
 	default:

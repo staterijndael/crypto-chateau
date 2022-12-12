@@ -21,6 +21,7 @@ func GenerateDefinitions(astLocal *ast2.Ast) string {
 	fillVersion()
 	fillPackage()
 	fillImports()
+	fillTagsByHandlerName()
 	fillServices()
 	fillSqueezes()
 	fillObjects()
@@ -180,6 +181,23 @@ func fillClients() {
 			result += "}\n\n"
 		}
 	}
+}
+
+func fillTagsByHandlerName() {
+	result += "var tagsByHandlerName = map[string]map[string]string{\n"
+	for _, service := range ast.Chateau.Services {
+		for _, method := range service.Methods {
+			var tags string
+			for j := 0; j < len(method.Tags); j++ {
+				tags += "\"" + method.Tags[j].Name + "\":\"" + method.Tags[j].Value + "\""
+				if j != len(method.Tags)-1 {
+					tags += ","
+				}
+			}
+			result += "\t\"" + method.Name + "\":{" + tags + "},\n"
+		}
+	}
+	result += "}\n\n"
 }
 
 func fillServices() {
@@ -409,11 +427,12 @@ func fillGetHandlers() {
 			result += "\t\tcallFunc" + method.Name + "= " + method.Name + "Squeeze(" + serviceNameLower + "." + method.Name + ")\n"
 			result += "\t}\n\n"
 			result += fmt.Sprintf("\t"+`handlers["%s"] = &server.Handler{
-		CallFunc%s: callFunc%s,
+		CallFunc%s:      callFunc%s,
 		HandlerType:     %s,
 		RequestMsgType:  &%s{},
 		ResponseMsgType: &%s{},
-	}`+"\n\n", method.Name, string(method.MethodType), method.Name, methodType, method.Params[0].Type.ObjectName, method.Returns[0].Type.ObjectName)
+		Tags:            tagsByHandlerName["%s"],
+	}`+"\n\n", method.Name, string(method.MethodType), method.Name, methodType, method.Params[0].Type.ObjectName, method.Returns[0].Type.ObjectName, method.Name)
 		}
 	}
 	result += "\treturn handlers\n"

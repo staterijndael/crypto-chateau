@@ -77,6 +77,12 @@ type Method struct {
 	Params     []*Param
 	Returns    []*Return
 	MethodType MethodType
+	Tags       []Tag
+}
+
+type Tag struct {
+	Name  string
+	Value string
 }
 
 type TypeLink struct {
@@ -165,7 +171,7 @@ func astChateau() *Chateau {
 }
 
 func astObject() *ObjectDefinition {
-	if lexem.Type != lexem2.IdentefierL {
+	if lexem.Type != lexem2.IdentifierL {
 		panic("expected identifier")
 	}
 
@@ -188,7 +194,7 @@ func astFields() []*Field {
 		return nil
 	}
 
-	if lexem.Type != lexem2.TypeL && lexem.Type != lexem2.IdentefierL {
+	if lexem.Type != lexem2.TypeL && lexem.Type != lexem2.IdentifierL {
 		panic("expected type or identifier " + lexem.Value)
 	}
 
@@ -205,13 +211,13 @@ func astFields() []*Field {
 }
 
 func astField() *Field {
-	if lexem.Type != lexem2.TypeL && lexem.Type != lexem2.IdentefierL {
+	if lexem.Type != lexem2.TypeL && lexem.Type != lexem2.IdentifierL {
 		panic("expected type")
 	}
 
 	field := &Field{}
 	typeLink := TypeLink{}
-	if lexem.Type == lexem2.IdentefierL {
+	if lexem.Type == lexem2.IdentifierL {
 		typeLink.Type = Object
 		isArr, arrSize := getArrExistAndSize(lexem.Value)
 		if isArr {
@@ -251,7 +257,7 @@ func astField() *Field {
 
 	field.Type = typeLink
 	getNextLexem()
-	if lexem.Type != lexem2.IdentefierL {
+	if lexem.Type != lexem2.IdentifierL {
 		panic("expected identifier")
 	}
 	field.Name = lexem.Value
@@ -260,7 +266,7 @@ func astField() *Field {
 }
 
 func astService() *Service {
-	if lexem.Type != lexem2.IdentefierL {
+	if lexem.Type != lexem2.IdentifierL {
 		panic("expected identifier")
 	}
 
@@ -293,7 +299,7 @@ func astMethod() *Method {
 	method.MethodType = MethodType(lexem.Value)
 
 	getNextLexem()
-	if lexem.Type != lexem2.IdentefierL {
+	if lexem.Type != lexem2.IdentifierL {
 		panic("expected method name")
 	}
 	method.Name = lexem.Value
@@ -316,7 +322,57 @@ func astMethod() *Method {
 	method.Params = params
 	method.Returns = returns
 
+	tags := astTags()
+
+	method.Tags = tags
+
 	return method
+}
+
+func astTags() []Tag {
+	if lexem.Type != lexem2.OpenBraceL {
+		return nil
+	}
+
+	getNextLexem()
+
+	var tags []Tag
+
+	for lexem.Type != lexem2.CloseBraceL {
+		if lexem.Type != lexem2.IdentifierL {
+			panic("expected tag name (identifier)")
+		}
+
+		name := lexem.Value
+
+		getNextLexem()
+
+		if lexem.Type != lexem2.ColonL {
+			panic("expected tag key val delimited (colon) " + lexem.Value)
+		}
+
+		getNextLexem()
+
+		if lexem.Type != lexem2.IdentifierL {
+			panic("expected tag value (identifier)")
+		}
+
+		value := lexem.Value
+
+		tags = append(tags, Tag{
+			Name:  name,
+			Value: value,
+		})
+
+		getNextLexem()
+		if lexem.Type == lexem2.CommaL {
+			getNextLexem()
+		}
+	}
+
+	getNextLexem()
+
+	return tags
 }
 
 func astParamExpr() []*Param {
@@ -360,13 +416,13 @@ func astReturnExpr() []*Return {
 }
 
 func astParam() *Param {
-	if lexem.Type != lexem2.TypeL && lexem.Type != lexem2.IdentefierL {
+	if lexem.Type != lexem2.TypeL && lexem.Type != lexem2.IdentifierL {
 		panic("expected type")
 	}
 
 	param := &Param{}
 	typeLink := TypeLink{}
-	if lexem.Type == lexem2.IdentefierL {
+	if lexem.Type == lexem2.IdentifierL {
 		typeLink.Type = Object
 		isArr, arrSize := getArrExistAndSize(lexem.Value)
 		if isArr {
@@ -406,7 +462,7 @@ func astParam() *Param {
 
 	param.Type = typeLink
 	getNextLexem()
-	if lexem.Type != lexem2.IdentefierL {
+	if lexem.Type != lexem2.IdentifierL {
 		panic("expected identifier")
 	}
 	param.Name = lexem.Value
@@ -415,13 +471,13 @@ func astParam() *Param {
 }
 
 func astReturn() *Return {
-	if lexem.Type != lexem2.TypeL && lexem.Type != lexem2.IdentefierL {
+	if lexem.Type != lexem2.TypeL && lexem.Type != lexem2.IdentifierL {
 		panic("expected type or identefier")
 	}
 
 	ret := &Return{}
 	typeLink := TypeLink{}
-	if lexem.Type == lexem2.IdentefierL {
+	if lexem.Type == lexem2.IdentifierL {
 		typeLink.Type = Object
 		typeLink.ObjectName = lexem.Value
 
