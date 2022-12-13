@@ -81,6 +81,36 @@ func ConvFunctionUnmarshalByType(t ast.Type) string {
 	return ""
 }
 
+func ConvertInt8ToBytes(num int8) []byte {
+	return []byte{byte(num)}
+}
+
+func ConvertBytesToInt8(b []byte) int8 {
+	return int8(b[0])
+}
+
+func ConvertInt32ToBytes(num int32) []byte {
+	buf := make([]byte, 4)
+	binary.BigEndian.PutUint32(buf, uint32(num))
+
+	return buf
+}
+
+func ConvertBytesToInt32(b []byte) int32 {
+	return int32(binary.BigEndian.Uint32(b))
+}
+
+func ConvertInt64ToBytes(num int64) []byte {
+	buf := make([]byte, 8)
+	binary.BigEndian.PutUint64(buf, uint64(num))
+
+	return buf
+}
+
+func ConvertBytesToInt64(b []byte) int64 {
+	return int64(binary.BigEndian.Uint64(b))
+}
+
 func ConvertUint16ToBytes(num uint16) []byte {
 	buf := make([]byte, 2)
 	binary.BigEndian.PutUint16(buf, num)
