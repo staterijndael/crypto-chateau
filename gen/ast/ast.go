@@ -13,6 +13,9 @@ const (
 	Uint64
 	Uint16
 	Uint8
+	Int8
+	Int32
+	Int64
 	Byte
 	Bool
 	String
@@ -27,6 +30,9 @@ var lexerTypeToAstType = map[string]Type{
 	"uint16": Uint16,
 	"string": String,
 	"bool":   Bool,
+	"int8":   Int8,
+	"int32":  Int32,
+	"int64":  Int64,
 }
 
 var AstTypeToGoType = map[Type]string{
@@ -37,6 +43,9 @@ var AstTypeToGoType = map[Type]string{
 	Byte:   "byte",
 	String: "string",
 	Bool:   "bool",
+	Int8:   "int8",
+	Int32:  "int32",
+	Int64:  "int64",
 }
 
 var AstTypeToDartType = map[Type]string{
@@ -47,6 +56,9 @@ var AstTypeToDartType = map[Type]string{
 	Byte:   "int",
 	String: "String",
 	Bool:   "bool",
+	Int8:   "int",
+	Int32:  "int",
+	Int64:  "int",
 }
 
 type MethodType string
