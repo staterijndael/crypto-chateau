@@ -42,6 +42,18 @@ func ConvFunctionMarhsalByType(t ast.Type) string {
 		return "ConvertUint16ToBytes"
 	}
 
+	if t == ast.Int8 {
+		return "ConvertInt8ToBytes"
+	}
+
+	if t == ast.Int32 {
+		return "ConvertInt32ToBytes"
+	}
+
+	if t == ast.Int64 {
+		return "ConvertInt64ToBytes"
+	}
+
 	return ""
 }
 
@@ -76,6 +88,18 @@ func ConvFunctionUnmarshalByType(t ast.Type) string {
 
 	if t == ast.Uint16 {
 		return "ConvertBytesToUint16"
+	}
+
+	if t == ast.Int8 {
+		return "ConvertBytesToInt8"
+	}
+
+	if t == ast.Int32 {
+		return "ConvertBytesToInt32"
+	}
+
+	if t == ast.Int64 {
+		return "ConvertBytesToInt64"
 	}
 
 	return ""
