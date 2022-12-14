@@ -18,15 +18,15 @@ var tagsByHandlerName = map[string]map[string]string{
 }
 
 type Reverse interface {
-	ReverseMagicString(ctx context.Context, req *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error)
+	ReverseMagicString(ctx context.Context, peer *peer.Peer, req *ReverseMagicStringRequest) error
 }
 
-func ReverseMagicStringSqueeze(fnc func(context.Context, *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error)) server.HandlerFunc {
-	return func(ctx context.Context, msg message.Message) (message.Message, error) {
+func ReverseMagicStringSqueeze(fnc func(context.Context, *peer.Peer, *ReverseMagicStringRequest) error) server.StreamFunc {
+	return func(ctx context.Context, peer *peer.Peer, msg message.Message) error {
 		if _, ok := msg.(*ReverseMagicStringRequest); ok {
-			return fnc(ctx, msg.(*ReverseMagicStringRequest))
+			return fnc(ctx, peer, msg.(*ReverseMagicStringRequest))
 		} else {
-			return nil, errors.New("unknown message type: expected ReverseMagicStringRequest")
+			return errors.New("unknown message type: expected ReverseMagicStringRequest")
 		}
 	}
 }
@@ -74,14 +74,14 @@ func (o *ReverseMagicStringResponse) Unmarshal(params map[string][]byte) error {
 func GetHandlers(reverse Reverse) map[string]*server.Handler {
 	handlers := make(map[string]*server.Handler)
 
-	var callFuncReverseMagicString server.HandlerFunc
+	var callFuncReverseMagicString server.StreamFunc
 	if reverse != nil {
 		callFuncReverseMagicString = ReverseMagicStringSqueeze(reverse.ReverseMagicString)
 	}
 
 	handlers["ReverseMagicString"] = &server.Handler{
-		CallFuncHandler: callFuncReverseMagicString,
-		HandlerType:     server.HandlerT,
+		CallFuncStream:  callFuncReverseMagicString,
+		HandlerType:     server.StreamT,
 		RequestMsgType:  &ReverseMagicStringRequest{},
 		ResponseMsgType: &ReverseMagicStringResponse{},
 		Tags:            tagsByHandlerName["ReverseMagicString"],
@@ -94,7 +94,7 @@ func GetEmptyHandlers() map[string]*server.Handler {
 	handlers := make(map[string]*server.Handler)
 
 	handlers["ReverseMagicString"] = &server.Handler{
-		HandlerType:     server.HandlerT,
+		HandlerType:     server.StreamT,
 		RequestMsgType:  &ReverseMagicStringRequest{},
 		ResponseMsgType: &ReverseMagicStringResponse{},
 	}
@@ -111,12 +111,8 @@ func NewServer(cfg *server.Config, logger *zap.Logger, reverse Reverse) *server.
 func CallClientMethod(ctx context.Context, host string, port int, serviceName string, methodName string, req message.Message) (message.Message, error) {
 	if serviceName == "Reverse" {
 		if methodName == "ReverseMagicString" {
-			client, err := NewClientReverse(host, port)
-			if err != nil {
-				return nil, err
-			}
-			return client.ReverseMagicString(ctx, req.(*ReverseMagicStringRequest))
 		}
+
 	}
 
 	return nil, errors.New("unknown service or method")
@@ -140,51 +136,11 @@ func NewClientReverse(host string, port int) (*ClientReverse, error) {
 	return client, nil
 }
 
-func (c *ClientReverse) ReverseMagicString(ctx context.Context, req *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error) {
+func (c *ClientReverse) ReverseMagicString(ctx context.Context, req *ReverseMagicStringRequest) (*peer.Peer, error) {
 	err := c.peer.WriteResponse("ReverseMagicString", req)
 
-	msg := make([]byte, 0, 1024)
-
-	for {
-		buf := make([]byte, 1024)
-		n, err := c.peer.Read(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		if n == 0 {
-			break
-		}
-
-		if n < len(buf) {
-			buf = buf[:n]
-			msg = append(msg, buf...)
-			break
-		}
-
-		msg = append(msg, buf...)
-	}
-
-	_, n, err := conv.GetHandlerName(msg)
 	if err != nil {
 		return nil, err
 	}
-
-	if n >= len(msg) {
-		return nil, errors.New("incorrect message")
-	}
-
-	_, responseMsgParams, err := conv.GetParams(msg[n:])
-	if err != nil {
-		return nil, err
-	}
-
-	respMsg := &ReverseMagicStringResponse{}
-
-	err = respMsg.Unmarshal(responseMsgParams)
-	if err != nil {
-		return nil, err
-	}
-
-	return respMsg, nil
+	return c.peer, nil
 }

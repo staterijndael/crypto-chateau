@@ -77,13 +77,7 @@ func fillClients() {
 		result += "return client, nil\n"
 		result += "}\n\n"
 		for _, method := range service.Methods {
-			if method.MethodType == ast2.Stream {
-				continue
-			}
-			result += "\t" + "func (c *Client" + service.Name + ") " + method.Name + "(ctx context.Context, "
-			if method.MethodType == ast2.Stream {
-				result += fmt.Sprintf("peer *Peer%s, ", method.Name)
-			}
+			result += "func (c *Client" + service.Name + ") " + method.Name + "(ctx context.Context, "
 			for i, param := range method.Params {
 				result += param.Name + " "
 				if param.Type.IsArray {
@@ -125,14 +119,15 @@ func fillClients() {
 					}
 				}
 				result += ", "
+			} else {
+				result += "(*peer.Peer,"
 			}
-			result += "error"
-			if method.MethodType != ast2.Stream {
-				result += ")"
-			}
+			result += "error)"
 			result += "{\n"
 			result += "\terr := c.peer.WriteResponse(\"" + method.Name + "\"," + method.Params[0].Name + ")\n\n"
-			result += fmt.Sprintf(`msg := make([]byte, 0, 1024)
+
+			if method.MethodType != ast2.Stream {
+				result += fmt.Sprintf(`msg := make([]byte, 0, 1024)
 
 	for {
 		buf := make([]byte, 1024)
@@ -177,6 +172,12 @@ func fillClients() {
 	
 	return respMsg, nil
 `, method.Returns[0].Type.ObjectName)
+			} else {
+				result += "\tif err != nil{\n"
+				result += "\t\t return nil, err\n"
+				result += "\t}\n"
+				result += "\treturn c.peer, nil\n"
+			}
 
 			result += "}\n\n"
 		}
