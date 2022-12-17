@@ -39,13 +39,15 @@ func fillImports() {
 	result += "import \"errors\"\n"
 	result += "import \"context\"\n"
 	result += "import \"strconv\"\n"
+	result += "import \"net\"\n"
+	result += "\n"
 	result += "import \"github.com/oringik/crypto-chateau/gen/conv\"\n"
-	result += "import \"github.com/oringik/crypto-chateau/peer\"\n"
 	result += "import \"github.com/oringik/crypto-chateau/message\"\n"
+	result += "import \"github.com/oringik/crypto-chateau/peer\"\n"
 	result += "import \"github.com/oringik/crypto-chateau/server\"\n"
-	result += "import \"go.uber.org/zap\"\n"
 	result += "import \"github.com/oringik/crypto-chateau/transport\"\n"
-	result += "import \"net\"\n\n"
+	result += "import \"go.uber.org/zap\"\n"
+	result += "\n"
 
 }
 
@@ -54,7 +56,8 @@ func fillPackage() {
 }
 
 func fillVersion() {
-	result += "// CODEGEN VERSION: " + CODEGEN_VERSION + "\n\n"
+	result += "// CHATEAU VERSION: " + CODEGEN_VERSION + "\n\n"
+	result += "// generated source: DO NOT EDIT\n\n"
 }
 
 func fillClients() {

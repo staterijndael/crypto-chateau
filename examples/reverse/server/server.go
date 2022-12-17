@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"time"
+
+	zap2 "go.uber.org/zap"
+
 	endpoints "github.com/oringik/crypto-chateau/examples/reverse/codegen"
 	server2 "github.com/oringik/crypto-chateau/server"
-	zap2 "go.uber.org/zap"
-	"time"
 )
 
 func main() {
@@ -48,5 +50,17 @@ func (r *ReverseEndpoint) ReverseMagicString(ctx context.Context, req *endpoints
 
 	return &endpoints.ReverseMagicStringResponse{
 		ReversedMagicString: reversedMsg,
+		MagicInt8:           req.MagicInt8 + 100,
+		MagicInt16:          req.MagicInt16 + 100,
+		MagicInt32:          req.MagicInt32 + 100,
+		MagicInt64:          req.MagicInt64 + 100,
+		MagicUInt8:          req.MagicUInt8 + 100,
+		MagicUInt16:         req.MagicUInt16 + 100,
+		MagicUInt32:         req.MagicUInt32 + 100,
+		MagicUInt64:         req.MagicUInt64 + 100,
+		MagicBool:           !req.MagicBool,
+		MagicBytes:          req.MagicBytes[1:2],
+		MagicObject:         req.MagicObject,
+		MagicObjectArray:    req.MagicObjectArray,
 	}, nil
 }

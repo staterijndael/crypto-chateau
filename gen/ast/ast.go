@@ -1,64 +1,69 @@
 package ast
 
 import (
-	lexem2 "github.com/oringik/crypto-chateau/gen/lexem"
 	"strconv"
 	"strings"
+
+	lexem2 "github.com/oringik/crypto-chateau/gen/lexem"
 )
 
 type Type int
 
 const (
-	Uint32 Type = iota
-	Uint64
+	Uint64 Type = iota
+	Uint32
 	Uint16
 	Uint8
-	Int8
-	Int32
 	Int64
+	Int32
+	Int16
+	Int8
 	Byte
 	Bool
 	String
 	Object
 )
 
-var lexerTypeToAstType = map[string]Type{
-	"byte":   Byte,
-	"uint32": Uint32,
+var LexerTypeToAstType = map[string]Type{
 	"uint64": Uint64,
-	"uint8":  Uint8,
+	"uint32": Uint32,
 	"uint16": Uint16,
-	"string": String,
-	"bool":   Bool,
-	"int8":   Int8,
-	"int32":  Int32,
+	"uint8":  Uint8,
 	"int64":  Int64,
+	"int32":  Int32,
+	"int16":  Int16,
+	"int8":   Int8,
+	"byte":   Byte,
+	"bool":   Bool,
+	"string": String,
 }
 
 var AstTypeToGoType = map[Type]string{
-	Uint32: "uint32",
 	Uint64: "uint64",
+	Uint32: "uint32",
 	Uint16: "uint16",
 	Uint8:  "uint8",
-	Byte:   "byte",
-	String: "string",
-	Bool:   "bool",
-	Int8:   "int8",
-	Int32:  "int32",
 	Int64:  "int64",
+	Int32:  "int32",
+	Int16:  "int16",
+	Int8:   "int8",
+	Byte:   "byte",
+	Bool:   "bool",
+	String: "string",
 }
 
 var AstTypeToDartType = map[Type]string{
-	Uint32: "int",
 	Uint64: "int",
+	Uint32: "int",
 	Uint16: "int",
 	Uint8:  "int",
-	Byte:   "int",
-	String: "String",
-	Bool:   "bool",
-	Int8:   "int",
-	Int32:  "int",
 	Int64:  "int",
+	Int32:  "int",
+	Int16:  "int",
+	Int8:   "int",
+	Byte:   "int",
+	Bool:   "bool",
+	String: "String",
 }
 
 type MethodType string
@@ -244,14 +249,14 @@ func astField() *Field {
 		var astType Type
 		isArr, arrSize := getArrExistAndSize(lexem.Value)
 		if isArr {
-			astTypeLocal, ok := lexerTypeToAstType[lexem.Value[2+getCountDigits(arrSize):]]
+			astTypeLocal, ok := LexerTypeToAstType[lexem.Value[2+getCountDigits(arrSize):]]
 			if !ok {
 				panic("unexpected type")
 			}
 
 			astType = astTypeLocal
 		} else {
-			astTypeLocal, ok := lexerTypeToAstType[lexem.Value]
+			astTypeLocal, ok := LexerTypeToAstType[lexem.Value]
 			if !ok {
 				panic("unexpected type " + lexem.Value)
 			}
@@ -449,14 +454,14 @@ func astParam() *Param {
 		var astType Type
 		isArr, arrSize := getArrExistAndSize(lexem.Value)
 		if isArr {
-			astTypeLocal, ok := lexerTypeToAstType[lexem.Value[2+getCountDigits(arrSize):]]
+			astTypeLocal, ok := LexerTypeToAstType[lexem.Value[2+getCountDigits(arrSize):]]
 			if !ok {
 				panic("unexpected type")
 			}
 
 			astType = astTypeLocal
 		} else {
-			astTypeLocal, ok := lexerTypeToAstType[lexem.Value]
+			astTypeLocal, ok := LexerTypeToAstType[lexem.Value]
 			if !ok {
 				panic("unexpected type")
 			}
@@ -501,14 +506,14 @@ func astReturn() *Return {
 		var astType Type
 		isArr, arrSize := getArrExistAndSize(lexem.Value)
 		if isArr {
-			astTypeLocal, ok := lexerTypeToAstType[lexem.Value[2+getCountDigits(arrSize):]]
+			astTypeLocal, ok := LexerTypeToAstType[lexem.Value[2+getCountDigits(arrSize):]]
 			if !ok {
 				panic("unexpected type")
 			}
 
 			astType = astTypeLocal
 		} else {
-			astTypeLocal, ok := lexerTypeToAstType[lexem.Value]
+			astTypeLocal, ok := LexerTypeToAstType[lexem.Value]
 			if !ok {
 				panic("unexpected type")
 			}
