@@ -1,56 +1,16 @@
 package conv
 
 import (
-	"bytes"
 	"errors"
 )
 
-func GetHandlerName(p []byte) ([]byte, int, error) {
-	buf := make([]byte, 0, 50)
-	for i, b := range p {
-		if b == '#' {
-			return buf, i + 1, nil
-		}
-
-		buf = append(buf, b)
+func GetHandler(p []byte) (protocol []byte, handlerKey []byte, payloadOffset int, err error) {
+	if len(p) < 6 {
+		return nil, nil, 0, errors.New("invalid payload: too short")
 	}
 
-	return nil, 0, errors.New("incorrect message format: handler name not found")
-}
+	protocol = p[:1]
+	handlerKey = p[1:5]
 
-func GetArray(p []byte) (int, [][]byte, error) {
-	if len(p) == 0 {
-		return 0, nil, errors.New("array is zero length")
-	}
-
-	if p[0] != '[' {
-		return 0, nil, errors.New("expected open brace")
-	}
-
-	openSquareBracketCount := 1
-	var closeSquareBracketCount int
-
-	i := 1
-	for openSquareBracketCount != closeSquareBracketCount && i < len(p) {
-		if p[i] == '[' {
-			openSquareBracketCount++
-		}
-
-		if p[i] == ']' {
-			closeSquareBracketCount++
-		}
-
-		i++
-	}
-
-	if openSquareBracketCount != closeSquareBracketCount {
-		return 0, nil, errors.New("expected end of array")
-	}
-
-	values := bytes.Split(p[1:i], []byte(","))
-	for i, value := range values {
-		values[i] = bytes.TrimSpace(value)
-	}
-
-	return i, values, nil
+	return protocol, handlerKey, 5, nil
 }

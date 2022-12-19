@@ -71,117 +71,126 @@ func (o *{{.Name | ToCamel}}) Marshal() []byte {
 }
 
 {{define "unmarshal"}}
-{{- if eqType .Type.Type "uint64"}}
-    buf, err = {{ .BufName }}.Slice(8)
-	if err != nil {
-		return errors.Wrap(err, "failed to read {{ .Name | ToCamel }}")
+{{if eqType .Type.Type "uint64"}}
+    binaryCtx.buf, binaryCtx.err = {{ .BufName }}.Slice(8)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read {{ .Name | ToCamel }}")
 	}
-	{{ .OutputVar }} = conv.ConvertBytesToUint64(buf)
-{{- else if eqType .Type.Type "uint32"}}
-    buf, err = {{ .BufName }}.Slice(4)
-    if err != nil {
-        return errors.Wrap(err, "failed to read {{ .Name | ToCamel }}")
+	{{ .OutputVar }} = conv.ConvertBytesToUint64(binaryCtx.buf)
+{{ else if eqType .Type.Type "uint32"}}
+    binaryCtx.buf, binaryCtx.err = {{ .BufName }}.Slice(4)
+    if binaryCtx.err != nil {
+        return errors.Wrap(binaryCtx.err, "failed to read {{ .Name | ToCamel }}")
     }
-    {{ .OutputVar }} = conv.ConvertBytesToUint32(buf)
-{{- else if eqType .Type.Type "uint16"}}
-    buf, err = {{ .BufName }}.Slice(2)
-    if err != nil {
-        return errors.Wrap(err, "failed to read {{ .Name | ToCamel }}")
+    {{ .OutputVar }} = conv.ConvertBytesToUint32(binaryCtx.buf)
+{{ else if eqType .Type.Type "uint16"}}
+    binaryCtx.buf, binaryCtx.err = {{ .BufName }}.Slice(2)
+    if binaryCtx.err != nil {
+        return errors.Wrap(binaryCtx.err, "failed to read {{ .Name | ToCamel }}")
     }
-    {{ .OutputVar }} = conv.ConvertBytesToUint16(buf)
-{{- else if eqType .Type.Type "uint8"}}
-    buf, err = {{ .BufName }}.Slice(1)
-    if err != nil {
-        return errors.Wrap(err, "failed to read {{ .Name | ToCamel }}")
+    {{ .OutputVar }} = conv.ConvertBytesToUint16(binaryCtx.buf)
+{{ else if eqType .Type.Type "uint8"}}
+    binaryCtx.buf, binaryCtx.err = {{ .BufName }}.Slice(1)
+    if binaryCtx.err != nil {
+        return errors.Wrap(binaryCtx.err, "failed to read {{ .Name | ToCamel }}")
     }
-    {{ .OutputVar }} = conv.ConvertBytesToUint8(buf)
-    {{- else if eqType .Type.Type "int64"}}
-    buf, err = {{ .BufName }}.Slice(8)
-    if err != nil {
-        return errors.Wrap(err, "failed to read {{ .Name | ToCamel }}")
+    {{ .OutputVar }} = conv.ConvertBytesToUint8(binaryCtx.buf)
+{{- else if eqType .Type.Type "int64"}}
+    binaryCtx.buf, binaryCtx.err = {{ .BufName }}.Slice(8)
+    if binaryCtx.err != nil {
+        return errors.Wrap(binaryCtx.err, "failed to read {{ .Name | ToCamel }}")
     }
-    {{ .OutputVar }} = conv.ConvertBytesToInt64(buf)
-{{- else if eqType .Type.Type "int32"}}
-    buf, err = {{ .BufName }}.Slice(4)
-    if err != nil {
-        return errors.Wrap(err, "failed to read {{ .Name | ToCamel }}")
+    {{ .OutputVar }} = conv.ConvertBytesToInt64(binaryCtx.buf)
+{{ else if eqType .Type.Type "int32"}}
+    binaryCtx.buf, binaryCtx.err = {{ .BufName }}.Slice(4)
+    if binaryCtx.err != nil {
+        return errors.Wrap(binaryCtx.err, "failed to read {{ .Name | ToCamel }}")
     }
-    {{ .OutputVar }} = conv.ConvertBytesToInt32(buf)
-{{- else if eqType .Type.Type "int16"}}
-    buf, err = {{ .BufName }}.Slice(2)
-    if err != nil {
-        return errors.Wrap(err, "failed to read {{ .Name | ToCamel }}")
+    {{ .OutputVar }} = conv.ConvertBytesToInt32(binaryCtx.buf)
+{{ else if eqType .Type.Type "int16"}}
+    binaryCtx.buf, binaryCtx.err = {{ .BufName }}.Slice(2)
+    if binaryCtx.err != nil {
+        return errors.Wrap(binaryCtx.err, "failed to read {{ .Name | ToCamel }}")
     }
-    {{ .OutputVar }} = conv.ConvertBytesToInt16(buf)
-{{- else if eqType .Type.Type "int8"}}
-    buf, err = {{ .BufName }}.Slice(1)
-    if err != nil {
-        return errors.Wrap(err, "failed to read {{ .Name | ToCamel }}")
+    {{ .OutputVar }} = conv.ConvertBytesToInt16(binaryCtx.buf)
+{{ else if eqType .Type.Type "int8"}}
+    binaryCtx.buf, binaryCtx.err = {{ .BufName }}.Slice(1)
+    if binaryCtx.err != nil {
+        return errors.Wrap(binaryCtx.err, "failed to read {{ .Name | ToCamel }}")
     }
-    {{ .OutputVar }} = conv.ConvertBytesToInt8(buf)
-{{- else if eqType .Type.Type "byte"}}
-    buf, err = {{ .BufName }}.Slice(1)
-    if err != nil {
-        return errors.Wrap(err, "failed to read {{ .Name | ToCamel }}")
+    {{ .OutputVar }} = conv.ConvertBytesToInt8(binaryCtx.buf)
+{{ else if eqType .Type.Type "byte"}}
+    binaryCtx.buf, binaryCtx.err = {{ .BufName }}.Slice(1)
+    if binaryCtx.err != nil {
+        return errors.Wrap(binaryCtx.err, "failed to read {{ .Name | ToCamel }}")
     }
-    {{ .OutputVar }} = conv.ConvertBytesToByte(buf)
-{{- else if eqType .Type.Type "bool"}}
-    buf, err = {{ .BufName }}.Slice(1)
-    if err != nil {
-        return errors.Wrap(err, "failed to read {{ .Name | ToCamel }}")
+    {{ .OutputVar }} = conv.ConvertBytesToByte(binaryCtx.buf)
+{{ else if eqType .Type.Type "bool"}}
+    binaryCtx.buf, binaryCtx.err = {{ .BufName }}.Slice(1)
+    if binaryCtx.err != nil {
+        return errors.Wrap(binaryCtx.err, "failed to read {{ .Name | ToCamel }}")
     }
-    {{ .OutputVar }} = conv.ConvertBytesToBool(buf)
-{{- else if eqType .Type.Type "string"}}
-    size, err = {{ .BufName }}.NextSize()
-	if err != nil {
-		return errors.Wrap(err, "failed to read {{ .Name | ToCamel }} size")
+    {{ .OutputVar }} = conv.ConvertBytesToBool(binaryCtx.buf)
+{{ else if eqType .Type.Type "string"}}
+    binaryCtx.size, binaryCtx.err = {{ .BufName }}.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read {{ .Name | ToCamel }} size")
 	}
-	buf, err = {{ .BufName }}.Slice(size)
-	if err != nil {
-		return errors.Wrap(err, "failed to read {{ .Name | ToCamel }}")
+	binaryCtx.buf, binaryCtx.err = {{ .BufName }}.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read {{ .Name | ToCamel }}")
 	}
-    {{ .OutputVar }} = conv.ConvertBytesToString(buf)
-{{- else if eqType .Type.Type "object" }}
-    size, err = {{ .BufName }}.NextSize()
-	if err != nil {
-		return errors.Wrap(err, "failed to read {{ .Name | ToCamel }} size")
+    {{ .OutputVar }} = conv.ConvertBytesToString(binaryCtx.buf)
+{{ else if eqType .Type.Type "object" }}
+    binaryCtx.size, binaryCtx.err = {{ .BufName }}.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read {{ .Name | ToCamel }} size")
 	}
-	buf, err = {{ .BufName }}.Slice(size)
-	if err != nil {
-		return errors.Wrap(err, "failed to read {{ .Name | ToCamel }}")
+	binaryCtx.buf, binaryCtx.err = {{ .BufName }}.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read {{ .Name | ToCamel }}")
 	}
-    if err = {{ .OutputVar }}.Unmarshal(buf); err != nil {
-        return errors.Wrap(err, "failed to unmarshal {{ .Name | ToCamel }}")
+    if err = {{ .OutputVar }}.Unmarshal(binaryCtx.buf); binaryCtx.err != nil {
+        return errors.Wrap(binaryCtx.err, "failed to unmarshal {{ .Name | ToCamel }}")
     }
-{{- end }}
-{{- end}}
+{{ end }}
+{{ end}}
 
 func (o *{{.Name | ToCamel}}) Unmarshal(b *conv.BinaryIterator) error {
-	var (
-		err             error
-		size, arrSize   int
-		buf, arrBuf     *conv.BinaryIterator
-	)
+	binaryCtx := struct {
+		err           error
+		size, arrSize, pos int
+		buf, arrBuf   *conv.BinaryIterator
+	}{}
+	
+	binaryCtx.err = nil
 
 	{{- range .Fields}}
     {{- if not .Type.IsArray}}
     {{ $outputVar := printf "o.%s" (.Name | ToCamel) }}
     {{- template "unmarshal" dict "Type" .Type "Name" .Name "BufName" "b" "OutputVar" $outputVar}}
     {{- else}}
-	size, err = b.NextSize()
-	if err != nil {
-		return errors.Wrap(err, "failed to read {{.Name | ToCamel}} size")
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read {{.Name | ToCamel}} size")
 	}
-	arrBuf, err = b.Slice(size)
-	if err != nil {
-		return errors.Wrap(err, "failed to read {{.Name | ToCamel}}")
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read {{.Name | ToCamel}}")
 	}
-	for arrBuf.HasNext() {
-        {{- $outputVar := printf "el%s" (.Name | ToCamel) }}
-        var {{$outputVar}} {{.Type | GoType }}
-        {{- template "unmarshal" dict "Type" .Type "Name" .Name "BufName" "arrBuf" "OutputVar" $outputVar}}
-        {{- /*TODO: append won't work with static arrays like [16]byte */}}
-		o.MagicObjectList = append(o.MagicObjectList, {{$outputVar}})
+	{{- if not (eq .Type.ArrSize 0) }}
+	binaryCtx.pos = 0
+	{{- end}}
+	for binaryCtx.arrBuf.HasNext() {
+        {{- $outputVar := printf "el%s" (.Name | ToCamel) -}}
+        var {{$outputVar}} {{ GoType .Type true }}
+        {{- template "unmarshal" dict "Type" .Type "Name" .Name "BufName" "binaryCtx.arrBuf" "OutputVar" $outputVar }}
+        {{if eq .Type.ArrSize 0 -}}
+        o.{{.Name | ToCamel}} = append(o.{{.Name | ToCamel}}, {{$outputVar}})
+		{{ else -}}
+		o.{{.Name | ToCamel}}[binaryCtx.pos] = {{$outputVar}}
+		binaryCtx.pos++
+		{{- end}}
 	}
 	{{- end}}
     {{- end}}

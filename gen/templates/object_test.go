@@ -1,7 +1,6 @@
 package templates
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -54,8 +53,8 @@ func TestObjectTemplate_Gen(t *testing.T) {
 
 	require.NoError(t, err, "failed to generate code")
 
-	err = os.WriteFile("object_example.go", []byte(code), 0644)
-	require.NoError(t, err, "failed to save generated code")
+	//err = os.WriteFile("object_example.go", []byte(code), 0644)
+	//require.NoError(t, err, "failed to save generated code")
 
 	require.Equal(t, exceptedObjectCode, code, "generated code is not as expected")
 }

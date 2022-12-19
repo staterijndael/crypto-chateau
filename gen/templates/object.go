@@ -63,7 +63,7 @@ var objectTemplateFunc = template.FuncMap{
 	"ToCamel": strcase.ToCamel,
 }
 
-func GoType(t *ast.TypeLink) (string, error) {
+func GoType(t *ast.TypeLink, noArray ...bool) (string, error) {
 	var textType string
 
 	switch t.Type {
@@ -95,7 +95,7 @@ func GoType(t *ast.TypeLink) (string, error) {
 		return "", errors.New("unknown type: " + strconv.Itoa(int(t.Type)))
 	}
 
-	if !t.IsArray {
+	if !t.IsArray || (len(noArray) > 0 && noArray[0]) {
 		return textType, nil
 	}
 

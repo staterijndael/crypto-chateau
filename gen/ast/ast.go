@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/oringik/crypto-chateau/gen/hash"
 	lexem2 "github.com/oringik/crypto-chateau/gen/lexem"
 )
 
@@ -91,6 +92,7 @@ type Service struct {
 
 type Method struct {
 	Name       string
+	Hash       hash.HandlerHash
 	Params     []*Param
 	Returns    []*Return
 	MethodType MethodType
@@ -297,9 +299,10 @@ func astService() *Service {
 	getNextLexem()
 	var methods []*Method
 	for lexem.Type != lexem2.CloseBraceL {
-		astMethod := astMethod()
+		method := astMethod()
+		method.Hash = hash.GetHandlerHash(service.Name, method.Name)
 
-		methods = append(methods, astMethod)
+		methods = append(methods, method)
 	}
 
 	service.Methods = methods
