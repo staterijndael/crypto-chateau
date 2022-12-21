@@ -198,6 +198,7 @@ func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
 				if writeErr != nil {
 					fmt.Println(writeErr)
 				}
+				fmt.Println(err)
 				return
 			}
 
