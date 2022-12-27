@@ -4,15 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/oringik/crypto-chateau/gen/conv"
-	"github.com/oringik/crypto-chateau/message"
-	"github.com/oringik/crypto-chateau/peer"
-	"github.com/oringik/crypto-chateau/transport"
-	"go.uber.org/zap"
 	"net"
 	"strconv"
 	"sync"
 	"time"
+
+	"go.uber.org/zap"
+
+	"github.com/oringik/crypto-chateau/gen/conv"
+	"github.com/oringik/crypto-chateau/gen/hash"
+	"github.com/oringik/crypto-chateau/message"
+	"github.com/oringik/crypto-chateau/peer"
+	"github.com/oringik/crypto-chateau/transport"
 )
 
 type HandlerFunc func(context.Context, message.Message) (message.Message, error)
@@ -34,7 +37,7 @@ type Handler struct {
 
 type Server struct {
 	Config   *Config
-	Handlers map[string]*Handler
+	Handlers map[hash.HandlerHash]*Handler
 	// key: ip address  value: client peer
 	Clients    map[string]*peer.Peer
 	shutdownCh chan error
@@ -49,7 +52,7 @@ type Config struct {
 	ConnWriteDeadline *time.Duration
 }
 
-func NewServer(cfg *Config, logger *zap.Logger, handlers map[string]*Handler) *Server {
+func NewServer(cfg *Config, logger *zap.Logger, handlers map[hash.HandlerHash]*Handler) *Server {
 	return &Server{
 		Config:     cfg,
 		Handlers:   handlers,
@@ -145,28 +148,24 @@ func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
 		msg = append(msg, buf...)
 	}
 
-	handlerName, n, err := conv.GetHandlerName(msg)
+	_, handlerKey, offset, err := conv.GetHandler(msg)
 	if err != nil {
 		return err
 	}
 
-	handler, ok := s.Handlers[string(handlerName)]
+	handler, ok := s.Handlers[handlerKey]
 	if !ok {
-		return errors.New("unknown handler " + string(handlerName))
+		return errors.New(fmt.Sprintf("handler not found for key: %v", handlerKey))
 	}
 
-	if n >= len(msg) {
-		return errors.New("incorrect message")
-	}
-
-	_, reqMsgParams, err := conv.GetParams(msg[n:])
-	if err != nil {
-		return err
+	// check if message has a size
+	if len(msg) < offset+conv.ObjectBytesPrefixLength {
+		return errors.New("not enough bytes for size and message")
 	}
 
 	requestMsg := handler.RequestMsgType
 
-	err = requestMsg.Unmarshal(reqMsgParams)
+	err = requestMsg.Unmarshal(conv.NewBinaryIterator(msg[offset+conv.ObjectBytesPrefixLength:]))
 	if err != nil {
 		return err
 	}
@@ -175,16 +174,16 @@ func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
 	case HandlerT:
 		responseMessage, err := handler.CallFuncHandler(ctx, requestMsg)
 		if err != nil {
-			writeErr := peer.WriteError(string(handlerName), err)
+			writeErr := peer.WriteError(handlerKey, err)
 			return writeErr
 		}
 
-		err = peer.WriteResponse(string(handlerName), responseMessage)
+		err = peer.WriteResponse(handlerKey, responseMessage)
 		if err != nil {
 			return err
 		}
 
-		if val, ok2 := s.Handlers[string(handlerName)].Tags["keep_conn_alive"]; !ok2 || val != "true" {
+		if val, ok2 := s.Handlers[handlerKey].Tags["keep_conn_alive"]; !ok2 || val != "true" {
 			err = peer.Close()
 			if err != nil {
 				return err
@@ -194,14 +193,14 @@ func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
 		go func() {
 			err = handler.CallFuncStream(ctx, peer, requestMsg)
 			if err != nil {
-				writeErr := peer.WriteError(string(handlerName), err)
+				writeErr := peer.WriteError(handlerKey, err)
 				if writeErr != nil {
 					fmt.Println(writeErr)
 				}
 				return
 			}
 
-			if val, ok2 := s.Handlers[string(handlerName)].Tags["keep_conn_alive"]; !ok2 || val != "true" {
+			if val, ok2 := s.Handlers[handlerKey].Tags["keep_conn_alive"]; !ok2 || val != "true" {
 				err = peer.Close()
 				if err != nil {
 					fmt.Println(err)

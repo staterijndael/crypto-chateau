@@ -26,11 +26,11 @@ func main() {
 		MagicUInt64: 80,
 		MagicBool:   true,
 		MagicBytes:  []byte{1, 2, 3, 4, 5},
-		MagicObject: &endpoints.ReverseCommonObject{
+		MagicObject: endpoints.ReverseCommonObject{
 			Key:   [16]byte{100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115},
 			Value: [32]string{"hello", "world"},
 		},
-		MagicObjectArray: []*endpoints.ReverseCommonObject{
+		MagicObjectArray: []endpoints.ReverseCommonObject{
 			{
 				Key:   [16]byte{100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115},
 				Value: [32]string{"sub", "object"},
@@ -55,11 +55,11 @@ func main() {
 		MagicUInt64:         180,
 		MagicBool:           false,
 		MagicBytes:          []byte{2},
-		MagicObject: &endpoints.ReverseCommonObject{
+		MagicObject: endpoints.ReverseCommonObject{
 			Key:   [16]byte{100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115},
 			Value: [32]string{"hello", "world"},
 		},
-		MagicObjectArray: []*endpoints.ReverseCommonObject{
+		MagicObjectArray: []endpoints.ReverseCommonObject{
 			{
 				Key:   [16]byte{100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115},
 				Value: [32]string{"sub", "object"},

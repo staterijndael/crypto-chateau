@@ -6,5 +6,5 @@ const (
 )
 
 func NewProtocolByte() byte {
-	return ProtocolVersion & (0b11110000) // first 4 bits reserved
+	return ProtocolVersion | (0b11110000) // first 4 bits reserved
 }

@@ -64,7 +64,7 @@ func (o *{{.Name | ToCamel}}) Marshal() []byte {
 
     size = conv.ConvertSizeToBytes(len(b)-len(size))
     for i := 0; i < len(size); i++ {
-        b[i] = 0
+        b[i] = size[i]
     }
 
 	return b

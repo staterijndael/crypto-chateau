@@ -343,8 +343,8 @@ func fillGetHandlers() {
 			endpointArgs += ","
 		}
 	}
-	result += fmt.Sprintf("func GetHandlers(%s) map[string]*server.Handler {\n", endpointArgs)
-	result += "\thandlers := make(map[string]*server.Handler)\n\n"
+	result += fmt.Sprintf("func GetHandlers(%s) map[hash.HandlerHash]*server.Handler {\n", endpointArgs)
+	result += "\thandlers := make(map[hash.HandlerHash]*server.Handler)\n\n"
 	for _, service := range ast.Chateau.Services {
 		for _, method := range service.Methods {
 			var methodType string
@@ -362,13 +362,13 @@ func fillGetHandlers() {
 			result += "\tif " + serviceNameLower + " != nil {\n"
 			result += "\t\tcallFunc" + method.Name + "= " + method.Name + "Squeeze(" + serviceNameLower + "." + method.Name + ")\n"
 			result += "\t}\n\n"
-			result += fmt.Sprintf("\t"+`handlers["%s"] = &server.Handler{
+			result += fmt.Sprintf("\t"+`handlers[%s] = &server.Handler{
 		CallFunc%s:      callFunc%s,
 		HandlerType:     %s,
 		RequestMsgType:  &%s{},
 		ResponseMsgType: &%s{},
 		Tags:            tagsByHandlerName["%s"],
-	}`+"\n\n", method.Name, string(method.MethodType), method.Name, methodType, method.Params[0].Type.ObjectName, method.Returns[0].Type.ObjectName, method.Name)
+	}`+"\n\n", method.Hash.Code(), string(method.MethodType), method.Name, methodType, method.Params[0].Type.ObjectName, method.Returns[0].Type.ObjectName, method.Name)
 		}
 	}
 	result += "\treturn handlers\n"
@@ -388,8 +388,8 @@ func fillEmptyGetHandlers() {
 			endpointArgs += ","
 		}
 	}
-	result += "func GetEmptyHandlers() map[string]*server.Handler {\n"
-	result += "\thandlers := make(map[string]*server.Handler)\n\n"
+	result += "func GetEmptyHandlers() map[hash.HandlerHash]*server.Handler {\n"
+	result += "\thandlers := make(map[hash.HandlerHash]*server.Handler)\n\n"
 	for _, service := range ast.Chateau.Services {
 		for _, method := range service.Methods {
 			var methodType string
@@ -403,11 +403,11 @@ func fillEmptyGetHandlers() {
 			if len(service.Name) > 1 {
 				serviceNameLower += service.Name[1:]
 			}
-			result += fmt.Sprintf("\t"+`handlers["%s"] = &server.Handler{
+			result += fmt.Sprintf("\t"+`handlers[%s] = &server.Handler{
 		HandlerType:     %s,
 		RequestMsgType:  &%s{},
 		ResponseMsgType: &%s{},
-	}`+"\n\n", method.Name, methodType, method.Params[0].Type.ObjectName, method.Returns[0].Type.ObjectName)
+	}`+"\n\n", method.Hash.Code(), methodType, method.Params[0].Type.ObjectName, method.Returns[0].Type.ObjectName)
 		}
 	}
 	result += "\treturn handlers\n"

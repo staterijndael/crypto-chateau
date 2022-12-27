@@ -1,13 +1,17 @@
 package peer
 
 import (
-	"fmt"
+	"errors"
 	"net"
 
 	"github.com/oringik/crypto-chateau/gen/conv"
 	"github.com/oringik/crypto-chateau/gen/hash"
 	"github.com/oringik/crypto-chateau/message"
 	"github.com/oringik/crypto-chateau/version"
+)
+
+var (
+	ErrBytesPrefix = [2]byte{0x2F, 0x20}
 )
 
 type Peer struct {
@@ -40,7 +44,17 @@ func (p *Peer) ReadMessage(msg message.Message) error {
 		return err
 	}
 
-	err = msg.Unmarshal(conv.NewBinaryIterator(msgRaw[offset:]))
+	// check if error prefix is present
+	if msgRaw[offset] == ErrBytesPrefix[0] && msgRaw[offset+1] == ErrBytesPrefix[1] {
+		return errors.New(string(msgRaw[offset+2:]))
+	}
+
+	// check if message has a size
+	if len(msgRaw) < offset+conv.ObjectBytesPrefixLength {
+		return errors.New("not enough for size and message")
+	}
+
+	err = msg.Unmarshal(conv.NewBinaryIterator(msgRaw[offset+conv.ObjectBytesPrefixLength:]))
 	if err != nil {
 		return err
 	}
@@ -48,10 +62,15 @@ func (p *Peer) ReadMessage(msg message.Message) error {
 	return err
 }
 
-func (p *Peer) WriteError(handlerName string, err error) error {
-	msg := fmt.Sprintf("%s# error: %s", handlerName, err.Error())
+func (p *Peer) WriteError(handlerKey hash.HandlerHash, err error) error {
+	var resp []byte
 
-	_, writeErr := p.Conn.Write([]byte(msg))
+	resp = append(resp, version.NewProtocolByte())
+	resp = append(resp, handlerKey[:]...)
+	resp = append(resp, ErrBytesPrefix[:]...)
+	resp = append(resp, []byte(err.Error())...)
+
+	_, writeErr := p.Conn.Write(resp)
 
 	return writeErr
 }

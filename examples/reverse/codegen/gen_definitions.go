@@ -73,7 +73,7 @@ func (o *ReverseCommonObject) Marshal() []byte {
 
 	size = conv.ConvertSizeToBytes(len(b) - len(size))
 	for i := 0; i < len(size); i++ {
-		b[i] = 0
+		b[i] = size[i]
 	}
 
 	return b
@@ -190,7 +190,7 @@ func (o *ReverseMagicStringRequest) Marshal() []byte {
 
 	size = conv.ConvertSizeToBytes(len(b) - len(size))
 	for i := 0; i < len(size); i++ {
-		b[i] = 0
+		b[i] = size[i]
 	}
 
 	return b
@@ -361,7 +361,7 @@ func (o *ReverseMagicStringResponse) Marshal() []byte {
 
 	size = conv.ConvertSizeToBytes(len(b) - len(size))
 	for i := 0; i < len(size); i++ {
-		b[i] = 0
+		b[i] = size[i]
 	}
 
 	return b
@@ -478,15 +478,15 @@ func (o *ReverseMagicStringResponse) Unmarshal(b *conv.BinaryIterator) error {
 
 	return nil
 }
-func GetHandlers(reverse Reverse) map[string]*server.Handler {
-	handlers := make(map[string]*server.Handler)
+func GetHandlers(reverse Reverse) map[hash.HandlerHash]*server.Handler {
+	handlers := make(map[hash.HandlerHash]*server.Handler)
 
 	var callFuncReverseMagicString server.HandlerFunc
 	if reverse != nil {
 		callFuncReverseMagicString = ReverseMagicStringSqueeze(reverse.ReverseMagicString)
 	}
 
-	handlers["ReverseMagicString"] = &server.Handler{
+	handlers[hash.HandlerHash{0x52, 0x65, 0x76, 065}] = &server.Handler{
 		CallFuncHandler: callFuncReverseMagicString,
 		HandlerType:     server.HandlerT,
 		RequestMsgType:  &ReverseMagicStringRequest{},
@@ -497,10 +497,10 @@ func GetHandlers(reverse Reverse) map[string]*server.Handler {
 	return handlers
 }
 
-func GetEmptyHandlers() map[string]*server.Handler {
-	handlers := make(map[string]*server.Handler)
+func GetEmptyHandlers() map[hash.HandlerHash]*server.Handler {
+	handlers := make(map[hash.HandlerHash]*server.Handler)
 
-	handlers["ReverseMagicString"] = &server.Handler{
+	handlers[hash.HandlerHash{0x52, 0x65, 0x76, 065}] = &server.Handler{
 		HandlerType:     server.HandlerT,
 		RequestMsgType:  &ReverseMagicStringRequest{},
 		ResponseMsgType: &ReverseMagicStringResponse{},
