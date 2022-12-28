@@ -40,9 +40,12 @@ func (p *Peer) ReadMessage(msg message.Message) error {
 	var msgRaw []byte
 
 	_, err := p.Conn.Read(msgRaw)
+  if err != nil {
+		return fmt.Errorf("failed to read from connection: %w", err)
+	}
 	_, _, offset, err := conv.GetHandler(msgRaw)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed get handler key: %w", err)
 	}
 
 	// check if error prefix is present

@@ -172,7 +172,7 @@ func fillMethodsDart() {
 	for _, service := range astDart.Chateau.Services {
 		for _, method := range service.Methods {
 			if method.MethodType == ast2.Handler {
-				resultDart += fmt.Sprintf("\tFuture<%s> %s(%s request) async {\n", method.Returns[0].Type.ObjectName, method.Name, method.Params[0].Type.ObjectName)
+				resultDart += fmt.Sprintf("\tFuture<%s> %s(%s request) async {\n", method.Returns[0].Type.ObjectName, strings.ToLower(method.Name[:1])+method.Name[1:], method.Params[0].Type.ObjectName)
 				resultDart += fmt.Sprintf("\t\t\t%s res = %s();\n", method.Returns[0].Type.ObjectName, method.Returns[0].Type.ObjectName)
 				resultDart += fmt.Sprintf("\t\t\tUint8List decoratedMsg = decorateRawDataByHandlerName(\"%s\", request.Marshal());\n", method.Name)
 				resultDart += fmt.Sprintf("\t\t\tUint8List rawResponse = await internalClient.handleMessage(\"%s\", decoratedMsg);\n", method.Name)
@@ -181,7 +181,7 @@ func fillMethodsDart() {
 				resultDart += fmt.Sprintf("\t\t\treturn res;\n")
 				resultDart += fmt.Sprintf("\t}\n\n")
 			} else if method.MethodType == ast2.Stream {
-				resultDart += fmt.Sprintf("\tFuture<void Function(SendMessage msg)> %s(void Function() onEncryptEnabled, void Function(%s msg) onGotMessage, %s initMessage) {\n", method.Name, method.Returns[0].Type.ObjectName, method.Params[0].Type.ObjectName)
+				resultDart += fmt.Sprintf("\tFuture<void Function(SendMessage msg)> %s(void Function() onEncryptEnabled, void Function(%s msg) onGotMessage, %s initMessage) {\n", strings.ToLower(method.Name[:1])+method.Name[1:], method.Returns[0].Type.ObjectName, method.Params[0].Type.ObjectName)
 				resultDart += fmt.Sprintf("\t\treturn internalClient.listenUpdates(\"%s\", onEncryptEnabled, %s(), onGotMessage, initMessage);\n", method.Name, method.Returns[0].Type.ObjectName)
 				resultDart += "\t}\n\n"
 			}
