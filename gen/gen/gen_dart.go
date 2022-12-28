@@ -2,11 +2,11 @@ package gen
 
 import (
 	"fmt"
-	ast2 "github.com/oringik/crypto-chateau/gen/ast"
-	"github.com/oringik/crypto-chateau/gen/conv"
 	"strconv"
 	"strings"
 	"unicode"
+
+	ast2 "github.com/oringik/crypto-chateau/gen/ast"
 )
 
 var resultDart string
@@ -89,7 +89,8 @@ func fillObjectsDart() {
 		resultDart += "\t\tList<int> buf = List.empty(growable: true);\n"
 		resultDart += "\t\t" + `buf.addAll('{'.codeUnits);` + "\n"
 		for i, field := range object.Fields {
-			convFunction := conv.ConvFunctionMarhsalByType(field.Type.Type)
+			//convFunction := conv.ConvFunctionMarhsalByType(field.Type.Type)
+			convFunction := "TODO_CHANGE"
 			resultDart += fmt.Sprintf("\t\tList<int> resultDart%s = List.empty(growable: true);\n", field.Name)
 			if field.Type.IsArray {
 				resultDart += fmt.Sprintf("\t\t"+`resultDart%s.addAll('['.codeUnits);`, field.Name) + "\n"
@@ -118,7 +119,8 @@ func fillObjectsDart() {
 
 		resultDart += "\tUnmarshal(Map<String, Uint8List> params) {\n"
 		for _, field := range object.Fields {
-			convFunction := conv.ConvFunctionUnmarshalByType(field.Type.Type)
+			//convFunction := conv.ConvFunctionUnmarshalByType(field.Type.Type)
+			convFunction := "TODO_CHANGE"
 			if field.Type.Type == ast2.Object {
 				if field.Type.IsArray {
 					resultDart += fmt.Sprintf("\t\t\t"+`var arr = GetArray(params["%s"]!)[1];`+"\n", strings.Title(field.Name))

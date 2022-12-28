@@ -1,10 +1,18 @@
 package peer
 
 import (
+	"errors"
 	"fmt"
-	"github.com/oringik/crypto-chateau/gen/conv"
-	"github.com/oringik/crypto-chateau/message"
 	"net"
+
+	"github.com/oringik/crypto-chateau/gen/conv"
+	"github.com/oringik/crypto-chateau/gen/hash"
+	"github.com/oringik/crypto-chateau/message"
+	"github.com/oringik/crypto-chateau/version"
+)
+
+var (
+	ErrBytesPrefix = [2]byte{0x2F, 0x20}
 )
 
 type Peer struct {
@@ -17,10 +25,11 @@ func NewPeer(conn net.Conn) *Peer {
 	}
 }
 
-func (p *Peer) WriteResponse(handlerName string, msg message.Message) error {
+func (p *Peer) WriteResponse(handlerName hash.HandlerHash, msg message.Message) error {
 	var resp []byte
 
-	resp = append(resp, []byte(handlerName+"#")...)
+	resp = append(resp, version.NewProtocolByte())
+	resp = append(resp, handlerName[:]...)
 	resp = append(resp, msg.Marshal()...)
 
 	_, err := p.Conn.Write(resp)
@@ -31,41 +40,25 @@ func (p *Peer) ReadMessage(msg message.Message) error {
 	var msgRaw []byte
 
 	_, err := p.Conn.Read(msgRaw)
-	if err != nil {
-		return err
+  if err != nil {
+		return fmt.Errorf("failed to read from connection: %w", err)
 	}
-	_, n, err := conv.GetHandlerName(msgRaw)
+	_, _, offset, err := conv.GetHandler(msgRaw)
 	if err != nil {
-		return err
-	}
-
-	_, reqMsgParams, err := conv.GetParams(msgRaw[n:])
-	if err != nil {
-		return err
+		return fmt.Errorf("failed get handler key: %w", err)
 	}
 
-	err = msg.Unmarshal(reqMsgParams)
-	if err != nil {
-		return err
+	// check if error prefix is present
+	if msgRaw[offset] == ErrBytesPrefix[0] && msgRaw[offset+1] == ErrBytesPrefix[1] {
+		return fmt.Errorf("chateau rpc: status = error, description = %s", string(msgRaw[offset+2:]))
 	}
 
-	return err
-}
-
-func (p *Peer) ReadMessageClient(msg message.Message) error {
-	var msgRaw []byte
-
-	_, err := p.Conn.Read(msgRaw)
-	if err != nil {
-		return err
+	// check if message has a size
+	if len(msgRaw) < offset+conv.ObjectBytesPrefixLength {
+		return errors.New("not enough for size and message")
 	}
 
-	_, reqMsgParams, err := conv.GetParams(msgRaw)
-	if err != nil {
-		return err
-	}
-
-	err = msg.Unmarshal(reqMsgParams)
+	err = msg.Unmarshal(conv.NewBinaryIterator(msgRaw[offset+conv.ObjectBytesPrefixLength:]))
 	if err != nil {
 		return err
 	}
@@ -73,10 +66,15 @@ func (p *Peer) ReadMessageClient(msg message.Message) error {
 	return err
 }
 
-func (p *Peer) WriteError(handlerName string, err error) error {
-	msg := fmt.Sprintf("%s# error: %s", handlerName, err.Error())
+func (p *Peer) WriteError(handlerKey hash.HandlerHash, err error) error {
+	var resp []byte
 
-	_, writeErr := p.Conn.Write([]byte(msg))
+	resp = append(resp, version.NewProtocolByte())
+	resp = append(resp, handlerKey[:]...)
+	resp = append(resp, ErrBytesPrefix[:]...)
+	resp = append(resp, []byte(err.Error())...)
+
+	_, writeErr := p.Conn.Write(resp)
 
 	return writeErr
 }

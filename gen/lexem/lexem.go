@@ -20,7 +20,7 @@ const (
 	ObjectL
 )
 
-var typeIdentifiers = []string{"byte", "int8", "int32", "int64", "uint32", "uint64", "uint8", "uint16", "string", "bool", "object"}
+var typeIdentifiers = []string{"byte", "int8", "int16", "int32", "int64", "uint8", "uint16", "uint32", "uint64", "bool", "string", "object"}
 var pairTypes = map[string]LexemType{"service": ServiceL, ":": ColonL, "(": OpenParenL, ")": CloseParenL, ",": CommaL, "->": ReturnArrowL, "{": OpenBraceL, "}": CloseBraceL, "Handler": MethodL, "Stream": MethodL, "package": PackageL, "object": ObjectL}
 
 type Lexem struct {

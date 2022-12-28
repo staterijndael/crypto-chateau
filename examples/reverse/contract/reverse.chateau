@@ -1,13 +1,42 @@
 package endpoints
 
 service Reverse {
-    Stream ReverseMagicString(ReverseMagicStringRequest req) -> (ReverseMagicStringResponse) {key: val, ajsdajsd: asdasd}
+    Handler ReverseMagicString(ReverseMagicStringRequest req) -> (ReverseMagicStringResponse) {key: val, ajsdajsd: asdasd}
+}
+
+object ReverseCommonObject {
+    [16]byte Key
+    [32]string Value
 }
 
 object ReverseMagicStringRequest {
     string magicString
+    int8 magicInt8
+    int16 magicInt16
+    int32 magicInt32
+    int64 magicInt64
+    uint8 magicUInt8
+    uint16 magicUInt16
+    uint32 magicUInt32
+    uint64 magicUInt64
+    bool magicBool
+    []byte magicBytes
+    ReverseCommonObject magicObject
+    []ReverseCommonObject magicObjectArray
 }
 
 object ReverseMagicStringResponse {
     string reversedMagicString
+    int8 magicInt8
+    int16 magicInt16
+    int32 magicInt32
+    int64 magicInt64
+    uint8 magicUInt8
+    uint16 magicUInt16
+    uint32 magicUInt32
+    uint64 magicUInt64
+    bool magicBool
+    []byte magicBytes
+    ReverseCommonObject magicObject
+    []ReverseCommonObject magicObjectArray
 }
