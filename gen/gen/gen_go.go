@@ -175,7 +175,14 @@ func fillClients() {
 
 	respMsg := &%s{}
 
-	err = respMsg.Unmarshal(conv.NewBinaryIterator(msg[offset:]))
+	//TODO: check if error is present
+
+	// check if message has a size
+	if len(msg) < offset+conv.ObjectBytesPrefixLength {
+		return nil, errors.New("not enough for size and message")
+	}
+
+	err = respMsg.Unmarshal(conv.NewBinaryIterator(msg[offset+conv.ObjectBytesPrefixLength:]))
 	if err != nil {
 		return nil, err
 	}

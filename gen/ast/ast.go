@@ -37,6 +37,7 @@ var LexerTypeToAstType = map[string]Type{
 	"byte":   Byte,
 	"bool":   Bool,
 	"string": String,
+	"object": Object,
 }
 
 var AstTypeToGoType = map[Type]string{
@@ -51,6 +52,7 @@ var AstTypeToGoType = map[Type]string{
 	Byte:   "byte",
 	Bool:   "bool",
 	String: "string",
+	Object: "object",
 }
 
 var AstTypeToDartType = map[Type]string{

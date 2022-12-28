@@ -150,7 +150,7 @@ func (o *{{.Name | ToCamel}}) Marshal() []byte {
 	if binaryCtx.err != nil {
 		return errors.Wrap(binaryCtx.err, "failed to read {{ .Name | ToCamel }}")
 	}
-    if err = {{ .OutputVar }}.Unmarshal(binaryCtx.buf); binaryCtx.err != nil {
+    if binaryCtx.err = {{ .OutputVar }}.Unmarshal(binaryCtx.buf); binaryCtx.err != nil {
         return errors.Wrap(binaryCtx.err, "failed to unmarshal {{ .Name | ToCamel }}")
     }
 {{ end }}

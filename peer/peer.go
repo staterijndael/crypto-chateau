@@ -2,6 +2,7 @@ package peer
 
 import (
 	"errors"
+	"fmt"
 	"net"
 
 	"github.com/oringik/crypto-chateau/gen/conv"
@@ -46,7 +47,7 @@ func (p *Peer) ReadMessage(msg message.Message) error {
 
 	// check if error prefix is present
 	if msgRaw[offset] == ErrBytesPrefix[0] && msgRaw[offset+1] == ErrBytesPrefix[1] {
-		return errors.New(string(msgRaw[offset+2:]))
+		return fmt.Errorf("chateau rpc: status = error, description = %s", string(msgRaw[offset+2:]))
 	}
 
 	// check if message has a size

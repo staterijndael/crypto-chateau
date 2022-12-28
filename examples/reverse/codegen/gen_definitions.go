@@ -292,6 +292,18 @@ func (o *ReverseMagicStringRequest) Unmarshal(b *conv.BinaryIterator) error {
 
 	binaryCtx.size, binaryCtx.err = b.NextSize()
 	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read MagicObject size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read MagicObject")
+	}
+	if binaryCtx.err = o.MagicObject.Unmarshal(binaryCtx.buf); binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to unmarshal MagicObject")
+	}
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
 		return errors.Wrap(binaryCtx.err, "failed to read MagicObjectArray size")
 	}
 	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
@@ -300,6 +312,18 @@ func (o *ReverseMagicStringRequest) Unmarshal(b *conv.BinaryIterator) error {
 	}
 	for binaryCtx.arrBuf.HasNext() {
 		var elMagicObjectArray ReverseCommonObject
+
+		binaryCtx.size, binaryCtx.err = binaryCtx.arrBuf.NextSize()
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read MagicObjectArray size")
+		}
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(binaryCtx.size)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read MagicObjectArray")
+		}
+		if binaryCtx.err = elMagicObjectArray.Unmarshal(binaryCtx.buf); binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to unmarshal MagicObjectArray")
+		}
 
 		o.MagicObjectArray = append(o.MagicObjectArray, elMagicObjectArray)
 
@@ -463,6 +487,18 @@ func (o *ReverseMagicStringResponse) Unmarshal(b *conv.BinaryIterator) error {
 
 	binaryCtx.size, binaryCtx.err = b.NextSize()
 	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read MagicObject size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read MagicObject")
+	}
+	if binaryCtx.err = o.MagicObject.Unmarshal(binaryCtx.buf); binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to unmarshal MagicObject")
+	}
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
 		return errors.Wrap(binaryCtx.err, "failed to read MagicObjectArray size")
 	}
 	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
@@ -471,6 +507,18 @@ func (o *ReverseMagicStringResponse) Unmarshal(b *conv.BinaryIterator) error {
 	}
 	for binaryCtx.arrBuf.HasNext() {
 		var elMagicObjectArray ReverseCommonObject
+
+		binaryCtx.size, binaryCtx.err = binaryCtx.arrBuf.NextSize()
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read MagicObjectArray size")
+		}
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(binaryCtx.size)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read MagicObjectArray")
+		}
+		if binaryCtx.err = elMagicObjectArray.Unmarshal(binaryCtx.buf); binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to unmarshal MagicObjectArray")
+		}
 
 		o.MagicObjectArray = append(o.MagicObjectArray, elMagicObjectArray)
 
@@ -579,7 +627,14 @@ func (c *ClientReverse) ReverseMagicString(ctx context.Context, req *ReverseMagi
 
 	respMsg := &ReverseMagicStringResponse{}
 
-	err = respMsg.Unmarshal(conv.NewBinaryIterator(msg[offset:]))
+	//TODO: check if error is present
+
+	// check if message has a size
+	if len(msg) < offset+conv.ObjectBytesPrefixLength {
+		return nil, errors.New("not enough for size and message")
+	}
+
+	err = respMsg.Unmarshal(conv.NewBinaryIterator(msg[offset+conv.ObjectBytesPrefixLength:]))
 	if err != nil {
 		return nil, err
 	}
