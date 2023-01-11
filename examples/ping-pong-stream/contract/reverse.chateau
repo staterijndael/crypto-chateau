@@ -1,0 +1,17 @@
+package endpoints
+
+service Reverse {
+    Stream PingPong(PingPongRequest req) -> (Pong) {key: val, ajsdajsd: asdasd}
+}
+
+object PingPongRequest {
+}
+
+object Ping {
+    string req
+    []string re
+}
+
+object Pong {
+    string resp
+}

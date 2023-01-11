@@ -36,7 +36,7 @@ func Encrypt(inputBytes []byte, key []byte) ([]byte, error) {
 }
 
 func Decrypt(cipher []byte, key []byte) ([]byte, error) {
-	if len(cipher) == 0 || len(cipher)%Nb*4 != 0 {
+	if len(cipher) == 0 || len(cipher)%(Nb*4) != 0 {
 		return nil, errors.New("incorrect input bytes length")
 	}
 	if len(key) != 4*Nk {

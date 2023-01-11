@@ -8,10 +8,11 @@ import (
 )
 
 type Conn struct {
-	tcpConn      net.Conn
-	reservedData []byte
-	cfg          connCfg
-	encryption   encryption
+	tcpConn            net.Conn
+	reservedData       []byte
+	futurePacketLength uint16
+	cfg                connCfg
+	encryption         encryption
 }
 
 type connCfg struct {
@@ -26,8 +27,9 @@ type encryption struct {
 
 func newConn(tcpConn net.Conn, cfg connCfg) *Conn {
 	return &Conn{
-		tcpConn: tcpConn,
-		cfg:     cfg,
+		tcpConn:      tcpConn,
+		cfg:          cfg,
+		reservedData: make([]byte, 0, 1024),
 	}
 }
 
@@ -55,28 +57,29 @@ func (cn *Conn) Write(p []byte) (int, error) {
 		}
 	}
 
-	data := make([]byte, 0, len(p))
-
 	if cn.encryption.enabled {
 		encryptedData, err := aes_256.Encrypt(p, cn.encryption.sharedKey)
 		if err != nil {
 			return 0, err
 		}
 
-		data = encryptedData
-	} else {
-		data = p
+		p = encryptedData
 	}
 
-	dataWithLength := make([]byte, 0, len(data)+2)
-	convertedLength := uint16(len(data))
+	dataWithLength := make([]byte, 0, len(p)+2)
+	convertedLength := uint16(len(p))
 	dataWithLength = append(dataWithLength, byte(convertedLength), byte(convertedLength>>8))
-	dataWithLength = append(dataWithLength, data...)
+	dataWithLength = append(dataWithLength, p...)
+
 	n, err := cn.tcpConn.Write(dataWithLength)
-	return n, err
+	if err != nil {
+		return 0, err
+	}
+
+	return n, nil
 }
 
-func (cn *Conn) Read(p []byte) (int, error) {
+func (cn *Conn) Read(b []byte) (int, error) {
 	if cn.cfg.readDeadline > 0 {
 		err := cn.SetReadDeadline(time.Now().Add(cn.cfg.readDeadline))
 		if err != nil {
@@ -84,89 +87,26 @@ func (cn *Conn) Read(p []byte) (int, error) {
 		}
 	}
 
-	buf := make([]byte, 2+len(p))
-
-	if len(cn.reservedData) > 0 {
-		if len(cn.reservedData) < 2 {
-			return 0, errors.New("not enough length of data for getting packet length")
-		}
-
-		packetLength := uint16(cn.reservedData[0]) | uint16(cn.reservedData[1])<<8
-
-		if len(cn.reservedData) < int(2+packetLength) {
-			return 0, errors.New("incorrect packet length")
-		}
-		buf = cn.reservedData[:2+packetLength]
-
-		if int(2+packetLength) < len(cn.reservedData) {
-			cn.reservedData = cn.reservedData[2+packetLength:]
-		}
-
-		if int(2+packetLength) < len(buf) {
-			reserved := buf[2+packetLength:]
-			cn.reservedData = append(cn.reservedData, reserved...)
-		}
-
-		var data []byte
-
-		if cn.encryption.enabled {
-			decryptedData, err := aes_256.Decrypt(buf, cn.encryption.sharedKey)
-			if err != nil {
-				return 0, err
-			}
-
-			data = decryptedData
-		} else {
-			data = buf
-		}
-
-		copy(p, data)
-
-		return len(data), nil
-	}
-
-	n, err := cn.tcpConn.Read(buf)
+	fullMsg, err := GetFullMessage(cn.tcpConn, len(b), cn.reservedData, cn.futurePacketLength)
 	if err != nil {
 		return 0, err
 	}
 
-	if len(buf) <= 2 {
-		return 0, errors.New("not enough length of data for getting packet length")
-	}
-
-	packetLength := uint16(buf[0]) | uint16(buf[1])<<8
-
-	var packet []byte
-	var toReserve []byte
-
-	if int(packetLength) >= n {
-		packet = buf[2:n]
-	} else {
-		packet = buf[2 : 2+packetLength]
-		if len(buf) > 1+int(packetLength) {
-			toReserve = buf[2+packetLength:]
-		}
-	}
-
-	cn.reservedData = append(cn.reservedData, toReserve...)
-
-	var data []byte
+	cn.futurePacketLength = fullMsg.gotFuturePacketLength
+	cn.reservedData = fullMsg.gotReservedData
 
 	if cn.encryption.enabled {
-		decryptedData, err := aes_256.Decrypt(packet, cn.encryption.sharedKey)
+		decryptedData, err := aes_256.Decrypt(fullMsg.msg, cn.encryption.sharedKey)
 		if err != nil {
 			return 0, err
 		}
 
-		data = decryptedData
-	} else {
-		data = packet
+		copy(b, decryptedData)
+		return len(decryptedData), nil
 	}
 
-	copy(p, data)
-
-	return len(data), nil
-
+	copy(b, fullMsg.msg)
+	return len(fullMsg.msg), nil
 }
 
 func (cn *Conn) Close() error {

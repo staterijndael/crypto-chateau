@@ -143,32 +143,16 @@ func fillClients() {
 			}
 			result += "error)"
 			result += "{\n"
-			result += "\terr := c.peer.WriteResponse(" + method.Hash.Code() + ", " + method.Params[0].Name + ")\n\n"
+			result += "\terr := c.peer.SendRequestClient(" + method.Hash.Code() + ", " + method.Params[0].Name + ")\n\n"
 
 			if method.MethodType != ast2.Stream {
-				result += fmt.Sprintf(`msg := make([]byte, 0, 1024)
-
-	for {
-		buf := make([]byte, 1024)
-		n, err := c.peer.Read(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		if n == 0 {
-			break
-		}
-
-		if n < len(buf) {
-			buf = buf[:n]
-			msg = append(msg, buf...)
-			break
-		}
-
-		msg = append(msg, buf...)
+				result += fmt.Sprintf(`
+	msg, err := c.peer.Read()
+	if err != nil{
+		return nil, err
 	}
 
-	_, _, offset, err := conv.GetHandler(msg)
+	_, offset, err := conv.GetServerRespMetaInfo(msg)
 	if err != nil {
 		return nil, err
 	}

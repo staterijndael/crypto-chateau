@@ -51,25 +51,24 @@ var _ message.Message = (*ReverseCommonObject)(nil)
 
 func (o *ReverseCommonObject) Marshal() []byte {
 	var (
-		arrBuf []byte
-		b      = make([]byte, 0, 32)
+		b = make([]byte, 0, 32)
 	)
 
 	size := conv.ConvertSizeToBytes(0)
 	b = append(b, size...)
-	arrBuf = make([]byte, 0, 128)
+	arrBufKey := make([]byte, 0, 128)
 	for _, elKey := range o.Key {
-		arrBuf = append(arrBuf, conv.ConvertByteToBytes(elKey)...)
+		arrBufKey = append(arrBufKey, conv.ConvertByteToBytes(elKey)...)
 	}
-	b = append(b, conv.ConvertSizeToBytes(len(arrBuf))...)
-	b = append(b, arrBuf...)
-	arrBuf = make([]byte, 0, 128)
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufKey))...)
+	b = append(b, arrBufKey...)
+	arrBufValue := make([]byte, 0, 128)
 	for _, elValue := range o.Value {
-		arrBuf = append(arrBuf, conv.ConvertSizeToBytes(len([]byte(elValue)))...)
-		arrBuf = append(arrBuf, conv.ConvertStringToBytes(elValue)...)
+		arrBufValue = append(arrBufValue, conv.ConvertSizeToBytes(len([]byte(elValue)))...)
+		arrBufValue = append(arrBufValue, conv.ConvertStringToBytes(elValue)...)
 	}
-	b = append(b, conv.ConvertSizeToBytes(len(arrBuf))...)
-	b = append(b, arrBuf...)
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufValue))...)
+	b = append(b, arrBufValue...)
 
 	size = conv.ConvertSizeToBytes(len(b) - len(size))
 	for i := 0; i < len(size); i++ {
@@ -157,8 +156,7 @@ var _ message.Message = (*ReverseMagicStringRequest)(nil)
 
 func (o *ReverseMagicStringRequest) Marshal() []byte {
 	var (
-		arrBuf []byte
-		b      = make([]byte, 0, 208)
+		b = make([]byte, 0, 208)
 	)
 
 	size := conv.ConvertSizeToBytes(0)
@@ -174,19 +172,19 @@ func (o *ReverseMagicStringRequest) Marshal() []byte {
 	b = append(b, conv.ConvertUint32ToBytes(o.MagicUInt32)...)
 	b = append(b, conv.ConvertUint64ToBytes(o.MagicUInt64)...)
 	b = append(b, conv.ConvertBoolToBytes(o.MagicBool)...)
-	arrBuf = make([]byte, 0, 128)
+	arrBufMagicBytes := make([]byte, 0, 128)
 	for _, elMagicBytes := range o.MagicBytes {
-		arrBuf = append(arrBuf, conv.ConvertByteToBytes(elMagicBytes)...)
+		arrBufMagicBytes = append(arrBufMagicBytes, conv.ConvertByteToBytes(elMagicBytes)...)
 	}
-	b = append(b, conv.ConvertSizeToBytes(len(arrBuf))...)
-	b = append(b, arrBuf...)
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufMagicBytes))...)
+	b = append(b, arrBufMagicBytes...)
 	b = append(b, o.MagicObject.Marshal()...)
-	arrBuf = make([]byte, 0, 128)
+	arrBufMagicObjectArray := make([]byte, 0, 128)
 	for _, elMagicObjectArray := range o.MagicObjectArray {
-		arrBuf = append(arrBuf, elMagicObjectArray.Marshal()...)
+		arrBufMagicObjectArray = append(arrBufMagicObjectArray, elMagicObjectArray.Marshal()...)
 	}
-	b = append(b, conv.ConvertSizeToBytes(len(arrBuf))...)
-	b = append(b, arrBuf...)
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufMagicObjectArray))...)
+	b = append(b, arrBufMagicObjectArray...)
 
 	size = conv.ConvertSizeToBytes(len(b) - len(size))
 	for i := 0; i < len(size); i++ {
@@ -352,8 +350,7 @@ var _ message.Message = (*ReverseMagicStringResponse)(nil)
 
 func (o *ReverseMagicStringResponse) Marshal() []byte {
 	var (
-		arrBuf []byte
-		b      = make([]byte, 0, 208)
+		b = make([]byte, 0, 208)
 	)
 
 	size := conv.ConvertSizeToBytes(0)
@@ -369,19 +366,19 @@ func (o *ReverseMagicStringResponse) Marshal() []byte {
 	b = append(b, conv.ConvertUint32ToBytes(o.MagicUInt32)...)
 	b = append(b, conv.ConvertUint64ToBytes(o.MagicUInt64)...)
 	b = append(b, conv.ConvertBoolToBytes(o.MagicBool)...)
-	arrBuf = make([]byte, 0, 128)
+	arrBufMagicBytes := make([]byte, 0, 128)
 	for _, elMagicBytes := range o.MagicBytes {
-		arrBuf = append(arrBuf, conv.ConvertByteToBytes(elMagicBytes)...)
+		arrBufMagicBytes = append(arrBufMagicBytes, conv.ConvertByteToBytes(elMagicBytes)...)
 	}
-	b = append(b, conv.ConvertSizeToBytes(len(arrBuf))...)
-	b = append(b, arrBuf...)
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufMagicBytes))...)
+	b = append(b, arrBufMagicBytes...)
 	b = append(b, o.MagicObject.Marshal()...)
-	arrBuf = make([]byte, 0, 128)
+	arrBufMagicObjectArray := make([]byte, 0, 128)
 	for _, elMagicObjectArray := range o.MagicObjectArray {
-		arrBuf = append(arrBuf, elMagicObjectArray.Marshal()...)
+		arrBufMagicObjectArray = append(arrBufMagicObjectArray, elMagicObjectArray.Marshal()...)
 	}
-	b = append(b, conv.ConvertSizeToBytes(len(arrBuf))...)
-	b = append(b, arrBuf...)
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufMagicObjectArray))...)
+	b = append(b, arrBufMagicObjectArray...)
 
 	size = conv.ConvertSizeToBytes(len(b) - len(size))
 	for i := 0; i < len(size); i++ {
@@ -596,31 +593,14 @@ func NewClientReverse(host string, port int) (*ClientReverse, error) {
 }
 
 func (c *ClientReverse) ReverseMagicString(ctx context.Context, req *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error) {
-	err := c.peer.WriteResponse(hash.HandlerHash{0x52, 0x65, 0x76, 065}, req)
+	err := c.peer.SendRequestClient(hash.HandlerHash{0x52, 0x65, 0x76, 065}, req)
 
-	msg := make([]byte, 0, 1024)
-
-	for {
-		buf := make([]byte, 1024)
-		n, err := c.peer.Read(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		if n == 0 {
-			break
-		}
-
-		if n < len(buf) {
-			buf = buf[:n]
-			msg = append(msg, buf...)
-			break
-		}
-
-		msg = append(msg, buf...)
+	msg, err := c.peer.Read()
+	if err != nil {
+		return nil, err
 	}
 
-	_, _, offset, err := conv.GetHandler(msg)
+	_, offset, err := conv.GetServerRespMetaInfo(msg)
 	if err != nil {
 		return nil, err
 	}

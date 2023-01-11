@@ -39,7 +39,6 @@ var _ message.Message = (*{{.Name | ToCamel}})(nil)
 
 func (o *{{.Name | ToCamel}}) Marshal() []byte {
     var (
-        arrBuf []byte
         {{- /* TODO: precalculate size based on static fields  */}}
         b = make([]byte, 0, {{ mul (len .Fields) 16 }})
     )
@@ -51,14 +50,15 @@ func (o *{{.Name | ToCamel}}) Marshal() []byte {
 	{{- if not .Type.IsArray}}
 	{{- template "marshal" dict "Type" .Type "Name" .Name "BufName" "b" "InputVar" (printf "o.%s" (.Name | ToCamel))}}
 	{{- else}}
-	arrBuf = make([]byte, 0, 128)
+	{{- $arrBufName := printf "arrBuf%s" (.Name | ToCamel) }}
+	{{$arrBufName}} := make([]byte, 0, 128)
 	{{- $inputVar := printf "el%s" (.Name | ToCamel) }}
 	for _, {{$inputVar}} := range o.{{.Name | ToCamel}} {
-		{{- template "marshal" dict "Type" .Type "Name" .Name "BufName" "arrBuf" "InputVar" $inputVar }}
+		{{- template "marshal" dict "Type" .Type "Name" .Name "BufName" $arrBufName "InputVar" $inputVar }}
 	}
 	{{- /*TODO: check if buf size exceess max payload bytes size: max(uint32) */}}
-	b = append(b, conv.ConvertSizeToBytes(len(arrBuf))...)
-	b = append(b, arrBuf...)
+	b = append(b, conv.ConvertSizeToBytes(len({{$arrBufName}}))...)
+	b = append(b, {{$arrBufName}}...)
 	{{- end}}
     {{- end}}
 

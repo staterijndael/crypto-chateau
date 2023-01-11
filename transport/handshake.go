@@ -18,8 +18,9 @@ const (
 func ClientHandshake(tcpConn net.Conn) (net.Conn, error) {
 	conn := newConn(tcpConn, connCfg{readDeadline: maxReadTime, writeDeadline: maxWriteTime})
 
-	msg := make([]byte, 9)
-	_, err := conn.Read(msg)
+	pipe := NewPipe(conn)
+
+	msg, err := pipe.Read(PipeReadCfg{BufSize: 9})
 	if err != nil {
 		return nil, err
 	}
@@ -41,17 +42,17 @@ func ClientHandshake(tcpConn net.Conn) (net.Conn, error) {
 
 	publicKeyMsg := publicKeyInitMsg{publicKey: pub}
 
-	_, err = conn.Write(publicKeyMsg.publicKey[:])
+	_, err = pipe.Write(publicKeyMsg.publicKey[:])
 	if err != nil {
 		return nil, err
 	}
 
-	connPublicKey, err := readConnPubKey(conn)
+	connPublicKey, err := readConnPubKey(pipe)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = conn.Write([]byte{'1'})
+	_, err = pipe.Write([]byte{'1'})
 	if err != nil {
 		return nil, err
 	}
@@ -72,12 +73,14 @@ func ClientHandshake(tcpConn net.Conn) (net.Conn, error) {
 func ServerHandshake(tcpConn net.Conn) (net.Conn, error) {
 	conn := newConn(tcpConn, connCfg{readDeadline: maxReadTime, writeDeadline: maxWriteTime})
 
-	_, err := conn.Write([]byte("handshake"))
+	pipe := NewPipe(conn)
+
+	_, err := pipe.Write([]byte("handshake"))
 	if err != nil {
 		return nil, err
 	}
 
-	connPublicKey, err := readConnPubKey(conn)
+	connPublicKey, err := readConnPubKey(pipe)
 	if err != nil {
 		return nil, err
 	}
@@ -96,19 +99,17 @@ func ServerHandshake(tcpConn net.Conn) (net.Conn, error) {
 
 	publicKeyMsg := publicKeyInitMsg{publicKey: pub}
 
-	_, err = conn.Write(publicKeyMsg.publicKey[:])
+	_, err = pipe.Write(publicKeyMsg.publicKey[:])
 	if err != nil {
 		return nil, err
 	}
 
-	buf := make([]byte, 1)
-
-	_, err = conn.Read(buf)
+	msg, err := pipe.Read(PipeReadCfg{BufSize: 1})
 	if err != nil {
 		return nil, err
 	}
 
-	if buf[0] != '1' {
+	if msg[0] != '1' {
 		return nil, errors.New("incorrect result byte")
 	}
 
@@ -125,14 +126,13 @@ func ServerHandshake(tcpConn net.Conn) (net.Conn, error) {
 	return conn, nil
 }
 
-func readConnPubKey(conn *Conn) ([32]byte, error) {
-	buf := make([]byte, 32)
-	_, err := conn.Read(buf)
+func readConnPubKey(pipe *Pipe) ([32]byte, error) {
+	msg, err := pipe.Read(PipeReadCfg{BufSize: 32})
 	if err != nil {
 		return [32]byte{}, err
 	}
 
 	var s [32]byte
-	copy(s[:], buf)
+	copy(s[:], msg)
 	return s, nil
 }

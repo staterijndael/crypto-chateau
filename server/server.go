@@ -15,7 +15,6 @@ import (
 	"github.com/oringik/crypto-chateau/gen/hash"
 	"github.com/oringik/crypto-chateau/message"
 	"github.com/oringik/crypto-chateau/peer"
-	"github.com/oringik/crypto-chateau/transport"
 )
 
 type HandlerFunc func(context.Context, message.Message) (message.Message, error)
@@ -102,23 +101,19 @@ func (s *Server) handleRequests(ctx context.Context, clientChan <-chan *peer.Pee
 }
 
 func (s *Server) handleRequest(ctx context.Context, peer *peer.Peer) {
-	defer peer.Close()
-
-	securedConnect, err := transport.ClientHandshake(peer.Conn)
+	err := peer.EstablishSecureConn()
 	if err != nil {
 		s.logger.Info("error establishing secured connect",
-			zap.String("connIP", peer.Conn.RemoteAddr().String()),
+			zap.String("connIP", peer.Pipe.RemoteAddr().String()),
 			zap.Error(err),
 		)
 		return
 	}
 
-	peer.Conn = securedConnect
-
 	err = s.handleMethod(ctx, peer)
 	if err != nil {
 		s.logger.Info("error handling method for peer",
-			zap.String("connIP", peer.Conn.RemoteAddr().String()),
+			zap.String("connIP", peer.Pipe.RemoteAddr().String()),
 			zap.Error(err),
 		)
 		return
@@ -126,29 +121,12 @@ func (s *Server) handleRequest(ctx context.Context, peer *peer.Peer) {
 }
 
 func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
-	msg := make([]byte, 0, 1024)
-
-	for {
-		buf := make([]byte, 1024)
-		n, err := peer.Read(buf)
-		if err != nil {
-			return err
-		}
-
-		if n == 0 {
-			break
-		}
-
-		if n < len(buf) {
-			buf = buf[:n]
-			msg = append(msg, buf...)
-			break
-		}
-
-		msg = append(msg, buf...)
+	msg, err := peer.Read()
+	if err != nil {
+		return err
 	}
 
-	_, handlerKey, offset, err := conv.GetHandler(msg)
+	_, handlerKey, offset, err := conv.GetClientReqMetaInfo(msg)
 	if err != nil {
 		return err
 	}
@@ -174,11 +152,11 @@ func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
 	case HandlerT:
 		responseMessage, err := handler.CallFuncHandler(ctx, requestMsg)
 		if err != nil {
-			writeErr := peer.WriteError(handlerKey, err)
+			writeErr := peer.WriteError(err)
 			return writeErr
 		}
 
-		err = peer.WriteResponse(handlerKey, responseMessage)
+		err = peer.WriteResponse(responseMessage)
 		if err != nil {
 			return err
 		}
@@ -193,7 +171,7 @@ func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
 		go func() {
 			err = handler.CallFuncStream(ctx, peer, requestMsg)
 			if err != nil {
-				writeErr := peer.WriteError(handlerKey, err)
+				writeErr := peer.WriteError(err)
 				if writeErr != nil {
 					fmt.Println(writeErr)
 				}
