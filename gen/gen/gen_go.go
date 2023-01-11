@@ -265,11 +265,11 @@ func fillServices() {
 func fillHandlerHashMap() {
 	result += "var handlerHashMap = map[string]map[string]hash.HandlerHash{\n"
 	for _, service := range ast.Chateau.Services {
+		result += "\t\"" + service.Name + "\":{\n"
 		for _, method := range service.Methods {
-			result += "\t\"" + service.Name + "\":{\n"
 			result += "\t\t\"" + method.Name + "\":" + method.Hash.Code() + ",\n"
-			result += "\t},\n"
 		}
+		result += "\t},\n"
 	}
 	result += "}\n\n"
 }
