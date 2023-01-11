@@ -13,7 +13,8 @@ import (
 )
 
 var (
-	ErrBytesPrefix = [2]byte{0x2F, 0x20}
+	ErrByte byte = 0x2F
+	OkByte  byte = 0x20
 )
 
 type Peer struct {
@@ -52,6 +53,7 @@ func (p *Peer) WriteResponse(msg message.Message) error {
 	var resp []byte
 
 	resp = append(resp, version.NewProtocolByte())
+	resp = append(resp, OkByte)
 	resp = append(resp, msg.Marshal()...)
 
 	_, err := p.Write(resp)
@@ -70,16 +72,16 @@ func (p *Peer) ReadMessage(msg message.Message) error {
 	}
 
 	// check if error prefix is present
-	if msgRaw[offset] == ErrBytesPrefix[0] && msgRaw[offset+1] == ErrBytesPrefix[1] {
+	if msgRaw[offset] == ErrByte {
 		return fmt.Errorf("chateau rpc: status = error, description = %s", string(msgRaw[2:]))
 	}
 
 	// check if message has a size
-	if offset+len(msgRaw) < conv.ObjectBytesPrefixLength {
+	if offset+1+len(msgRaw) < conv.ObjectBytesPrefixLength {
 		return errors.New("not enough for size and message")
 	}
 
-	err = msg.Unmarshal(conv.NewBinaryIterator(msgRaw[offset+conv.ObjectBytesPrefixLength:]))
+	err = msg.Unmarshal(conv.NewBinaryIterator(msgRaw[offset+1+conv.ObjectBytesPrefixLength:]))
 	if err != nil {
 		return err
 	}
@@ -91,7 +93,7 @@ func (p *Peer) WriteError(err error) error {
 	var resp []byte
 
 	resp = append(resp, version.NewProtocolByte())
-	resp = append(resp, ErrBytesPrefix[:]...)
+	resp = append(resp, ErrByte)
 	resp = append(resp, []byte(err.Error())...)
 
 	_, writeErr := p.Write(resp)

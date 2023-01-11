@@ -595,26 +595,8 @@ func NewClientReverse(host string, port int) (*ClientReverse, error) {
 func (c *ClientReverse) ReverseMagicString(ctx context.Context, req *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error) {
 	err := c.peer.SendRequestClient(hash.HandlerHash{0x52, 0x65, 0x76, 065}, req)
 
-	msg, err := c.peer.Read()
-	if err != nil {
-		return nil, err
-	}
-
-	_, offset, err := conv.GetServerRespMetaInfo(msg)
-	if err != nil {
-		return nil, err
-	}
-
 	respMsg := &ReverseMagicStringResponse{}
-
-	//TODO: check if error is present
-
-	// check if message has a size
-	if len(msg) < offset+conv.ObjectBytesPrefixLength {
-		return nil, errors.New("not enough for size and message")
-	}
-
-	err = respMsg.Unmarshal(conv.NewBinaryIterator(msg[offset+conv.ObjectBytesPrefixLength:]))
+	err = c.peer.ReadMessage(respMsg)
 	if err != nil {
 		return nil, err
 	}

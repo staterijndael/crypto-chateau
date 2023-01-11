@@ -147,29 +147,12 @@ func fillClients() {
 
 			if method.MethodType != ast2.Stream {
 				result += fmt.Sprintf(`
-	msg, err := c.peer.Read()
+	respMsg := &%s{}
+	err = c.peer.ReadMessage(respMsg)
 	if err != nil{
 		return nil, err
 	}
-
-	_, offset, err := conv.GetServerRespMetaInfo(msg)
-	if err != nil {
-		return nil, err
-	}
-
-	respMsg := &%s{}
-
-	//TODO: check if error is present
-
-	// check if message has a size
-	if len(msg) < offset+conv.ObjectBytesPrefixLength {
-		return nil, errors.New("not enough for size and message")
-	}
-
-	err = respMsg.Unmarshal(conv.NewBinaryIterator(msg[offset+conv.ObjectBytesPrefixLength:]))
-	if err != nil {
-		return nil, err
-	}
+	
 	
 	return respMsg, nil
 `, method.Returns[0].Type.ObjectName)
