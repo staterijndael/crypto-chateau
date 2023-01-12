@@ -8,7 +8,7 @@ import (
 type HandlerHash [4]byte
 
 func (h HandlerHash) Code() string {
-	return fmt.Sprintf("hash.HandlerHash{0x%X, 0x%X, 0x%X, 0%X}", h[0], h[1], h[2], h[3])
+	return fmt.Sprintf("hash.HandlerHash{0x%X, 0x%X, 0x%X, 0x%X}", h[0], h[1], h[2], h[3])
 }
 
 // GetHandlerHash returns first 4 bytes of sha256 hash of serviceName/handlerName
