@@ -2,6 +2,7 @@ package endpoints
 
 service Reverse {
     Handler ReverseMagicString(ReverseMagicStringRequest req) -> (ReverseMagicStringResponse) {key: val, ajsdajsd: asdasd}
+    Handler Rasd(ReverseMagicStringRequest req) -> (ReverseMagicStringResponse) {key: val, ajsdajsd: asdasd}
 }
 
 object ReverseCommonObject {

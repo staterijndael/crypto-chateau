@@ -143,7 +143,7 @@ func fillClients() {
 			}
 			result += "error)"
 			result += "{\n"
-			result += "\terr := c.peer.SendRequestClient(" + method.Hash.Code() + ", " + method.Params[0].Name + ")\n\n"
+			result += "\terr := c.peer.SendRequestClient(" + "hash.HandlerHash{" + method.Hash.Code() + "}, " + method.Params[0].Name + ")\n\n"
 
 			if method.MethodType != ast2.Stream {
 				result += fmt.Sprintf(`
@@ -250,7 +250,7 @@ func fillHandlerHashMap() {
 	for _, service := range ast.Chateau.Services {
 		result += "\t\"" + service.Name + "\":{\n"
 		for _, method := range service.Methods {
-			result += "\t\t\"" + method.Name + "\":" + method.Hash.Code() + ",\n"
+			result += "\t\t\"" + method.Name + "\":" + "hash.HandlerHash{" + method.Hash.Code() + "},\n"
 		}
 		result += "\t},\n"
 	}
@@ -336,7 +336,7 @@ func fillGetHandlers() {
 			result += "\tif " + serviceNameLower + " != nil {\n"
 			result += "\t\tcallFunc" + method.Name + "= " + method.Name + "Squeeze(" + serviceNameLower + "." + method.Name + ")\n"
 			result += "\t}\n\n"
-			result += fmt.Sprintf("\t"+`handlers[%s] = &server.Handler{
+			result += fmt.Sprintf("\t"+`handlers[hash.HandlerHash{%s}] = &server.Handler{
 		CallFunc%s:      callFunc%s,
 		HandlerType:     %s,
 		RequestMsgType:  &%s{},
@@ -377,7 +377,7 @@ func fillEmptyGetHandlers() {
 			if len(service.Name) > 1 {
 				serviceNameLower += service.Name[1:]
 			}
-			result += fmt.Sprintf("\t"+`handlers[%s] = &server.Handler{
+			result += fmt.Sprintf("\t"+`handlers[hash.HandlerHash{%s}] = &server.Handler{
 		HandlerType:     %s,
 		RequestMsgType:  &%s{},
 		ResponseMsgType: &%s{},

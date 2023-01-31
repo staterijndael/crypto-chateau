@@ -29,12 +29,36 @@ func NewObjectTemplate() (*ObjectTemplate, error) {
 	}, nil
 }
 
+func NewObjectTemplateDart() (*ObjectTemplate, error) {
+	tpl := template.New("objectDart")
+	tpl = tpl.Funcs(objectTemplateFunc)
+	tpl, err := tpl.ParseFS(embFSdart, "object.dart.tpl")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse object template")
+	}
+
+	return &ObjectTemplate{
+		tpl: tpl,
+	}, nil
+}
+
 func (t *ObjectTemplate) Gen(definition *ast.ObjectDefinition) (string, error) {
 	b := bytes.NewBuffer(nil)
 
 	err := t.tpl.ExecuteTemplate(b, "object.go.tpl", definition)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to execute object template")
+	}
+
+	return b.String(), nil
+}
+
+func (t *ObjectTemplate) GenDart(definition *ast.ObjectDefinition) (string, error) {
+	b := bytes.NewBuffer(nil)
+
+	err := t.tpl.ExecuteTemplate(b, "object.dart.tpl", definition)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to execute dart object template")
 	}
 
 	return b.String(), nil
@@ -59,8 +83,9 @@ var objectTemplateFunc = template.FuncMap{
 	"eqType": func(a ast.Type, b string) bool {
 		return strings.EqualFold(ast.AstTypeToGoType[a], b)
 	},
-	"GoType":  GoType,
-	"ToCamel": strcase.ToCamel,
+	"GoType":   GoType,
+	"DartType": DartType,
+	"ToCamel":  strcase.ToCamel,
 }
 
 func GoType(t *ast.TypeLink, noArray ...bool) (string, error) {
@@ -104,4 +129,43 @@ func GoType(t *ast.TypeLink, noArray ...bool) (string, error) {
 	}
 
 	return "[" + strconv.Itoa(t.ArrSize) + "]" + textType, nil
+}
+
+func DartType(t *ast.TypeLink, noArray ...bool) (string, error) {
+	var textType string
+
+	switch t.Type {
+	case ast.Uint64:
+		textType = "int"
+	case ast.Uint32:
+		textType = "int"
+	case ast.Uint16:
+		textType = "int"
+	case ast.Uint8:
+		textType = "int"
+	case ast.Int64:
+		textType = "int"
+	case ast.Int32:
+		textType = "int"
+	case ast.Int16:
+		textType = "int"
+	case ast.Int8:
+		textType = "int"
+	case ast.Byte:
+		textType = "int"
+	case ast.Bool:
+		textType = "bool"
+	case ast.String:
+		textType = "String"
+	case ast.Object:
+		textType = strcase.ToCamel(t.ObjectName)
+	default:
+		return "", errors.New("unknown type: " + strconv.Itoa(int(t.Type)))
+	}
+
+	if !t.IsArray || (len(noArray) > 0 && noArray[0]) {
+		return textType, nil
+	}
+
+	return "List<" + textType + ">", nil
 }

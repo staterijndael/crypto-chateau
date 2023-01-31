@@ -32,6 +32,11 @@ func main() {
 
 type ReverseEndpoint struct{}
 
+func (r *ReverseEndpoint) Rasd(ctx context.Context, req *endpoints.ReverseMagicStringRequest) (*endpoints.ReverseMagicStringResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (r *ReverseEndpoint) ReverseMagicString(ctx context.Context, req *endpoints.ReverseMagicStringRequest) (*endpoints.ReverseMagicStringResponse, error) {
 	magicStringRunes := []rune(req.MagicString)
 	left := 0

@@ -4,6 +4,8 @@ import (
 	"flag"
 	"github.com/oringik/crypto-chateau/gen/defs"
 	"log"
+	"math/rand"
+	"time"
 )
 
 var (
@@ -16,6 +18,8 @@ func init() {
 	flag.StringVar(&inputFilepath, "chateau_file", "", "chateau file")
 	flag.StringVar(&outputFilepath, "codegen_output", "", "codegenOutput")
 	flag.StringVar(&language, "language", "", "currently supported: go, dart")
+
+	rand.Seed(time.Now().UnixNano())
 }
 
 func main() {
