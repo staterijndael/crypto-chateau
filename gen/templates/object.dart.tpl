@@ -20,7 +20,7 @@
 {{- else if eqType .Type.Type "bool"}}
 	{{ .BufName }}.addAll(ConvertBoolToBytes({{ .InputVar }}));
 {{- else if eqType .Type.Type "string"}}
-	{{ .BufName }}.addAll(ConvertSizeToBytes({{ .InputVar }}.length));
+	{{ .BufName }}.addAll(ConvertSizeToBytes({{ .InputVar }}.codeUnits.length));
 	{{ .BufName }}.addAll(ConvertStringToBytes({{ .InputVar }}));
 {{- else }}
 		{{ .BufName }}.addAll({{ .InputVar }}.Marshal());
@@ -40,7 +40,9 @@ class {{.Name | ToCamel}} implements Message {
 
   Uint8List Marshal() {
       List<int> b = [];
-      int len = 0;
+
+      List<int> size = ConvertSizeToBytes(0)
+      b.addAll(size);
 
       {{- range .Fields}}
       {{- if not .Type.IsArray}}
@@ -56,6 +58,10 @@ class {{.Name | ToCamel}} implements Message {
       b.addAll({{$arrBufName}});
       {{- end}}
       {{- end}}
+      size = conv.ConvertSizeToBytes(b.length - size.length)
+      for (i := 0; i < size.length; i++) {
+      	b[i] = size[i]
+      }
 
       return Uint8List.fromList(b);
   }

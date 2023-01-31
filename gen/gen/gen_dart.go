@@ -118,6 +118,7 @@ func fillMethodsDart() {
     Socket tcpConn =
         await Socket.connect(connectParams.host, connectParams.port);
     peer = Peer(Pipe(Conn(tcpConn)));
+	await peer.establishSecureConn();
     _completer!.complete();
   }
 
@@ -128,7 +129,8 @@ func fillMethodsDart() {
 			if method.MethodType == ast2.Handler {
 				resultDart += fmt.Sprintf("\tFuture<%s> %s(%s request) async {\n", method.Returns[0].Type.ObjectName, strings.ToLower(method.Name[:1])+method.Name[1:], method.Params[0].Type.ObjectName)
 				resultDart += fmt.Sprintf("\t\t\tpeer.sendRequestClient(HandlerHash(hash:[%s]), request);\n", method.Hash.Code())
-				resultDart += fmt.Sprintf("\t\t\treturn peer.readMessage(%s()) as %s;\n", method.Returns[0].Type.ObjectName, method.Returns[0].Type.ObjectName)
+				resultDart += fmt.Sprintf("\t\t\t%s resp = await peer.readMessage(%s()) as %s;\n", method.Returns[0].Type.ObjectName, method.Returns[0].Type.ObjectName, method.Returns[0].Type.ObjectName)
+				resultDart += "\t\t\treturn resp;\n"
 				resultDart += fmt.Sprintf("\t}\n\n")
 			} else if method.MethodType == ast2.Stream {
 				resultDart += fmt.Sprintf("\tFuture<void Function(SendMessage msg)> %s(void Function() onEncryptEnabled, void Function(%s msg) onGotMessage, %s initMessage) {\n", strings.ToLower(method.Name[:1])+method.Name[1:], method.Returns[0].Type.ObjectName, method.Params[0].Type.ObjectName)

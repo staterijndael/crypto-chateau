@@ -60,19 +60,22 @@ class Client {
     Socket tcpConn =
         await Socket.connect(connectParams.host, connectParams.port);
     peer = Peer(Pipe(Conn(tcpConn)));
+	await peer.establishSecureConn();
     _completer!.complete();
   }
 
   Future<void> get connected => _completer!.future;// handlers
 
 	Future<ReverseMagicStringResponse> reverseMagicString(ReverseMagicStringRequest request) async {
-			peer.sendRequestClient(HandlerHash(hash:[0x90, 0xA, 0xDC, 0x45]), request as Message);
-			return peer.readMessage(ReverseMagicStringResponse() as Message) as ReverseMagicStringResponse;
+			peer.sendRequestClient(HandlerHash(hash:[0x90, 0xA, 0xDC, 0x45]), request);
+			ReverseMagicStringResponse resp = await peer.readMessage(ReverseMagicStringResponse()) as ReverseMagicStringResponse;
+			return resp;
 	}
 
 	Future<ReverseMagicStringResponse> rasd(ReverseMagicStringRequest request) async {
-			peer.sendRequestClient(HandlerHash(hash:[0xCB, 0xB1, 0x2D, 0x3D]), request as Message);
-			return peer.readMessage(ReverseMagicStringResponse() as Message) as ReverseMagicStringResponse;
+			peer.sendRequestClient(HandlerHash(hash:[0xCB, 0xB1, 0x2D, 0x3D]), request);
+			ReverseMagicStringResponse resp = await peer.readMessage(ReverseMagicStringResponse()) as ReverseMagicStringResponse;
+			return resp;
 	}
 
 }
@@ -98,7 +101,7 @@ class ReverseCommonObject implements Message {
       b.addAll(arrBufKey);
       List<int> arrBufValue = [];
       for (var elValue in Value!) {
-	arrBufValue.addAll(ConvertSizeToBytes(elValue.length));
+	arrBufValue.addAll(ConvertSizeToBytes(elValue.codeUnits.length));
 	arrBufValue.addAll(ConvertStringToBytes(elValue));
       }
       b.addAll(arrBufValue);
@@ -183,7 +186,7 @@ class ReverseMagicStringRequest implements Message {
   Uint8List Marshal() {
       List<int> b = [];
       int len = 0;
-	b.addAll(ConvertSizeToBytes(MagicString!.length));
+	b.addAll(ConvertSizeToBytes(MagicString!.codeUnits.length));
 	b.addAll(ConvertStringToBytes(MagicString!));
 	b.addAll(ConvertInt8ToBytes(MagicInt8!));
 	b.addAll(ConvertInt16ToBytes(MagicInt16!));
@@ -350,7 +353,7 @@ class ReverseMagicStringResponse implements Message {
   Uint8List Marshal() {
       List<int> b = [];
       int len = 0;
-	b.addAll(ConvertSizeToBytes(ReversedMagicString!.length));
+	b.addAll(ConvertSizeToBytes(ReversedMagicString!.codeUnits.length));
 	b.addAll(ConvertStringToBytes(ReversedMagicString!));
 	b.addAll(ConvertInt8ToBytes(MagicInt8!));
 	b.addAll(ConvertInt16ToBytes(MagicInt16!));

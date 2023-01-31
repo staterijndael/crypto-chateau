@@ -137,7 +137,7 @@ func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
 	}
 
 	// check if message has a size
-	if len(msg) < offset+conv.ObjectBytesPrefixLength {
+	if len(msg) < offset {
 		return errors.New("not enough bytes for size and message")
 	}
 

@@ -188,10 +188,12 @@ func (o *{{.Name | ToCamel}}) Unmarshal(b *conv.BinaryIterator) error {
         {{if eq .Type.ArrSize 0 -}}
         o.{{.Name | ToCamel}} = append(o.{{.Name | ToCamel}}, {{$outputVar}})
 		{{ else -}}
-		o.{{.Name | ToCamel}}![binaryCtx.pos] = {{$outputVar}}
+		o.{{.Name | ToCamel}}[binaryCtx.pos] = {{$outputVar}}
 		binaryCtx.pos++
 		{{- end}}
 	}
 	{{- end}}
     {{- end}}
+
+    return nil
 }
