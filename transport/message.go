@@ -32,6 +32,7 @@ func GetFullMessage(tcpConn net.Conn, bufSize int, reservedData []byte, futurePa
 			if uint16(len(buf)) >= futurePacketLength {
 				if futurePacketLength != uint16(len(buf)) {
 					reservedData = buf[futurePacketLength:]
+					futurePacketLength = 0
 				}
 				return FullMessage{
 					msg:                   buf[:futurePacketLength],
@@ -64,6 +65,7 @@ func GetFullMessage(tcpConn net.Conn, bufSize int, reservedData []byte, futurePa
 		if uint16(len(buf)) >= futurePacketLength {
 			if futurePacketLength != uint16(len(buf)) {
 				reservedData = buf[futurePacketLength:]
+				futurePacketLength = 0
 			}
 			return FullMessage{
 				msg:                   buf[:futurePacketLength],

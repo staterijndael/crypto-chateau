@@ -93,7 +93,9 @@ class ReverseCommonObject implements Message {
 
   Uint8List Marshal() {
       List<int> b = [];
-      int len = 0;
+
+      List<int> size = ConvertSizeToBytes(0);
+      b.addAll(size);
       List<int> arrBufKey = [];
       for (var elKey in Key!) {
 	arrBufKey.addAll(ConvertByteToBytes(elKey));
@@ -105,6 +107,10 @@ class ReverseCommonObject implements Message {
 	arrBufValue.addAll(ConvertStringToBytes(elValue));
       }
       b.addAll(arrBufValue);
+      size = ConvertSizeToBytes(b.length - size.length);
+      for (int i = 0; i < size.length; i++) {
+      	b[i] = size[i];
+      }
 
       return Uint8List.fromList(b);
   }
@@ -185,7 +191,9 @@ class ReverseMagicStringRequest implements Message {
 
   Uint8List Marshal() {
       List<int> b = [];
-      int len = 0;
+
+      List<int> size = ConvertSizeToBytes(0);
+      b.addAll(size);
 	b.addAll(ConvertSizeToBytes(MagicString!.codeUnits.length));
 	b.addAll(ConvertStringToBytes(MagicString!));
 	b.addAll(ConvertInt8ToBytes(MagicInt8!));
@@ -208,6 +216,10 @@ class ReverseMagicStringRequest implements Message {
 		arrBufMagicObjectArray.addAll(elMagicObjectArray.Marshal());
       }
       b.addAll(arrBufMagicObjectArray);
+      size = ConvertSizeToBytes(b.length - size.length);
+      for (int i = 0; i < size.length; i++) {
+      	b[i] = size[i];
+      }
 
       return Uint8List.fromList(b);
   }
@@ -352,7 +364,9 @@ class ReverseMagicStringResponse implements Message {
 
   Uint8List Marshal() {
       List<int> b = [];
-      int len = 0;
+
+      List<int> size = ConvertSizeToBytes(0);
+      b.addAll(size);
 	b.addAll(ConvertSizeToBytes(ReversedMagicString!.codeUnits.length));
 	b.addAll(ConvertStringToBytes(ReversedMagicString!));
 	b.addAll(ConvertInt8ToBytes(MagicInt8!));
@@ -375,6 +389,10 @@ class ReverseMagicStringResponse implements Message {
 		arrBufMagicObjectArray.addAll(elMagicObjectArray.Marshal());
       }
       b.addAll(arrBufMagicObjectArray);
+      size = ConvertSizeToBytes(b.length - size.length);
+      for (int i = 0; i < size.length; i++) {
+      	b[i] = size[i];
+      }
 
       return Uint8List.fromList(b);
   }

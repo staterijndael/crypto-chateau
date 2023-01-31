@@ -41,7 +41,7 @@ class {{.Name | ToCamel}} implements Message {
   Uint8List Marshal() {
       List<int> b = [];
 
-      List<int> size = ConvertSizeToBytes(0)
+      List<int> size = ConvertSizeToBytes(0);
       b.addAll(size);
 
       {{- range .Fields}}
@@ -58,9 +58,9 @@ class {{.Name | ToCamel}} implements Message {
       b.addAll({{$arrBufName}});
       {{- end}}
       {{- end}}
-      size = conv.ConvertSizeToBytes(b.length - size.length)
-      for (i := 0; i < size.length; i++) {
-      	b[i] = size[i]
+      size = ConvertSizeToBytes(b.length - size.length);
+      for (int i = 0; i < size.length; i++) {
+      	b[i] = size[i];
       }
 
       return Uint8List.fromList(b);
