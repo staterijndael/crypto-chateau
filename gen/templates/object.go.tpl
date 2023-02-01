@@ -197,3 +197,7 @@ func (o *{{.Name | ToCamel}}) Unmarshal(b *conv.BinaryIterator) error {
 
     return nil
 }
+
+func (o *{{.Name | ToCamel}}) Copy() message.Message{
+    return {{printf "&%s{}" (.Name | ToCamel)}}
+}

@@ -61,7 +61,7 @@ func (p *Peer) WriteResponse(msg message.Message) error {
 }
 
 func (p *Peer) ReadMessage(msg message.Message) error {
-	msgRaw, err := p.Read()
+	msgRaw, err := p.Read(2048)
 	if err != nil {
 		return fmt.Errorf("failed to read from connection: %w", err)
 	}
@@ -107,8 +107,8 @@ func (p *Peer) Write(data []byte) (int, error) {
 	return n, err
 }
 
-func (p *Peer) Read() ([]byte, error) {
-	msg, err := p.Pipe.Read(transport.PipeReadCfg{})
+func (p *Peer) Read(bufSize int) ([]byte, error) {
+	msg, err := p.Pipe.Read(transport.PipeReadCfg{BufSize: bufSize})
 
 	return msg, err
 }

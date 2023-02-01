@@ -121,7 +121,7 @@ func (s *Server) handleRequest(ctx context.Context, peer *peer.Peer) {
 }
 
 func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
-	msg, err := peer.Read()
+	msg, err := peer.Read(2048)
 	if err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
 		return errors.New("not enough bytes for size and message")
 	}
 
-	requestMsg := handler.RequestMsgType
+	requestMsg := handler.RequestMsgType.Copy()
 
 	err = requestMsg.Unmarshal(conv.NewBinaryIterator(msg[offset+conv.ObjectBytesPrefixLength:]))
 	if err != nil {

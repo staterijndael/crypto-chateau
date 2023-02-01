@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/oringik/crypto-chateau/aes-256"
 	"net"
+	"strconv"
 	"time"
 )
 
@@ -103,6 +104,10 @@ func (cn *Conn) Read(b []byte) (int, error) {
 
 		copy(b, decryptedData)
 		return len(decryptedData), nil
+	}
+
+	if len(fullMsg.msg) > len(b) {
+		return 0, errors.New("buffer overflow: bufSize - " + strconv.Itoa(len(b)))
 	}
 
 	copy(b, fullMsg.msg)

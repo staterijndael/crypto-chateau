@@ -64,7 +64,7 @@ func (r *ReverseEndpoint) ReverseMagicString(ctx context.Context, req *endpoints
 		MagicUInt32:         req.MagicUInt32 + 100,
 		MagicUInt64:         req.MagicUInt64 + 100,
 		MagicBool:           !req.MagicBool,
-		MagicBytes:          req.MagicBytes[1:2],
+		MagicBytes:          req.MagicBytes,
 		MagicObject:         req.MagicObject,
 		MagicObjectArray:    req.MagicObjectArray,
 	}, nil

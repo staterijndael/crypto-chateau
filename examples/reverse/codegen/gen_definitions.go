@@ -149,6 +149,10 @@ func (o *ReverseCommonObject) Unmarshal(b *conv.BinaryIterator) error {
 	return nil
 }
 
+func (o *ReverseCommonObject) Copy() message.Message {
+	return &ReverseCommonObject{}
+}
+
 type ReverseMagicStringRequest struct {
 	MagicString      string
 	MagicInt8        int8
@@ -343,6 +347,10 @@ func (o *ReverseMagicStringRequest) Unmarshal(b *conv.BinaryIterator) error {
 	return nil
 }
 
+func (o *ReverseMagicStringRequest) Copy() message.Message {
+	return &ReverseMagicStringRequest{}
+}
+
 type ReverseMagicStringResponse struct {
 	ReversedMagicString string
 	MagicInt8           int8
@@ -535,6 +543,10 @@ func (o *ReverseMagicStringResponse) Unmarshal(b *conv.BinaryIterator) error {
 	}
 
 	return nil
+}
+
+func (o *ReverseMagicStringResponse) Copy() message.Message {
+	return &ReverseMagicStringResponse{}
 }
 func GetHandlers(reverse Reverse) map[hash.HandlerHash]*server.Handler {
 	handlers := make(map[hash.HandlerHash]*server.Handler)
