@@ -2,6 +2,7 @@ package templates
 
 import (
 	"bytes"
+	"reflect"
 	"strconv"
 	"strings"
 	"text/template"
@@ -91,7 +92,12 @@ var objectTemplateFunc = template.FuncMap{
 	"DartType":                DartType,
 	"FillDefaultObjectParams": FillDefaultObjectParams,
 	"FillDefaultValue":        FillDefaultValue,
+	"GetSliceLength":          GetSliceLength,
 	"ToCamel":                 strcase.ToCamel,
+}
+
+func GetSliceLength(slice any) int {
+	return reflect.ValueOf(slice).Len()
 }
 
 func FillDefaultObjectParams(objectName string) string {

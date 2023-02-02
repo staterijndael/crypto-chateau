@@ -32,11 +32,15 @@ class {{.Name | ToCamel}} implements Message {
   {{ .Type | DartType }} {{ .Name | ToCamel }};
   {{- end}}
 
+  {{- if not (eq (.Fields | GetSliceLength) 0) }}
   {{.Name | ToCamel}}({
     {{- range .Fields}}
     required this.{{ .Name | ToCamel }},
     {{- end}}
   });
+  {{else}}
+  {{.Name | ToCamel}}();
+  {{end}}
 
   Uint8List Marshal() {
       List<int> b = [];

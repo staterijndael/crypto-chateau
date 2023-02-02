@@ -99,11 +99,11 @@ class Client {
 class ReverseCommonObject implements Message {
   List<int> Key;
   List<String> Value;
-
   ReverseCommonObject({
     required this.Key,
     required this.Value,
   });
+  
 
   Uint8List Marshal() {
       List<int> b = [];
@@ -192,7 +192,6 @@ class ReverseMagicStringRequest implements Message {
   List<int> MagicBytes;
   ReverseCommonObject MagicObject;
   List<ReverseCommonObject> MagicObjectArray;
-
   ReverseMagicStringRequest({
     required this.MagicString,
     required this.MagicInt8,
@@ -208,6 +207,7 @@ class ReverseMagicStringRequest implements Message {
     required this.MagicObject,
     required this.MagicObjectArray,
   });
+  
 
   Uint8List Marshal() {
       List<int> b = [];
@@ -373,7 +373,6 @@ class ReverseMagicStringResponse implements Message {
   List<int> MagicBytes;
   ReverseCommonObject MagicObject;
   List<ReverseCommonObject> MagicObjectArray;
-
   ReverseMagicStringResponse({
     required this.ReversedMagicString,
     required this.MagicInt8,
@@ -389,6 +388,7 @@ class ReverseMagicStringResponse implements Message {
     required this.MagicObject,
     required this.MagicObjectArray,
   });
+  
 
   Uint8List Marshal() {
       List<int> b = [];
