@@ -147,8 +147,8 @@ func fillMethodsDart() {
 				resultDart += "\t\t\treturn resp;\n"
 				resultDart += fmt.Sprintf("\t}\n\n")
 			} else if method.MethodType == ast2.Stream {
-				resultDart += fmt.Sprintf("\tFuture<void Function(SendMessage msg)> %s(void Function() onEncryptEnabled, void Function(%s msg) onGotMessage, %s initMessage) {\n", strings.ToLower(method.Name[:1])+method.Name[1:], method.Returns[0].Type.ObjectName, method.Params[0].Type.ObjectName)
-				resultDart += fmt.Sprintf("\t\treturn internalClient.listenUpdates(\"%s\", onEncryptEnabled, %s(), onGotMessage, initMessage);\n", method.Name, method.Returns[0].Type.ObjectName)
+				resultDart += fmt.Sprintf("\tFuture<Peer> %s() {\n", strings.ToLower(method.Name[:1])+method.Name[1:])
+				resultDart += fmt.Sprintf("\t\treturn peer;\n")
 				resultDart += "\t}\n\n"
 			}
 		}
