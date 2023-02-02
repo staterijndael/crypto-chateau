@@ -29,12 +29,12 @@
 
 class {{.Name | ToCamel}} implements Message {
   {{- range .Fields}}
-  {{ .Type | DartType }}? {{ .Name | ToCamel }};
+  {{ .Type | DartType }} {{ .Name | ToCamel }};
   {{- end}}
 
   {{.Name | ToCamel}}({
     {{- range .Fields}}
-    this.{{ .Name | ToCamel }},
+    required this.{{ .Name | ToCamel }},
     {{- end}}
   });
 
@@ -55,6 +55,7 @@ class {{.Name | ToCamel}} implements Message {
           {{- template "marshal" dict "Type" .Type "Name" .Name "BufName" $arrBufName "InputVar" $inputVar }}
       }
       {{- /*TODO: check if buf size exceess max payload bytes size: max(uint32) */}}
+      b.addAll(ConvertSizeToBytes({{$arrBufName}}.length));
       b.addAll({{$arrBufName}});
       {{- end}}
       {{- end}}
@@ -119,23 +120,19 @@ class {{.Name | ToCamel}} implements Message {
   	binaryCtx.size = b.nextSize();
 
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
-  	{{- if not (eq .Type.ArrSize 0) }}
   	binaryCtx.pos = 0;
-  	{{- end}}
+
+  	{{.Name | ToCamel}}.extend(binaryCtx.size, {{.Type | FillDefaultValue}});
   	while (binaryCtx.arrBuf.hasNext()) {
   	  	   {{$outputVar := printf "el%s" (.Name | ToCamel) }}
   	  	   {{if eq .Type.ObjectName ""}}
   	  	       {{ DartType .Type true }} {{$outputVar}};
   	  	   {{else -}}
-  	  	       {{ DartType .Type true }} {{printf "%s = %s()" $outputVar (DartType .Type true)}};
+  	  	       {{ DartType .Type true }} {{printf "%s = %s(%s)" $outputVar (DartType .Type true) (FillDefaultObjectParams (DartType .Type true))}};
   	  	   {{end}}
           {{- template "unmarshal" dict "Type" .Type "Name" .Name "BufName" "binaryCtx.arrBuf" "OutputVar" $outputVar }}
-          {{if eq .Type.ArrSize 0 -}}
-          {{.Name | ToCamel}}!.add({{$outputVar}});
-  		{{ else -}}
-  		{{.Name | ToCamel}}![binaryCtx.pos] = {{$outputVar}};
-  		binaryCtx.pos++;
-  		{{- end}}
+           {{.Name | ToCamel}}![binaryCtx.pos] = {{$outputVar}};
+           binaryCtx.pos++;
   	}
   	{{- end}}
       {{- end}}

@@ -53,13 +53,17 @@ func (t *ObjectTemplate) Gen(definition *ast.ObjectDefinition) (string, error) {
 	return b.String(), nil
 }
 
-func (t *ObjectTemplate) GenDart(definition *ast.ObjectDefinition) (string, error) {
+var objectDefinitions map[string]*ast.ObjectDefinition
+
+func (t *ObjectTemplate) GenDart(definition *ast.ObjectDefinition, objectDefinitionsByName map[string]*ast.ObjectDefinition) (string, error) {
 	b := bytes.NewBuffer(nil)
 
 	err := t.tpl.ExecuteTemplate(b, "object.dart.tpl", definition)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to execute dart object template")
 	}
+
+	objectDefinitions = objectDefinitionsByName
 
 	return b.String(), nil
 }
@@ -83,9 +87,19 @@ var objectTemplateFunc = template.FuncMap{
 	"eqType": func(a ast.Type, b string) bool {
 		return strings.EqualFold(ast.AstTypeToGoType[a], b)
 	},
-	"GoType":   GoType,
-	"DartType": DartType,
-	"ToCamel":  strcase.ToCamel,
+	"GoType":                  GoType,
+	"DartType":                DartType,
+	"FillDefaultObjectParams": FillDefaultObjectParams,
+	"FillDefaultValue":        FillDefaultValue,
+	"ToCamel":                 strcase.ToCamel,
+}
+
+func FillDefaultObjectParams(objectName string) string {
+	return ast.FillDefaultObjectValues(objectDefinitions, objectName)
+}
+
+func FillDefaultValue(t *ast.TypeLink) string {
+	return ast.FillWithDefaultValueType(t)
 }
 
 func GoType(t *ast.TypeLink, noArray ...bool) (string, error) {

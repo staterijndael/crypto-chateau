@@ -33,6 +33,20 @@ class BinaryCtx {
   }
 }
 
+extension ExtendList<T> on List<T> {
+  void extend(int newLength, T defaultValue) {
+    assert(newLength >= 0);
+
+    final lengthDifference = newLength - this.length;
+    if (lengthDifference <= 0) {
+		this.length = newLength;
+        return;
+    }
+
+    this.addAll(List.filled(lengthDifference, defaultValue));
+  }
+}
+
 class ConnectParams {
   String host;
   int port;
@@ -68,13 +82,13 @@ class Client {
 
 	Future<ReverseMagicStringResponse> reverseMagicString(ReverseMagicStringRequest request) async {
 			peer.sendRequestClient(HandlerHash(hash:[0x90, 0xA, 0xDC, 0x45]), request);
-			ReverseMagicStringResponse resp = await peer.readMessage(ReverseMagicStringResponse()) as ReverseMagicStringResponse;
+			ReverseMagicStringResponse resp = await peer.readMessage(ReverseMagicStringResponse(ReversedMagicString: "",MagicInt8: 0,MagicInt16: 0,MagicInt32: 0,MagicInt64: 0,MagicUInt8: 0,MagicUInt16: 0,MagicUInt32: 0,MagicUInt64: 0,MagicBool: true,MagicBytes: List.filled(0, 0xff, growable: true),MagicObject: ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true)),MagicObjectArray: List.filled(0, ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true)), growable: true))) as ReverseMagicStringResponse;
 			return resp;
 	}
 
 	Future<ReverseMagicStringResponse> rasd(ReverseMagicStringRequest request) async {
 			peer.sendRequestClient(HandlerHash(hash:[0xCB, 0xB1, 0x2D, 0x3D]), request);
-			ReverseMagicStringResponse resp = await peer.readMessage(ReverseMagicStringResponse()) as ReverseMagicStringResponse;
+			ReverseMagicStringResponse resp = await peer.readMessage(ReverseMagicStringResponse(ReversedMagicString: "",MagicInt8: 0,MagicInt16: 0,MagicInt32: 0,MagicInt64: 0,MagicUInt8: 0,MagicUInt16: 0,MagicUInt32: 0,MagicUInt64: 0,MagicBool: true,MagicBytes: List.filled(0, 0xff, growable: true),MagicObject: ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true)),MagicObjectArray: List.filled(0, ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true)), growable: true))) as ReverseMagicStringResponse;
 			return resp;
 	}
 
@@ -83,12 +97,12 @@ class Client {
 
 
 class ReverseCommonObject implements Message {
-  List<int>? Key;
-  List<String>? Value;
+  List<int> Key;
+  List<String> Value;
 
   ReverseCommonObject({
-    this.Key,
-    this.Value,
+    required this.Key,
+    required this.Value,
   });
 
   Uint8List Marshal() {
@@ -100,12 +114,14 @@ class ReverseCommonObject implements Message {
       for (var elKey in Key!) {
 	arrBufKey.addAll(ConvertByteToBytes(elKey));
       }
+      b.addAll(ConvertSizeToBytes(arrBufKey.length));
       b.addAll(arrBufKey);
       List<int> arrBufValue = [];
       for (var elValue in Value!) {
 	arrBufValue.addAll(ConvertSizeToBytes(elValue.codeUnits.length));
 	arrBufValue.addAll(ConvertStringToBytes(elValue));
       }
+      b.addAll(ConvertSizeToBytes(arrBufValue.length));
       b.addAll(arrBufValue);
       size = ConvertSizeToBytes(b.length - size.length);
       for (int i = 0; i < size.length; i++) {
@@ -123,6 +139,8 @@ class ReverseCommonObject implements Message {
 
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
   	binaryCtx.pos = 0;
+
+  	Key.extend(binaryCtx.size, 0xff);
   	while (binaryCtx.arrBuf.hasNext()) {
   	  	   
   	  	   
@@ -133,13 +151,15 @@ class ReverseCommonObject implements Message {
       elKey = ConvertBytesToByte(binaryCtx.buf);
   
   
-          Key![binaryCtx.pos] = elKey;
-  		binaryCtx.pos++;
+           Key![binaryCtx.pos] = elKey;
+           binaryCtx.pos++;
   	}
   	binaryCtx.size = b.nextSize();
 
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
   	binaryCtx.pos = 0;
+
+  	Value.extend(binaryCtx.size, "");
   	while (binaryCtx.arrBuf.hasNext()) {
   	  	   
   	  	   
@@ -151,42 +171,42 @@ class ReverseCommonObject implements Message {
       elValue = ConvertBytesToString(binaryCtx.buf);
   
   
-          Value![binaryCtx.pos] = elValue;
-  		binaryCtx.pos++;
+           Value![binaryCtx.pos] = elValue;
+           binaryCtx.pos++;
   	}
   }
 
 }
 
 class ReverseMagicStringRequest implements Message {
-  String? MagicString;
-  int? MagicInt8;
-  int? MagicInt16;
-  int? MagicInt32;
-  int? MagicInt64;
-  int? MagicUInt8;
-  int? MagicUInt16;
-  int? MagicUInt32;
-  int? MagicUInt64;
-  bool? MagicBool;
-  List<int>? MagicBytes;
-  ReverseCommonObject? MagicObject;
-  List<ReverseCommonObject>? MagicObjectArray;
+  String MagicString;
+  int MagicInt8;
+  int MagicInt16;
+  int MagicInt32;
+  int MagicInt64;
+  int MagicUInt8;
+  int MagicUInt16;
+  int MagicUInt32;
+  int MagicUInt64;
+  bool MagicBool;
+  List<int> MagicBytes;
+  ReverseCommonObject MagicObject;
+  List<ReverseCommonObject> MagicObjectArray;
 
   ReverseMagicStringRequest({
-    this.MagicString,
-    this.MagicInt8,
-    this.MagicInt16,
-    this.MagicInt32,
-    this.MagicInt64,
-    this.MagicUInt8,
-    this.MagicUInt16,
-    this.MagicUInt32,
-    this.MagicUInt64,
-    this.MagicBool,
-    this.MagicBytes,
-    this.MagicObject,
-    this.MagicObjectArray,
+    required this.MagicString,
+    required this.MagicInt8,
+    required this.MagicInt16,
+    required this.MagicInt32,
+    required this.MagicInt64,
+    required this.MagicUInt8,
+    required this.MagicUInt16,
+    required this.MagicUInt32,
+    required this.MagicUInt64,
+    required this.MagicBool,
+    required this.MagicBytes,
+    required this.MagicObject,
+    required this.MagicObjectArray,
   });
 
   Uint8List Marshal() {
@@ -209,12 +229,14 @@ class ReverseMagicStringRequest implements Message {
       for (var elMagicBytes in MagicBytes!) {
 	arrBufMagicBytes.addAll(ConvertByteToBytes(elMagicBytes));
       }
+      b.addAll(ConvertSizeToBytes(arrBufMagicBytes.length));
       b.addAll(arrBufMagicBytes);
 		b.addAll(MagicObject!.Marshal());
       List<int> arrBufMagicObjectArray = [];
       for (var elMagicObjectArray in MagicObjectArray!) {
 		arrBufMagicObjectArray.addAll(elMagicObjectArray.Marshal());
       }
+      b.addAll(ConvertSizeToBytes(arrBufMagicObjectArray.length));
       b.addAll(arrBufMagicObjectArray);
       size = ConvertSizeToBytes(b.length - size.length);
       for (int i = 0; i < size.length; i++) {
@@ -291,6 +313,9 @@ class ReverseMagicStringRequest implements Message {
   	binaryCtx.size = b.nextSize();
 
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
+  	binaryCtx.pos = 0;
+
+  	MagicBytes.extend(binaryCtx.size, 0xff);
   	while (binaryCtx.arrBuf.hasNext()) {
   	  	   
   	  	   
@@ -301,8 +326,8 @@ class ReverseMagicStringRequest implements Message {
       elMagicBytes = ConvertBytesToByte(binaryCtx.buf);
   
   
-          MagicBytes!.add(elMagicBytes);
-  		
+           MagicBytes![binaryCtx.pos] = elMagicBytes;
+           binaryCtx.pos++;
   	}
       
   
@@ -314,9 +339,12 @@ class ReverseMagicStringRequest implements Message {
   	binaryCtx.size = b.nextSize();
 
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
+  	binaryCtx.pos = 0;
+
+  	MagicObjectArray.extend(binaryCtx.size, ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true)));
   	while (binaryCtx.arrBuf.hasNext()) {
   	  	   
-  	  	   ReverseCommonObject elMagicObjectArray = ReverseCommonObject();
+  	  	   ReverseCommonObject elMagicObjectArray = ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true));
   	  	   
   
       binaryCtx.size = binaryCtx.arrBuf.nextSize();
@@ -324,42 +352,42 @@ class ReverseMagicStringRequest implements Message {
       elMagicObjectArray!.Unmarshal(binaryCtx.buf);
   
   
-          MagicObjectArray!.add(elMagicObjectArray);
-  		
+           MagicObjectArray![binaryCtx.pos] = elMagicObjectArray;
+           binaryCtx.pos++;
   	}
   }
 
 }
 
 class ReverseMagicStringResponse implements Message {
-  String? ReversedMagicString;
-  int? MagicInt8;
-  int? MagicInt16;
-  int? MagicInt32;
-  int? MagicInt64;
-  int? MagicUInt8;
-  int? MagicUInt16;
-  int? MagicUInt32;
-  int? MagicUInt64;
-  bool? MagicBool;
-  List<int>? MagicBytes;
-  ReverseCommonObject? MagicObject;
-  List<ReverseCommonObject>? MagicObjectArray;
+  String ReversedMagicString;
+  int MagicInt8;
+  int MagicInt16;
+  int MagicInt32;
+  int MagicInt64;
+  int MagicUInt8;
+  int MagicUInt16;
+  int MagicUInt32;
+  int MagicUInt64;
+  bool MagicBool;
+  List<int> MagicBytes;
+  ReverseCommonObject MagicObject;
+  List<ReverseCommonObject> MagicObjectArray;
 
   ReverseMagicStringResponse({
-    this.ReversedMagicString,
-    this.MagicInt8,
-    this.MagicInt16,
-    this.MagicInt32,
-    this.MagicInt64,
-    this.MagicUInt8,
-    this.MagicUInt16,
-    this.MagicUInt32,
-    this.MagicUInt64,
-    this.MagicBool,
-    this.MagicBytes,
-    this.MagicObject,
-    this.MagicObjectArray,
+    required this.ReversedMagicString,
+    required this.MagicInt8,
+    required this.MagicInt16,
+    required this.MagicInt32,
+    required this.MagicInt64,
+    required this.MagicUInt8,
+    required this.MagicUInt16,
+    required this.MagicUInt32,
+    required this.MagicUInt64,
+    required this.MagicBool,
+    required this.MagicBytes,
+    required this.MagicObject,
+    required this.MagicObjectArray,
   });
 
   Uint8List Marshal() {
@@ -382,12 +410,14 @@ class ReverseMagicStringResponse implements Message {
       for (var elMagicBytes in MagicBytes!) {
 	arrBufMagicBytes.addAll(ConvertByteToBytes(elMagicBytes));
       }
+      b.addAll(ConvertSizeToBytes(arrBufMagicBytes.length));
       b.addAll(arrBufMagicBytes);
 		b.addAll(MagicObject!.Marshal());
       List<int> arrBufMagicObjectArray = [];
       for (var elMagicObjectArray in MagicObjectArray!) {
 		arrBufMagicObjectArray.addAll(elMagicObjectArray.Marshal());
       }
+      b.addAll(ConvertSizeToBytes(arrBufMagicObjectArray.length));
       b.addAll(arrBufMagicObjectArray);
       size = ConvertSizeToBytes(b.length - size.length);
       for (int i = 0; i < size.length; i++) {
@@ -464,6 +494,9 @@ class ReverseMagicStringResponse implements Message {
   	binaryCtx.size = b.nextSize();
 
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
+  	binaryCtx.pos = 0;
+
+  	MagicBytes.extend(binaryCtx.size, 0xff);
   	while (binaryCtx.arrBuf.hasNext()) {
   	  	   
   	  	   
@@ -474,8 +507,8 @@ class ReverseMagicStringResponse implements Message {
       elMagicBytes = ConvertBytesToByte(binaryCtx.buf);
   
   
-          MagicBytes!.add(elMagicBytes);
-  		
+           MagicBytes![binaryCtx.pos] = elMagicBytes;
+           binaryCtx.pos++;
   	}
       
   
@@ -487,9 +520,12 @@ class ReverseMagicStringResponse implements Message {
   	binaryCtx.size = b.nextSize();
 
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
+  	binaryCtx.pos = 0;
+
+  	MagicObjectArray.extend(binaryCtx.size, ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true)));
   	while (binaryCtx.arrBuf.hasNext()) {
   	  	   
-  	  	   ReverseCommonObject elMagicObjectArray = ReverseCommonObject();
+  	  	   ReverseCommonObject elMagicObjectArray = ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true));
   	  	   
   
       binaryCtx.size = binaryCtx.arrBuf.nextSize();
@@ -497,8 +533,8 @@ class ReverseMagicStringResponse implements Message {
       elMagicObjectArray!.Unmarshal(binaryCtx.buf);
   
   
-          MagicObjectArray!.add(elMagicObjectArray);
-  		
+           MagicObjectArray![binaryCtx.pos] = elMagicObjectArray;
+           binaryCtx.pos++;
   	}
   }
 

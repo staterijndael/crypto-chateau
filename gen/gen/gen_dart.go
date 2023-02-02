@@ -79,7 +79,7 @@ func fillObjectsDart() error {
 
 	var genObject string
 	for _, object := range astDart.Chateau.ObjectDefinitions {
-		genObject, err = ot.GenDart(object)
+		genObject, err = ot.GenDart(object, astDart.Chateau.ObjectDefinitionByObjectName)
 		if err != nil {
 			return errors.Wrap(err, "failed to generate object")
 		}
@@ -91,6 +91,20 @@ func fillObjectsDart() error {
 }
 
 func fillMethodsDart() {
+	resultDart += `extension ExtendList<T> on List<T> {
+  void extend(int newLength, T defaultValue) {
+    assert(newLength >= 0);
+
+    final lengthDifference = newLength - this.length;
+    if (lengthDifference <= 0) {
+		this.length = newLength;
+        return;
+    }
+
+    this.addAll(List.filled(lengthDifference, defaultValue));
+  }
+}` + "\n\n"
+
 	resultDart += `class ConnectParams {
   String host;
   int port;
@@ -129,7 +143,7 @@ func fillMethodsDart() {
 			if method.MethodType == ast2.Handler {
 				resultDart += fmt.Sprintf("\tFuture<%s> %s(%s request) async {\n", method.Returns[0].Type.ObjectName, strings.ToLower(method.Name[:1])+method.Name[1:], method.Params[0].Type.ObjectName)
 				resultDart += fmt.Sprintf("\t\t\tpeer.sendRequestClient(HandlerHash(hash:[%s]), request);\n", method.Hash.Code())
-				resultDart += fmt.Sprintf("\t\t\t%s resp = await peer.readMessage(%s()) as %s;\n", method.Returns[0].Type.ObjectName, method.Returns[0].Type.ObjectName, method.Returns[0].Type.ObjectName)
+				resultDart += fmt.Sprintf("\t\t\t%s resp = await peer.readMessage(%s(%s)) as %s;\n", method.Returns[0].Type.ObjectName, method.Returns[0].Type.ObjectName, ast2.FillDefaultObjectValues(astDart.Chateau.ObjectDefinitionByObjectName, method.Returns[0].Type.ObjectName), method.Returns[0].Type.ObjectName)
 				resultDart += "\t\t\treturn resp;\n"
 				resultDart += fmt.Sprintf("\t}\n\n")
 			} else if method.MethodType == ast2.Stream {

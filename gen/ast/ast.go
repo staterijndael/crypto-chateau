@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -77,9 +78,10 @@ var (
 )
 
 type Chateau struct {
-	PackageName       string
-	Services          []*Service
-	ObjectDefinitions []*ObjectDefinition
+	PackageName                  string
+	Services                     []*Service
+	ObjectDefinitions            []*ObjectDefinition
+	ObjectDefinitionByObjectName map[string]*ObjectDefinition
 }
 
 type ObjectDefinition struct {
@@ -107,8 +109,10 @@ type Tag struct {
 }
 
 type TypeLink struct {
-	Type       Type
+	Type Type
+
 	ObjectName string
+	ObjectLink *ObjectDefinition
 
 	IsArray bool
 	ArrSize int
@@ -165,6 +169,7 @@ func GenerateAst(lxs []*lexem2.Lexem) *Ast {
 
 func astChateau() *Chateau {
 	chateau := &Chateau{}
+	chateau.ObjectDefinitionByObjectName = make(map[string]*ObjectDefinition)
 	if lexem.Type != lexem2.PackageL {
 		panic("expected package name")
 	}
@@ -188,7 +193,28 @@ func astChateau() *Chateau {
 		}
 	}
 
+	for _, object := range chateau.ObjectDefinitions {
+		chateau.ObjectDefinitionByObjectName[object.Name] = object
+	}
+
+	linkObjectsLinksToFields(chateau.ObjectDefinitionByObjectName, chateau.ObjectDefinitions)
+
 	return chateau
+}
+
+func linkObjectsLinksToFields(objectDefinitions map[string]*ObjectDefinition, objects []*ObjectDefinition) {
+	for _, object := range objects {
+		linkObjectLinksToFields(objectDefinitions, object)
+	}
+}
+
+func linkObjectLinksToFields(objectDefinitions map[string]*ObjectDefinition, object *ObjectDefinition) {
+	for _, field := range object.Fields {
+		if field.Type.Type == Object {
+			field.Type.ObjectLink = objectDefinitions[field.Type.ObjectName]
+			linkObjectLinksToFields(objectDefinitions, field.Type.ObjectLink)
+		}
+	}
 }
 
 func astObject() *ObjectDefinition {
@@ -566,4 +592,60 @@ func getCountDigits(num int) int {
 	}
 
 	return count
+}
+
+func FillDefaultObjectValues(objectDefinitions map[string]*ObjectDefinition, objectName string) string {
+	object := objectDefinitions[objectName]
+	var fieldsFilled string
+	for i, objField := range object.Fields {
+		fieldsFilled += FillTypeWithDefaultValue(objField, false, true)
+		if i != len(object.Fields)-1 {
+			fieldsFilled += ","
+		}
+	}
+	return fieldsFilled
+}
+
+func FillTypeWithDefaultValue(field *Field, isArrChecked bool, isWithFieldName bool) string {
+	res := strings.ToUpper(field.Name[0:1]) + field.Name[1:] + ": "
+	if !isWithFieldName {
+		res = ""
+	}
+
+	if field.Type.IsArray && !isArrChecked {
+		tp := FillTypeWithDefaultValue(field, true, false)
+		isArrChecked = false
+		isWithFieldName = true
+
+		res += fmt.Sprintf("List.filled(0, %s, growable: true)", tp)
+		return res
+	}
+
+	res += FillWithDefaultValueType(&field.Type)
+
+	return res
+}
+
+func FillWithDefaultValueType(tp *TypeLink) string {
+	switch tp.Type {
+	case String:
+		return `""`
+	case Int8, Int16, Int32, Int64, Uint8, Uint16, Uint32, Uint64:
+		return "0"
+	case Bool:
+		return "true"
+	case Byte:
+		return "0xff"
+	case Object:
+		var fieldsFilled string
+		for i, objField := range tp.ObjectLink.Fields {
+			fieldsFilled += FillTypeWithDefaultValue(objField, false, true)
+			if i != len(tp.ObjectLink.Fields)-1 {
+				fieldsFilled += ","
+			}
+		}
+		return tp.ObjectName + "(" + fieldsFilled + ")"
+	}
+
+	return ""
 }
