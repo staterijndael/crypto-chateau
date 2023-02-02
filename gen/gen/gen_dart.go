@@ -147,7 +147,7 @@ func fillMethodsDart() {
 				resultDart += "\t\t\treturn resp;\n"
 				resultDart += fmt.Sprintf("\t}\n\n")
 			} else if method.MethodType == ast2.Stream {
-				resultDart += fmt.Sprintf("\tFuture<Peer> %s() {\n", strings.ToLower(method.Name[:1])+method.Name[1:])
+				resultDart += fmt.Sprintf("\tPeer %s() {\n", strings.ToLower(method.Name[:1])+method.Name[1:])
 				resultDart += fmt.Sprintf("\t\treturn peer;\n")
 				resultDart += "\t}\n\n"
 			}
