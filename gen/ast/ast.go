@@ -634,7 +634,7 @@ func FillWithDefaultValueType(tp *TypeLink) string {
 	switch tp.Type {
 	case String:
 		return `""`
-	case Int8, Int16, Int32, Int64, Uint8, Uint16, Uint32, Uint64:
+	case Int8, Int16, Int32, Int64, Uint8, Uint16, Uint32, Uint64, Int:
 		return "0"
 	case Bool:
 		return "true"
