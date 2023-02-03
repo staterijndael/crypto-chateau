@@ -2,8 +2,8 @@ package conv
 
 import "encoding/binary"
 
-func ConvertBytesToInt(b *BinaryIterator) uint64 {
-	return binary.BigEndian.Uint64(b.Bytes)
+func ConvertBytesToInt(b *BinaryIterator) int {
+	return int(binary.BigEndian.Uint64(b.Bytes))
 }
 
 func ConvertIntToBytes(num int) []byte {
