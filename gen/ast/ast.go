@@ -20,6 +20,7 @@ const (
 	Int32
 	Int16
 	Int8
+	Int
 	Byte
 	Bool
 	String
@@ -35,6 +36,7 @@ var LexerTypeToAstType = map[string]Type{
 	"int32":  Int32,
 	"int16":  Int16,
 	"int8":   Int8,
+	"int":    Int,
 	"byte":   Byte,
 	"bool":   Bool,
 	"string": String,
@@ -48,6 +50,7 @@ var AstTypeToGoType = map[Type]string{
 	Uint8:  "uint8",
 	Int64:  "int64",
 	Int32:  "int32",
+	Int:    "int",
 	Int16:  "int16",
 	Int8:   "int8",
 	Byte:   "byte",
@@ -65,6 +68,7 @@ var AstTypeToDartType = map[Type]string{
 	Int32:  "int",
 	Int16:  "int",
 	Int8:   "int",
+	Int:    "int",
 	Byte:   "int",
 	Bool:   "bool",
 	String: "String",

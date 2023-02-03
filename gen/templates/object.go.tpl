@@ -25,6 +25,8 @@ var _ message.Message = (*{{.Name | ToCamel}})(nil)
 	{{ .BufName }} = append({{ .BufName }},conv.ConvertInt16ToBytes({{ .InputVar }})...)
 {{- else if eqType .Type.Type "int8"}}
 	{{ .BufName }} = append({{ .BufName }},conv.ConvertInt8ToBytes({{ .InputVar }})...)
+{{- else if eqType .Type.Type "int"}}
+	{{ .BufName }} = append({{ .BufName }},conv.ConvertIntToBytes({{ .InputVar }})...)
 {{- else if eqType .Type.Type "byte"}}
 	{{ .BufName }} = append({{ .BufName }},conv.ConvertByteToBytes({{ .InputVar }})...)
 {{- else if eqType .Type.Type "bool"}}
@@ -119,6 +121,12 @@ func (o *{{.Name | ToCamel}}) Marshal() []byte {
         return errors.Wrap(binaryCtx.err, "failed to read {{ .Name | ToCamel }}")
     }
     {{ .OutputVar }} = conv.ConvertBytesToInt8(binaryCtx.buf)
+{{ else if eqType .Type.Type "int"}}
+    binaryCtx.buf, binaryCtx.err = {{ .BufName }}.Slice(8)
+    if binaryCtx.err != nil {
+        return errors.Wrap(binaryCtx.err, "failed to read {{ .Name | ToCamel }}")
+    }
+    {{ .OutputVar }} = conv.ConvertBytesToInt(binaryCtx.buf)
 {{ else if eqType .Type.Type "byte"}}
     binaryCtx.buf, binaryCtx.err = {{ .BufName }}.Slice(1)
     if binaryCtx.err != nil {

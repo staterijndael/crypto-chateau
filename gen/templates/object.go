@@ -134,6 +134,8 @@ func GoType(t *ast.TypeLink, noArray ...bool) (string, error) {
 		textType = "bool"
 	case ast.String:
 		textType = "string"
+	case ast.Int:
+		textType = "int"
 	case ast.Object:
 		textType = strcase.ToCamel(t.ObjectName)
 	default:
@@ -170,6 +172,8 @@ func DartType(t *ast.TypeLink, noArray ...bool) (string, error) {
 	case ast.Int16:
 		textType = "int"
 	case ast.Int8:
+		textType = "int"
+	case ast.Int:
 		textType = "int"
 	case ast.Byte:
 		textType = "int"

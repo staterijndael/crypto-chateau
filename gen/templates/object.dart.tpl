@@ -15,6 +15,8 @@
 	{{ .BufName }}.addAll(ConvertInt16ToBytes({{ .InputVar }}));
 {{- else if eqType .Type.Type "int8"}}
 	{{ .BufName }}.addAll(ConvertInt8ToBytes({{ .InputVar }}));
+{{- else if eqType .Type.Type "int"}}
+	{{ .BufName }}.addAll(ConvertIntToBytes({{ .InputVar }}));
 {{- else if eqType .Type.Type "byte"}}
 	{{ .BufName }}.addAll(ConvertByteToBytes({{ .InputVar }}));
 {{- else if eqType .Type.Type "bool"}}
@@ -96,6 +98,9 @@ class {{.Name | ToCamel}} implements Message {
   {{ else if eqType .Type.Type "int8"}}
       binaryCtx.buf = {{ .BufName }}.slice(1);
       {{ .OutputVar }} = ConvertBytesToInt8(binaryCtx.buf);
+  {{- else if eqType .Type.Type "int64"}}
+      binaryCtx.buf = {{ .BufName }}.slice(8);
+      {{ .OutputVar }} = ConvertBytesToInt(binaryCtx.buf);
   {{ else if eqType .Type.Type "byte"}}
       binaryCtx.buf = {{ .BufName }}.slice(1);
       {{ .OutputVar }} = ConvertBytesToByte(binaryCtx.buf);
