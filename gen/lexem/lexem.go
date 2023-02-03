@@ -1,7 +1,5 @@
 package lexem
 
-import "strings"
-
 type LexemType int
 
 const (
@@ -45,7 +43,7 @@ func LexemParse(input string) []*Lexem {
 
 		var found bool
 		for _, typeIdentefier := range typeIdentifiers {
-			if strings.Contains(word, typeIdentefier) {
+			if word == typeIdentefier {
 				lexemType = TypeL
 				found = true
 				break
