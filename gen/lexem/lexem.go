@@ -1,5 +1,7 @@
 package lexem
 
+import "strings"
+
 type LexemType int
 
 const (
@@ -43,7 +45,15 @@ func LexemParse(input string) []*Lexem {
 
 		var found bool
 		for _, typeIdentefier := range typeIdentifiers {
-			if word == typeIdentefier {
+			var potentiallyIdent string
+			res := strings.Split(word, "]")
+			if len(res) > 1 {
+				potentiallyIdent = res[1]
+			} else {
+				potentiallyIdent = res[0]
+			}
+
+			if potentiallyIdent == typeIdentefier {
 				lexemType = TypeL
 				found = true
 				break
