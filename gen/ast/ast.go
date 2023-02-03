@@ -318,7 +318,7 @@ func astField() *Field {
 
 func astService() *Service {
 	if lexem.Type != lexem2.IdentifierL {
-		panic("expected identifier")
+		panic("expected identifier, got: " + lexem.Value)
 	}
 
 	service := &Service{}
