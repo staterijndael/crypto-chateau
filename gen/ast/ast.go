@@ -213,8 +213,8 @@ func linkObjectsLinksToFields(objectDefinitions map[string]*ObjectDefinition, ob
 }
 
 func linkObjectLinksToFields(objectDefinitions map[string]*ObjectDefinition, object *ObjectDefinition) {
+	fmt.Println(*object)
 	for _, field := range object.Fields {
-		fmt.Println(*field)
 		if field.Type.Type == Object {
 			field.Type.ObjectLink = objectDefinitions[field.Type.ObjectName]
 			linkObjectLinksToFields(objectDefinitions, field.Type.ObjectLink)
