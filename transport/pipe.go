@@ -6,16 +6,16 @@ import (
 )
 
 type Pipe struct {
-	tcpConn            net.Conn
-	reservedData       []byte
-	futurePacketLength uint16
-	cfg                connCfg
+	tcpConn net.Conn
+	cfg     connCfg
+
+	msgController *MessageController
 }
 
 func NewPipe(tcpConn net.Conn) *Pipe {
 	return &Pipe{
-		tcpConn:      tcpConn,
-		reservedData: make([]byte, 0, 1024),
+		tcpConn:       tcpConn,
+		msgController: &MessageController{},
 	}
 }
 
@@ -37,15 +37,12 @@ func (cn *Pipe) Read(cfg PipeReadCfg) ([]byte, error) {
 		cfg.BufSize = 1024
 	}
 
-	fullMessage, err := GetFullMessage(cn.tcpConn, cfg.BufSize+2, cn.reservedData, cn.futurePacketLength)
+	fullMessage, err := cn.msgController.GetFullMessage(cn.tcpConn, cfg.BufSize+2, 4096)
 	if err != nil {
 		return nil, err
 	}
 
-	cn.futurePacketLength = fullMessage.gotFuturePacketLength
-	cn.reservedData = fullMessage.gotReservedData
-
-	return fullMessage.msg, nil
+	return fullMessage, nil
 }
 
 func (cn *Pipe) GetConn() net.Conn {

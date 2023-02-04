@@ -262,7 +262,6 @@ class ReverseMagicStringRequest implements Message {
       binaryCtx.buf = b.slice(1);
       MagicInt8 = ConvertBytesToInt8(binaryCtx.buf);
   
-  
       
   
       binaryCtx.buf = b.slice(2);
@@ -442,7 +441,6 @@ class ReverseMagicStringResponse implements Message {
   
       binaryCtx.buf = b.slice(1);
       MagicInt8 = ConvertBytesToInt8(binaryCtx.buf);
-  
   
       
   

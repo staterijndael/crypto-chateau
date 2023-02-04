@@ -9,11 +9,12 @@ import (
 )
 
 type Conn struct {
-	tcpConn            net.Conn
-	reservedData       []byte
-	futurePacketLength uint16
-	cfg                connCfg
-	encryption         encryption
+	tcpConn          net.Conn
+	cfg              connCfg
+	encryption       encryption
+	connReservedData []byte
+
+	msgController *MessageController
 }
 
 type connCfg struct {
@@ -28,9 +29,9 @@ type encryption struct {
 
 func newConn(tcpConn net.Conn, cfg connCfg) *Conn {
 	return &Conn{
-		tcpConn:      tcpConn,
-		cfg:          cfg,
-		reservedData: make([]byte, 0, 1024),
+		tcpConn:       tcpConn,
+		cfg:           cfg,
+		msgController: &MessageController{},
 	}
 }
 
@@ -81,6 +82,17 @@ func (cn *Conn) Write(p []byte) (int, error) {
 }
 
 func (cn *Conn) Read(b []byte) (int, error) {
+	if len(cn.connReservedData) > 0 {
+		if len(cn.connReservedData) > len(b) {
+			copy(b, cn.connReservedData)
+			cn.connReservedData = cn.connReservedData[len(b):]
+			return len(b), nil
+		}
+
+		copy(b, cn.connReservedData)
+		return len(cn.connReservedData), nil
+	}
+
 	if cn.cfg.readDeadline > 0 {
 		err := cn.SetReadDeadline(time.Now().Add(cn.cfg.readDeadline))
 		if err != nil {
@@ -88,30 +100,33 @@ func (cn *Conn) Read(b []byte) (int, error) {
 		}
 	}
 
-	fullMsg, err := GetFullMessage(cn.tcpConn, len(b), cn.reservedData, cn.futurePacketLength)
+	fullMsg, err := cn.msgController.GetFullMessage(cn.tcpConn, len(b), 4096)
 	if err != nil {
 		return 0, err
 	}
 
-	cn.futurePacketLength = fullMsg.gotFuturePacketLength
-	cn.reservedData = fullMsg.gotReservedData
-
 	if cn.encryption.enabled {
-		decryptedData, err := aes_256.Decrypt(fullMsg.msg, cn.encryption.sharedKey)
+		decryptedData, err := aes_256.Decrypt(fullMsg, cn.encryption.sharedKey)
 		if err != nil {
 			return 0, err
 		}
 
-		copy(b, decryptedData)
-		return len(decryptedData), nil
+		fullMsg = decryptedData
 	}
 
-	if len(fullMsg.msg) > len(b) {
+	if len(fullMsg) > 4*4096 {
 		return 0, errors.New("buffer overflow: bufSize - " + strconv.Itoa(len(b)))
 	}
 
-	copy(b, fullMsg.msg)
-	return len(fullMsg.msg), nil
+	returnLength := len(fullMsg)
+
+	if len(fullMsg) > len(b) {
+		cn.connReservedData = fullMsg[len(b):]
+		returnLength = len(b)
+	}
+
+	copy(b, fullMsg)
+	return returnLength, nil
 }
 
 func (cn *Conn) Close() error {
