@@ -60,6 +60,17 @@ func (p *Peer) WriteResponse(msg message.Message) error {
 	return err
 }
 
+func (p *Peer) WriteRawResponse(data []byte) error {
+	var resp []byte
+
+	resp = append(resp, version.NewProtocolByte())
+	resp = append(resp, OkByte)
+	resp = append(resp, data...)
+
+	_, err := p.Write(resp)
+	return err
+}
+
 func (p *Peer) ReadMessage(msg message.Message) error {
 	msgRaw, err := p.Read(2048)
 	if err != nil {
