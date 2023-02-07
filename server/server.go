@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/oringik/crypto-chateau/transport/multiplex_conn"
 	"net"
 	"strconv"
 	"sync"
@@ -110,13 +111,27 @@ func (s *Server) handleRequest(ctx context.Context, peer *peer.Peer) {
 		return
 	}
 
-	err = s.handleMethod(ctx, peer)
-	if err != nil {
-		s.logger.Info("error handling method for peer",
-			zap.String("connIP", peer.Pipe.RemoteAddr().String()),
-			zap.Error(err),
-		)
-		return
+	multiplexConnPool := multiplex_conn.NewMultiplexConnPool(peer.Pipe.GetConn(), false)
+	multiplexConnPool.Run()
+
+	s.handleConnPool(ctx, multiplexConnPool)
+}
+
+func (s *Server) handleConnPool(ctx context.Context, connPool *multiplex_conn.MultiplexConnPool) {
+	newMultiplexConnsChan := connPool.ListenClients()
+	for {
+		newConn := <-newMultiplexConnsChan
+		go func() {
+			multiplexPeer := peer.NewPeer(newConn)
+			err := s.handleMethod(ctx, multiplexPeer)
+			if err != nil {
+				s.logger.Info("error handling method for peer",
+					zap.String("connIP", multiplexPeer.RemoteAddr().String()),
+					zap.Error(err),
+				)
+				return
+			}
+		}()
 	}
 }
 

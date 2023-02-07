@@ -1,14 +1,20 @@
-package transport
+package handshake
 
 import (
 	"crypto/rand"
 	"errors"
 	"github.com/oringik/crypto-chateau/dh"
+	conn2 "github.com/oringik/crypto-chateau/transport/conn"
+	pipe2 "github.com/oringik/crypto-chateau/transport/pipe"
 	"golang.org/x/crypto/curve25519"
 	"io"
 	"net"
 	"time"
 )
+
+type publicKeyInitMsg struct {
+	publicKey [32]byte
+}
 
 const (
 	maxReadTime  = 5 * time.Second
@@ -16,11 +22,11 @@ const (
 )
 
 func ClientHandshake(tcpConn net.Conn) (net.Conn, error) {
-	conn := newConn(tcpConn, connCfg{readDeadline: maxReadTime, writeDeadline: maxWriteTime})
+	conn := conn2.NewConn(tcpConn, conn2.ConnCfg{ReadDeadline: maxReadTime, WriteDeadline: maxWriteTime})
 
-	pipe := NewPipe(conn)
+	pipe := pipe2.NewPipe(conn)
 
-	msg, err := pipe.Read(PipeReadCfg{BufSize: 9})
+	msg, err := pipe.Read(pipe2.PipeReadCfg{BufSize: 9})
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +68,7 @@ func ClientHandshake(tcpConn net.Conn) (net.Conn, error) {
 		return nil, err
 	}
 
-	err = conn.enableEncryption(sharedKey)
+	err = conn.EnableEncryption(sharedKey)
 	if err != nil {
 		return nil, err
 	}
@@ -71,9 +77,9 @@ func ClientHandshake(tcpConn net.Conn) (net.Conn, error) {
 }
 
 func ServerHandshake(tcpConn net.Conn) (net.Conn, error) {
-	conn := newConn(tcpConn, connCfg{readDeadline: maxReadTime, writeDeadline: maxWriteTime})
+	conn := conn2.NewConn(tcpConn, conn2.ConnCfg{ReadDeadline: maxReadTime, WriteDeadline: maxWriteTime})
 
-	pipe := NewPipe(conn)
+	pipe := pipe2.NewPipe(conn)
 
 	_, err := pipe.Write([]byte("handshake"))
 	if err != nil {
@@ -104,7 +110,7 @@ func ServerHandshake(tcpConn net.Conn) (net.Conn, error) {
 		return nil, err
 	}
 
-	msg, err := pipe.Read(PipeReadCfg{BufSize: 1})
+	msg, err := pipe.Read(pipe2.PipeReadCfg{BufSize: 1})
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +124,7 @@ func ServerHandshake(tcpConn net.Conn) (net.Conn, error) {
 		return nil, err
 	}
 
-	err = conn.enableEncryption(sharedKey)
+	err = conn.EnableEncryption(sharedKey)
 	if err != nil {
 		return nil, err
 	}
@@ -126,8 +132,8 @@ func ServerHandshake(tcpConn net.Conn) (net.Conn, error) {
 	return conn, nil
 }
 
-func readConnPubKey(pipe *Pipe) ([32]byte, error) {
-	msg, err := pipe.Read(PipeReadCfg{BufSize: 32})
+func readConnPubKey(pipe *pipe2.Pipe) ([32]byte, error) {
+	msg, err := pipe.Read(pipe2.PipeReadCfg{BufSize: 32})
 	if err != nil {
 		return [32]byte{}, err
 	}

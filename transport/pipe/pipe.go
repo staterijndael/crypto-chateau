@@ -1,21 +1,23 @@
-package transport
+package pipe
 
 import (
+	"github.com/oringik/crypto-chateau/transport/conn"
+	"github.com/oringik/crypto-chateau/transport/message"
 	"net"
 	"time"
 )
 
 type Pipe struct {
 	tcpConn net.Conn
-	cfg     connCfg
+	cfg     conn.ConnCfg
 
-	msgController *MessageController
+	msgController *message.MessageController
 }
 
 func NewPipe(tcpConn net.Conn) *Pipe {
 	return &Pipe{
 		tcpConn:       tcpConn,
-		msgController: &MessageController{},
+		msgController: &message.MessageController{},
 	}
 }
 

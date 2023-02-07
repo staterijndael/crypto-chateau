@@ -1,13 +1,16 @@
-package transport
+package message
 
 import (
 	"io"
 	"net"
+	"sync"
 )
 
 type MessageController struct {
 	reservedData       []byte
 	futurePacketLength int
+
+	sync.Mutex
 }
 
 func (m *MessageController) GetFullMessage(tcpConn net.Conn, bufSize int, bufSizeRead int) ([]byte, error) {
@@ -18,6 +21,7 @@ func (m *MessageController) GetFullMessage(tcpConn net.Conn, bufSize int, bufSiz
 	buf := make([]byte, 0, bufSize+2)
 
 	for {
+		m.Lock()
 		if len(m.reservedData) > 0 {
 			if m.futurePacketLength == 0 {
 				packetLength := uint16(m.reservedData[0]) | uint16(m.reservedData[1])<<8
@@ -34,9 +38,11 @@ func (m *MessageController) GetFullMessage(tcpConn net.Conn, bufSize int, bufSiz
 				if len(buf) != oldFuturePacketLength {
 					m.reservedData = buf[oldFuturePacketLength:]
 				}
+				m.Unlock()
 				return buf[:oldFuturePacketLength], nil
 			}
 		}
+		m.Unlock()
 
 		localBuf := make([]byte, bufSizeRead)
 
@@ -53,6 +59,7 @@ func (m *MessageController) GetFullMessage(tcpConn net.Conn, bufSize int, bufSiz
 			return nil, io.EOF
 		}
 
+		m.Lock()
 		if m.futurePacketLength == 0 {
 			m.futurePacketLength = int(uint16(buf[0]) | uint16(buf[1])<<8)
 			buf = buf[2:]
@@ -64,7 +71,9 @@ func (m *MessageController) GetFullMessage(tcpConn net.Conn, bufSize int, bufSiz
 			if len(buf) != oldFuturePacketLength {
 				m.reservedData = buf[oldFuturePacketLength:]
 			}
+			m.Unlock()
 			return buf[:oldFuturePacketLength], nil
 		}
+		m.Unlock()
 	}
 }

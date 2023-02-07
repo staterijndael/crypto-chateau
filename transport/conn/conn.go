@@ -1,25 +1,30 @@
-package transport
+package conn
 
 import (
 	"errors"
 	"github.com/oringik/crypto-chateau/aes-256"
+	"github.com/oringik/crypto-chateau/transport"
+	"github.com/oringik/crypto-chateau/transport/message"
 	"net"
 	"strconv"
+	"sync"
 	"time"
 )
 
 type Conn struct {
-	tcpConn          net.Conn
-	cfg              connCfg
-	encryption       encryption
-	connReservedData []byte
+	tcpConn    net.Conn
+	cfg        ConnCfg
+	encryption encryption
 
-	msgController *MessageController
+	connReservedDataMx sync.Mutex
+	connReservedData   []byte
+
+	msgController *message.MessageController
 }
 
-type connCfg struct {
-	writeDeadline time.Duration
-	readDeadline  time.Duration
+type ConnCfg struct {
+	WriteDeadline time.Duration
+	ReadDeadline  time.Duration
 }
 
 type encryption struct {
@@ -27,20 +32,21 @@ type encryption struct {
 	sharedKey []byte
 }
 
-func newConn(tcpConn net.Conn, cfg connCfg) *Conn {
+func NewConn(tcpConn net.Conn, cfg ConnCfg) *Conn {
 	return &Conn{
-		tcpConn:       tcpConn,
-		cfg:           cfg,
-		msgController: &MessageController{},
+		tcpConn:            tcpConn,
+		cfg:                cfg,
+		msgController:      &message.MessageController{},
+		connReservedDataMx: sync.Mutex{},
 	}
 }
 
-func (cn *Conn) enableEncryption(sharedKey [32]byte) error {
+func (cn *Conn) EnableEncryption(sharedKey [32]byte) error {
 	if cn.encryption.enabled {
 		return errors.New("encryption already enabled")
 	}
 
-	sharedKeyHash, err := getSha256FromBytes(sharedKey)
+	sharedKeyHash, err := transport.GetSha256FromBytes(sharedKey)
 	if err != nil {
 		return err
 	}
@@ -52,8 +58,8 @@ func (cn *Conn) enableEncryption(sharedKey [32]byte) error {
 }
 
 func (cn *Conn) Write(p []byte) (int, error) {
-	if cn.cfg.writeDeadline > 0 {
-		err := cn.SetWriteDeadline(time.Now().Add(cn.cfg.writeDeadline))
+	if cn.cfg.WriteDeadline > 0 {
+		err := cn.SetWriteDeadline(time.Now().Add(cn.cfg.WriteDeadline))
 		if err != nil {
 			return 0, err
 		}
@@ -82,7 +88,10 @@ func (cn *Conn) Write(p []byte) (int, error) {
 }
 
 func (cn *Conn) Read(b []byte) (int, error) {
+	cn.connReservedDataMx.Lock()
 	if len(cn.connReservedData) > 0 {
+		defer cn.connReservedDataMx.Unlock()
+
 		if len(cn.connReservedData) > len(b) {
 			copy(b, cn.connReservedData)
 			cn.connReservedData = cn.connReservedData[len(b):]
@@ -92,9 +101,10 @@ func (cn *Conn) Read(b []byte) (int, error) {
 		copy(b, cn.connReservedData)
 		return len(cn.connReservedData), nil
 	}
+	cn.connReservedDataMx.Unlock()
 
-	if cn.cfg.readDeadline > 0 {
-		err := cn.SetReadDeadline(time.Now().Add(cn.cfg.readDeadline))
+	if cn.cfg.ReadDeadline > 0 {
+		err := cn.SetReadDeadline(time.Now().Add(cn.cfg.ReadDeadline))
 		if err != nil {
 			return 0, err
 		}
@@ -120,10 +130,12 @@ func (cn *Conn) Read(b []byte) (int, error) {
 
 	returnLength := len(fullMsg)
 
+	cn.connReservedDataMx.Lock()
 	if len(fullMsg) > len(b) {
 		cn.connReservedData = fullMsg[len(b):]
 		returnLength = len(b)
 	}
+	cn.connReservedDataMx.Unlock()
 
 	copy(b, fullMsg)
 	return returnLength, nil

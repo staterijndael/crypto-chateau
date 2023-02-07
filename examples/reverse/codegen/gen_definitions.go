@@ -15,7 +15,8 @@ import (
 	"github.com/oringik/crypto-chateau/message"
 	"github.com/oringik/crypto-chateau/peer"
 	"github.com/oringik/crypto-chateau/server"
-	"github.com/oringik/crypto-chateau/transport"
+	"github.com/oringik/crypto-chateau/transport/handshake"
+	"github.com/oringik/crypto-chateau/transport/multiplex_conn"
 )
 
 var tagsByHandlerName = map[string]map[string]string{
@@ -626,7 +627,7 @@ func CallClientMethod(ctx context.Context, host string, port int, serviceName st
 }
 
 type ClientReverse struct {
-	peer *peer.Peer
+	multiplexConnPool *multiplex_conn.MultiplexConnPool
 }
 
 func NewClientReverse(host string, port int) (*ClientReverse, error) {
@@ -634,20 +635,23 @@ func NewClientReverse(host string, port int) (*ClientReverse, error) {
 	if err != nil {
 		return nil, err
 	}
-	conn, err = transport.ServerHandshake(conn)
+	conn, err = handshake.ServerHandshake(conn)
 	if err != nil {
 		return nil, err
 	}
-	securedPeer := peer.NewPeer(conn)
-	client := &ClientReverse{peer: securedPeer}
+	multiplexConnPool := multiplex_conn.NewMultiplexConnPool(conn, true)
+	multiplexConnPool.Run()
+	client := &ClientReverse{multiplexConnPool: multiplexConnPool}
 	return client, nil
 }
 
 func (c *ClientReverse) ReverseMagicString(ctx context.Context, req *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error) {
-	err := c.peer.SendRequestClient(hash.HandlerHash{0x90, 0xA, 0xDC, 0x45}, req)
+	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
+	peer := peer.NewPeer(multiplexConn)
+	err := peer.SendRequestClient(hash.HandlerHash{0x90, 0xA, 0xDC, 0x45}, req)
 
 	respMsg := &ReverseMagicStringResponse{}
-	err = c.peer.ReadMessage(respMsg)
+	err = peer.ReadMessage(respMsg)
 	if err != nil {
 		return nil, err
 	}
@@ -656,10 +660,12 @@ func (c *ClientReverse) ReverseMagicString(ctx context.Context, req *ReverseMagi
 }
 
 func (c *ClientReverse) Rasd(ctx context.Context, req *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error) {
-	err := c.peer.SendRequestClient(hash.HandlerHash{0xCB, 0xB1, 0x2D, 0x3D}, req)
+	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
+	peer := peer.NewPeer(multiplexConn)
+	err := peer.SendRequestClient(hash.HandlerHash{0xCB, 0xB1, 0x2D, 0x3D}, req)
 
 	respMsg := &ReverseMagicStringResponse{}
-	err = c.peer.ReadMessage(respMsg)
+	err = peer.ReadMessage(respMsg)
 	if err != nil {
 		return nil, err
 	}

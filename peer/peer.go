@@ -4,8 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/oringik/crypto-chateau/gen/hash"
-	"github.com/oringik/crypto-chateau/transport"
+	"github.com/oringik/crypto-chateau/transport/handshake"
+	"github.com/oringik/crypto-chateau/transport/pipe"
 	"net"
+	"time"
 
 	"github.com/oringik/crypto-chateau/gen/conv"
 	"github.com/oringik/crypto-chateau/message"
@@ -18,17 +20,17 @@ var (
 )
 
 type Peer struct {
-	Pipe *transport.Pipe
+	Pipe *pipe.Pipe
 }
 
 func NewPeer(conn net.Conn) *Peer {
 	return &Peer{
-		Pipe: transport.NewPipe(conn),
+		Pipe: pipe.NewPipe(conn),
 	}
 }
 
 func (p *Peer) EstablishSecureConn() error {
-	securedConnect, err := transport.ClientHandshake(p.Pipe.GetConn())
+	securedConnect, err := handshake.ClientHandshake(p.Pipe.GetConn())
 	if err != nil {
 		return err
 	}
@@ -119,7 +121,7 @@ func (p *Peer) Write(data []byte) (int, error) {
 }
 
 func (p *Peer) Read(bufSize int) ([]byte, error) {
-	msg, err := p.Pipe.Read(transport.PipeReadCfg{BufSize: bufSize})
+	msg, err := p.Pipe.Read(pipe.PipeReadCfg{BufSize: bufSize})
 
 	return msg, err
 }
@@ -128,4 +130,16 @@ func (p *Peer) Close() error {
 	err := p.Pipe.CloseConn()
 
 	return err
+}
+
+func (p *Peer) SetReadDeadline(t time.Time) error {
+	return p.Pipe.SetReadDeadline(t)
+}
+
+func (p *Peer) LocalAddr() net.Addr {
+	return p.Pipe.LocalAddr()
+}
+
+func (p *Peer) RemoteAddr() net.Addr {
+	return p.Pipe.RemoteAddr()
 }

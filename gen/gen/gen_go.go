@@ -62,7 +62,8 @@ func fillImports() {
 			"github.com/oringik/crypto-chateau/message"
 			"github.com/oringik/crypto-chateau/peer"
 			"github.com/oringik/crypto-chateau/server"
-			"github.com/oringik/crypto-chateau/transport"
+			"github.com/oringik/crypto-chateau/transport/multiplex_conn"
+			"github.com/oringik/crypto-chateau/transport/handshake"
 		)
 `
 
@@ -79,7 +80,7 @@ func fillVersion() {
 func fillClients() {
 	for _, service := range ast.Chateau.Services {
 		result += "type Client" + service.Name + " struct {\n"
-		result += "\tpeer *peer.Peer\n"
+		result += "\tmultiplexConnPool *multiplex_conn.MultiplexConnPool\n"
 		result += "}\n\n"
 
 		result += "func NewClient" + service.Name + "(host string, port int) (*Client" + service.Name + ", error) {\n"
@@ -87,12 +88,13 @@ func fillClients() {
 		result += "\tif err != nil{\n"
 		result += "\t\treturn nil, err\n"
 		result += "\t}\n"
-		result += "\tconn, err = transport.ServerHandshake(conn)\n"
+		result += "\tconn, err = handshake.ServerHandshake(conn)\n"
 		result += "\tif err != nil{\n"
 		result += "\t\treturn nil, err\n"
 		result += "\t}\n"
-		result += "securedPeer := peer.NewPeer(conn)\n"
-		result += "client := &Client" + service.Name + "{peer: securedPeer}\n"
+		result += "multiplexConnPool := multiplex_conn.NewMultiplexConnPool(conn, true)\n"
+		result += "multiplexConnPool.Run()\n"
+		result += "client := &Client" + service.Name + "{multiplexConnPool: multiplexConnPool}\n"
 		result += "return client, nil\n"
 		result += "}\n\n"
 		for _, method := range service.Methods {
@@ -143,12 +145,14 @@ func fillClients() {
 			}
 			result += "error)"
 			result += "{\n"
-			result += "\terr := c.peer.SendRequestClient(" + "hash.HandlerHash{" + method.Hash.Code() + "}, " + method.Params[0].Name + ")\n\n"
+			result += "multiplexConn := c.multiplexConnPool.NewMultiplexConn()\n"
+			result += "peer := peer.NewPeer(multiplexConn)\n"
+			result += "\terr := peer.SendRequestClient(" + "hash.HandlerHash{" + method.Hash.Code() + "}, " + method.Params[0].Name + ")\n\n"
 
 			if method.MethodType != ast2.Stream {
 				result += fmt.Sprintf(`
 	respMsg := &%s{}
-	err = c.peer.ReadMessage(respMsg)
+	err = peer.ReadMessage(respMsg)
 	if err != nil{
 		return nil, err
 	}
