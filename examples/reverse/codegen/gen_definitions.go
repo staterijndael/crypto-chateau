@@ -649,6 +649,9 @@ func (c *ClientReverse) ReverseMagicString(ctx context.Context, req *ReverseMagi
 	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
 	peer := peer.NewPeer(multiplexConn)
 	err := peer.SendRequestClient(hash.HandlerHash{0x90, 0xA, 0xDC, 0x45}, req)
+	if err != nil {
+		return nil, err
+	}
 
 	respMsg := &ReverseMagicStringResponse{}
 	err = peer.ReadMessage(respMsg)
@@ -663,6 +666,9 @@ func (c *ClientReverse) Rasd(ctx context.Context, req *ReverseMagicStringRequest
 	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
 	peer := peer.NewPeer(multiplexConn)
 	err := peer.SendRequestClient(hash.HandlerHash{0xCB, 0xB1, 0x2D, 0x3D}, req)
+	if err != nil {
+		return nil, err
+	}
 
 	respMsg := &ReverseMagicStringResponse{}
 	err = peer.ReadMessage(respMsg)

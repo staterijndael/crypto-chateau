@@ -147,7 +147,10 @@ func fillClients() {
 			result += "{\n"
 			result += "multiplexConn := c.multiplexConnPool.NewMultiplexConn()\n"
 			result += "peer := peer.NewPeer(multiplexConn)\n"
-			result += "\terr := peer.SendRequestClient(" + "hash.HandlerHash{" + method.Hash.Code() + "}, " + method.Params[0].Name + ")\n\n"
+			result += "\terr := peer.SendRequestClient(" + "hash.HandlerHash{" + method.Hash.Code() + "}, " + method.Params[0].Name + ")\n"
+			result += "\t if err != nil{\n"
+			result += "\t\treturn nil, err"
+			result += "}\n\n"
 
 			if method.MethodType != ast2.Stream {
 				result += fmt.Sprintf(`

@@ -1,7 +1,6 @@
 package multiplex_conn
 
 import (
-	"fmt"
 	"io"
 	"net"
 	"sync"
@@ -76,23 +75,25 @@ func (p *MultiplexConnPool) Run() {
 	p.tcpConn.SetReadDeadline(time.Now().Add(4 * time.Minute))
 	p.tcpConn.SetWriteDeadline(time.Now().Add(4 * time.Minute))
 	go func() {
-		select {
-		case toWriteMsg := <-p.toWriteQueue:
-			dataWithRequestID := make([]byte, 0, len(toWriteMsg.Data)+2)
-			dataWithRequestID = append(dataWithRequestID, byte(uint16(toWriteMsg.RequestID)), byte(uint16(toWriteMsg.RequestID)>>8))
-			dataWithRequestID = append(dataWithRequestID, toWriteMsg.Data...)
+		for {
+			select {
+			case toWriteMsg := <-p.toWriteQueue:
+				dataWithRequestID := make([]byte, 0, len(toWriteMsg.Data)+2)
+				dataWithRequestID = append(dataWithRequestID, byte(uint16(toWriteMsg.RequestID)), byte(uint16(toWriteMsg.RequestID)>>8))
+				dataWithRequestID = append(dataWithRequestID, toWriteMsg.Data...)
 
-			_, err := p.tcpConn.Write(dataWithRequestID)
-			var multiplexConn *MultiplexConn
-			p.multiplexConnByRequestIDMx.RLock()
-			multiplexConn = p.multiplexConnByRequestID[toWriteMsg.RequestID]
-			p.multiplexConnByRequestIDMx.RUnlock()
+				_, err := p.tcpConn.Write(dataWithRequestID)
+				var multiplexConn *MultiplexConn
+				p.multiplexConnByRequestIDMx.RLock()
+				multiplexConn = p.multiplexConnByRequestID[toWriteMsg.RequestID]
+				p.multiplexConnByRequestIDMx.RUnlock()
 
-			multiplexConn.errChan <- err
-		case requestID := <-p.closeCh:
-			p.multiplexConnByRequestIDMx.Lock()
-			delete(p.multiplexConnByRequestID, requestID)
-			p.multiplexConnByRequestIDMx.Unlock()
+				multiplexConn.errChan <- err
+			case requestID := <-p.closeCh:
+				p.multiplexConnByRequestIDMx.Lock()
+				delete(p.multiplexConnByRequestID, requestID)
+				p.multiplexConnByRequestIDMx.Unlock()
+			}
 		}
 	}()
 
@@ -101,13 +102,11 @@ func (p *MultiplexConnPool) Run() {
 			buf := make([]byte, 4096)
 			n, err := p.tcpConn.Read(buf)
 			if err != nil {
-				fmt.Println(err)
 				p.tcpConn.Close()
 				return
 			}
 
 			if n == 0 {
-				fmt.Println(err)
 				p.tcpConn.Close()
 				break
 			}
