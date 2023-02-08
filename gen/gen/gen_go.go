@@ -164,7 +164,7 @@ func fillClients() {
 				result += "\tif err != nil{\n"
 				result += "\t\t return nil, err\n"
 				result += "\t}\n"
-				result += "\treturn c.peer, nil\n"
+				result += "\treturn peer, nil\n"
 			}
 
 			result += "}\n\n"
