@@ -1,6 +1,7 @@
 package multiplex_conn
 
 import (
+	"fmt"
 	"io"
 	"net"
 	"sync"
@@ -77,7 +78,7 @@ func (p *MultiplexConnPool) Run() {
 	go func() {
 		select {
 		case toWriteMsg := <-p.toWriteQueue:
-			dataWithRequestID := make([]byte, len(toWriteMsg.Data)+2)
+			dataWithRequestID := make([]byte, 0, len(toWriteMsg.Data)+2)
 			dataWithRequestID = append(dataWithRequestID, byte(uint16(toWriteMsg.RequestID)), byte(uint16(toWriteMsg.RequestID)>>8))
 			dataWithRequestID = append(dataWithRequestID, toWriteMsg.Data...)
 
@@ -100,11 +101,13 @@ func (p *MultiplexConnPool) Run() {
 			buf := make([]byte, 4096)
 			n, err := p.tcpConn.Read(buf)
 			if err != nil {
+				fmt.Println(err)
 				p.tcpConn.Close()
 				return
 			}
 
 			if n == 0 {
+				fmt.Println(err)
 				p.tcpConn.Close()
 				break
 			}
