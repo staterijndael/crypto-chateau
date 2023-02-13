@@ -18,7 +18,8 @@ type MultiplexConnPool struct {
 	multiplexConnByRequestID   map[uint32]*MultiplexConn
 	multiplexConnByRequestIDMx sync.RWMutex
 
-	closeCh chan uint32
+	closeConnsCh chan uint32
+	terminateCh  chan bool
 
 	isClient bool
 }
@@ -35,7 +36,8 @@ func NewMultiplexConnPool(tcpConn net.Conn, isClient bool) *MultiplexConnPool {
 		multiplexConnByRequestID:   make(map[uint32]*MultiplexConn),
 		multiplexConnByRequestIDMx: sync.RWMutex{},
 
-		closeCh: make(chan uint32),
+		closeConnsCh: make(chan uint32),
+		terminateCh:  make(chan bool),
 
 		isClient: isClient,
 	}
@@ -53,7 +55,8 @@ func (p *MultiplexConnPool) NewMultiplexConn() *MultiplexConn {
 		errChan:            make(chan error),
 		connReservedDataMx: sync.Mutex{},
 		connReservedData:   []byte{},
-		closeCh:            p.closeCh,
+		closeCh:            p.closeConnsCh,
+		readDeadline:       5 * time.Minute,
 	}
 
 	p.multiplexConnByRequestIDMx.Lock()
@@ -67,13 +70,19 @@ func (p *MultiplexConnPool) NewMultiplexConn() *MultiplexConn {
 	return newMultiplexConn
 }
 
+func (p *MultiplexConnPool) SetRawTCPReadDeadline(t time.Time) error {
+	return p.tcpConn.SetReadDeadline(t)
+}
+
+func (p *MultiplexConnPool) Close() {
+	p.terminateCh <- true
+}
+
 func (p *MultiplexConnPool) ListenClients() chan *MultiplexConn {
 	return p.listenClients
 }
 
 func (p *MultiplexConnPool) Run() {
-	p.tcpConn.SetReadDeadline(time.Now().Add(4 * time.Minute))
-	p.tcpConn.SetWriteDeadline(time.Now().Add(4 * time.Minute))
 	go func() {
 		for {
 			select {
@@ -89,10 +98,16 @@ func (p *MultiplexConnPool) Run() {
 				p.multiplexConnByRequestIDMx.RUnlock()
 
 				multiplexConn.errChan <- err
-			case requestID := <-p.closeCh:
+			case requestID := <-p.closeConnsCh:
 				p.multiplexConnByRequestIDMx.Lock()
 				delete(p.multiplexConnByRequestID, requestID)
 				p.multiplexConnByRequestIDMx.Unlock()
+			case <-p.terminateCh:
+				p.tcpConn.Close()
+				close(p.toWriteQueue)
+				close(p.listenClients)
+				close(p.closeConnsCh)
+				return
 			}
 		}
 	}()
@@ -127,7 +142,8 @@ func (p *MultiplexConnPool) Run() {
 					errChan:            make(chan error),
 					connReservedDataMx: sync.Mutex{},
 					connReservedData:   []byte{},
-					closeCh:            p.closeCh,
+					closeCh:            p.closeConnsCh,
+					readDeadline:       5 * time.Minute,
 				}
 
 				newMultiplexConn.readQueue <- buf[2:]
@@ -153,6 +169,8 @@ type MultiplexConn struct {
 
 	connReservedDataMx sync.Mutex
 	connReservedData   []byte
+
+	readDeadline time.Duration
 
 	closeCh chan<- uint32
 }
@@ -197,7 +215,7 @@ func (cn *MultiplexConn) Read(b []byte) (int, error) {
 		copy(b, data)
 
 		return returnLength, nil
-	case <-time.After(5 * time.Second):
+	case <-time.After(cn.readDeadline):
 		return 0, io.EOF
 	}
 }

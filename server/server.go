@@ -120,18 +120,23 @@ func (s *Server) handleRequest(ctx context.Context, peer *peer.Peer) {
 func (s *Server) handleConnPool(ctx context.Context, connPool *multiplex_conn.MultiplexConnPool) {
 	newMultiplexConnsChan := connPool.ListenClients()
 	for {
-		newConn := <-newMultiplexConnsChan
-		go func() {
-			multiplexPeer := peer.NewPeer(newConn)
-			err := s.handleMethod(ctx, multiplexPeer)
-			if err != nil {
-				s.logger.Info("error handling method for peer",
-					zap.String("connIP", multiplexPeer.RemoteAddr().String()),
-					zap.Error(err),
-				)
-				return
-			}
-		}()
+		select {
+		case newConn := <-newMultiplexConnsChan:
+			connPool.SetRawTCPReadDeadline(time.Now().Add(5 * time.Minute))
+			go func() {
+				multiplexPeer := peer.NewPeer(newConn)
+				err := s.handleMethod(ctx, multiplexPeer)
+				if err != nil {
+					s.logger.Info("error handling method for peer",
+						zap.String("connIP", multiplexPeer.RemoteAddr().String()),
+						zap.Error(err),
+					)
+					return
+				}
+			}()
+		case <-time.After(5 * time.Minute):
+			connPool.Close()
+		}
 	}
 }
 
