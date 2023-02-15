@@ -131,14 +131,12 @@ func fillMethodsDart() {
   }
 
   Future<void> _connect() async {
-    Socket tcpConn =
+     Socket tcpConn =
         await Socket.connect(connectParams.host, connectParams.port);
-    peer = Peer(Pipe(Conn(tcpConn)));
+    Peer peer = Peer(Pipe(Conn(tcpConn)));
     await peer.establishSecureConn();
     pool = MultiplexConnPool(peer.pipe.tcpConn, true);
-    MultiplexConn multiplexConn = pool.newMultiplexConn();
-	multiplexConn.run();
-    peer = Peer(Pipe(multiplexConn));
+    pool.run();
     _completer!.complete();
   }
 
@@ -148,6 +146,8 @@ func fillMethodsDart() {
 		for _, method := range service.Methods {
 			if method.MethodType == ast2.Handler {
 				resultDart += fmt.Sprintf("\tFuture<%s> %s(%s request) async {\n", method.Returns[0].Type.ObjectName, strings.ToLower(method.Name[:1])+method.Name[1:], method.Params[0].Type.ObjectName)
+				resultDart += fmt.Sprintf("MultiplexConn multiplexConn = pool.newMultiplexConn();\n")
+				resultDart += fmt.Sprintf("Peer peer = Peer(Pipe(multiplexConn));\n\n")
 				resultDart += fmt.Sprintf("\t\t\tpeer.sendRequestClient(HandlerHash(hash:[%s]), request);\n", method.Hash.Code())
 				resultDart += fmt.Sprintf("\t\t\t%s resp = await peer.readMessage(%s(%s)) as %s;\n", method.Returns[0].Type.ObjectName, method.Returns[0].Type.ObjectName, ast2.FillDefaultObjectValues(astDart.Chateau.ObjectDefinitionByObjectName, method.Returns[0].Type.ObjectName), method.Returns[0].Type.ObjectName)
 				resultDart += "\t\t\treturn resp;\n"
