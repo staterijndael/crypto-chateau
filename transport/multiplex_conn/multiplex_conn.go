@@ -1,8 +1,10 @@
 package multiplex_conn
 
 import (
+	"fmt"
 	"io"
 	"net"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -92,9 +94,13 @@ func (p *MultiplexConnPool) Run() {
 				dataWithRequestID = append(dataWithRequestID, toWriteMsg.Data...)
 
 				_, err := p.tcpConn.Write(dataWithRequestID)
-				var multiplexConn *MultiplexConn
 				p.multiplexConnByRequestIDMx.RLock()
-				multiplexConn = p.multiplexConnByRequestID[toWriteMsg.RequestID]
+				multiplexConn, ok := p.multiplexConnByRequestID[toWriteMsg.RequestID]
+				if !ok {
+					fmt.Println("multiplex conn not found: requestID: " + strconv.Itoa(int(toWriteMsg.RequestID)))
+					p.multiplexConnByRequestIDMx.RUnlock()
+					continue
+				}
 				p.multiplexConnByRequestIDMx.RUnlock()
 
 				multiplexConn.errChan <- err
