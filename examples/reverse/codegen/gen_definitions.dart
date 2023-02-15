@@ -6,7 +6,9 @@ import 'package:crypto_chateau_dart/client/conv.dart';
 import 'package:crypto_chateau_dart/transport/peer.dart';
 import 'package:crypto_chateau_dart/transport/pipe.dart';
 import 'dart:io';
-import 'package:crypto_chateau_dart/client/binary_iterator.dart';import 'package:crypto_chateau_dart/transport/conn.dart';
+import 'package:crypto_chateau_dart/client/binary_iterator.dart';
+import 'package:crypto_chateau_dart/transport/conn.dart';
+import 'package:crypto_chateau_dart/transport/multiplex_conn.dart';
 import 'package:crypto_chateau_dart/transport/handler.dart';
 
 var handlerHashMap = {
@@ -62,6 +64,7 @@ class Client {
 	ConnectParams connectParams;
 
 	late Peer peer;
+	late MultiplexConnPool pool;
 	Completer<void>? _completer;	Client({required this.connectParams}){
 		_completer = _createCompleter();
 	}
@@ -74,7 +77,10 @@ class Client {
     Socket tcpConn =
         await Socket.connect(connectParams.host, connectParams.port);
     peer = Peer(Pipe(Conn(tcpConn)));
-	await peer.establishSecureConn();
+    await peer.establishSecureConn();
+    pool = MultiplexConnPool(peer.pipe.tcpConn, true);
+    MultiplexConn multiplexConn = pool.newMultiplexConn();
+    peer = Peer(Pipe(multiplexConn));
     _completer!.complete();
   }
 

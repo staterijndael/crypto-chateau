@@ -35,8 +35,9 @@ func fillImportsDart() {
 	resultDart += "import 'package:crypto_chateau_dart/transport/peer.dart';\n"
 	resultDart += "import 'package:crypto_chateau_dart/transport/pipe.dart';\n"
 	resultDart += "import 'dart:io';\n"
-	resultDart += "import 'package:crypto_chateau_dart/client/binary_iterator.dart';"
+	resultDart += "import 'package:crypto_chateau_dart/client/binary_iterator.dart';\n"
 	resultDart += "import 'package:crypto_chateau_dart/transport/conn.dart';\n"
+	resultDart += "import 'package:crypto_chateau_dart/transport/multiplex_conn.dart';\n"
 	resultDart += "import 'package:crypto_chateau_dart/transport/handler.dart';\n\n"
 }
 
@@ -119,6 +120,7 @@ func fillMethodsDart() {
 	resultDart += "class Client {\n"
 	resultDart += "\tConnectParams connectParams;\n\n"
 	resultDart += "\tlate Peer peer;\n"
+	resultDart += "\tlate MultiplexConnPool pool;\n"
 	resultDart += "\tCompleter<void>? _completer;"
 	resultDart += "\tClient({required this.connectParams}){\n"
 	resultDart += "\t\t_completer = _createCompleter();\n"
@@ -132,7 +134,10 @@ func fillMethodsDart() {
     Socket tcpConn =
         await Socket.connect(connectParams.host, connectParams.port);
     peer = Peer(Pipe(Conn(tcpConn)));
-	await peer.establishSecureConn();
+    await peer.establishSecureConn();
+    pool = MultiplexConnPool(peer.pipe.tcpConn, true);
+    MultiplexConn multiplexConn = pool.newMultiplexConn();
+    peer = Peer(Pipe(multiplexConn));
     _completer!.complete();
   }
 
