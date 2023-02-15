@@ -137,6 +137,7 @@ func fillMethodsDart() {
     await peer.establishSecureConn();
     pool = MultiplexConnPool(peer.pipe.tcpConn, true);
     MultiplexConn multiplexConn = pool.newMultiplexConn();
+	multiplexConn.run();
     peer = Peer(Pipe(multiplexConn));
     _completer!.complete();
   }
