@@ -140,7 +140,7 @@ func (p *MultiplexConnPool) Run() {
 				multiplexConn.readQueue <- buf[2:]
 			} else {
 				newMultiplexConn := &MultiplexConn{
-					requestID:          p.currentRequestID.Add(1),
+					requestID:          uint32(requestID),
 					localAddr:          p.tcpConn.LocalAddr(),
 					remoteAddr:         p.tcpConn.RemoteAddr(),
 					readQueue:          make(chan []byte, 5),
