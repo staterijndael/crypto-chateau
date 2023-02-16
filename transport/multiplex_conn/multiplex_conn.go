@@ -1,6 +1,7 @@
 package multiplex_conn
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -106,6 +107,11 @@ func (p *MultiplexConnPool) Run() {
 				multiplexConn.errChan <- err
 			case requestID := <-p.closeConnsCh:
 				p.multiplexConnByRequestIDMx.Lock()
+				multiplexConn, ok := p.multiplexConnByRequestID[requestID]
+				if ok {
+					multiplexConn.isClosed = true
+				}
+
 				delete(p.multiplexConnByRequestID, requestID)
 				p.multiplexConnByRequestIDMx.Unlock()
 			case <-p.terminateCh:
@@ -178,7 +184,8 @@ type MultiplexConn struct {
 
 	readDeadline time.Duration
 
-	closeCh chan<- uint32
+	closeCh  chan<- uint32
+	isClosed bool
 }
 
 func (cn *MultiplexConn) Write(p []byte) (int, error) {
@@ -192,6 +199,9 @@ func (cn *MultiplexConn) Write(p []byte) (int, error) {
 }
 
 func (cn *MultiplexConn) Read(b []byte) (int, error) {
+	if cn.isClosed {
+		return 0, errors.New("read from closed connection")
+	}
 	cn.connReservedDataMx.Lock()
 	if len(cn.connReservedData) > 0 {
 		defer cn.connReservedDataMx.Unlock()
