@@ -641,7 +641,6 @@ func NewClientReverse(host string, port int) (*ClientReverse, error) {
 	}
 	multiplexConnPool := multiplex_conn.NewMultiplexConnPool(conn, true)
 	multiplexConnPool.Run()
-
 	client := &ClientReverse{multiplexConnPool: multiplexConnPool}
 	return client, nil
 }

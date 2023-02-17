@@ -22,7 +22,7 @@ func main() {
 		Port:              8080,
 		ConnReadDeadline:  &connReadDeadline,
 		ConnWriteDeadline: &connWriteDeadline,
-	}, zapInstance, reverseEndpoint)
+	}, zapInstance, reverseEndpoint, nil)
 
 	err := server.Run(context.Background())
 	if err != nil {

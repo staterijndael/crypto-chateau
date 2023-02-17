@@ -409,6 +409,7 @@ func fillNewServer() {
 
 		if i != len(ast.Chateau.Services)-1 {
 			endpointArgs += ","
+			endpointNames += ","
 		}
 	}
 
