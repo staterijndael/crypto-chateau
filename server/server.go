@@ -119,7 +119,8 @@ func (s *Server) handleRequest(ctx context.Context, peer *peer.Peer) {
 
 func (s *Server) handleConnPool(ctx context.Context, connPool *multiplex_conn.MultiplexConnPool) {
 	newMultiplexConnsChan := connPool.ListenClients()
-	for {
+	var isFinished bool
+	for !isFinished {
 		select {
 		case newConn := <-newMultiplexConnsChan:
 			connPool.SetRawTCPReadDeadline(time.Now().Add(5 * time.Minute))
@@ -136,6 +137,7 @@ func (s *Server) handleConnPool(ctx context.Context, connPool *multiplex_conn.Mu
 			}()
 		case <-time.After(5 * time.Minute):
 			connPool.Close()
+			isFinished = true
 		}
 	}
 }
