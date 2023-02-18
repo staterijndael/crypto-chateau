@@ -1,43 +1,219 @@
 package endpoints
 
-service Reverse {
-    Handler ReverseMagicString(ReverseMagicStringRequest req) -> (ReverseMagicStringResponse) {key: val, ajsdajsd: asdasd}
-    Handler Rasd(ReverseMagicStringRequest req) -> (ReverseMagicStringResponse) {key: val, ajsdajsd: asdasd}
+service UserEndpoint {
+    Handler SendCode(SendCodeRequest req) -> (SendCodeResponse)
+    Handler HandleCode(HandleCodeRequest req) -> (HandleCodeResponse)
+    Handler RequiredOPK(RequiredOPKRequest req) -> (RequiredOPKResponse)
+    Handler LoadOPK(LoadOPKRequest req) -> (LoadOPKResponse)
+    Handler FindUsersByPartNickname(FindUsersByPartNicknameRequest req) -> (FindUsersByPartNicknameResponse)
+    Handler GetInitMsgKeys(GetInitMsgKeysRequest req) -> (GetInitMsgKeysResponse)
+    Handler Register(RegisterRequest req) -> (RegisterResponse)
+    Handler AuthToken(AuthTokenRequest req) -> (AuthTokenResponse)
+    Handler AuthCredentials(AuthCredentialsRequest req) -> (AuthCredentialsResponse)
+    Handler SendMessagePM(SendMessagePMRequest req) -> (SendMessagePMResponse)
+    Handler SendInitMessagePM(SendInitMessagePMRequest req) -> (SendInitMessagePMResponse)
+    Stream ListenUpdates(ListenUpdatesReq req) -> (ListenUpdatesResponse) {keep_conn_alive: true}
+    Handler ReverseString(ReverseStringReq req) -> (ReverseStringResponse)
 }
 
-object ReverseCommonObject {
-    [16]byte Key
-    [32]string Value
+service GroupEndpoint {
+    Handler CreateGroup(CreateGroupReq req) -> (CreateGroupResponse)
+    Handler SendMessageGroup(SendMessageGroupReq req) -> (SendMessageGroupResp)
 }
 
-object ReverseMagicStringRequest {
-    string magicString
-    int8 magicInt8
-    int16 magicInt16
-    int32 magicInt32
-    int64 magicInt64
-    uint8 magicUInt8
-    uint16 magicUInt16
-    uint32 magicUInt32
-    uint64 magicUInt64
-    bool magicBool
-    []byte magicBytes
-    ReverseCommonObject magicObject
-    []ReverseCommonObject magicObjectArray
+object GroupMessage {
+    [32]byte GroupIK
+    uint32 MessageID
+    string MessageType
+    []byte Content
+    []Attachment Attachments
 }
 
-object ReverseMagicStringResponse {
-    string reversedMagicString
-    int8 magicInt8
-    int16 magicInt16
-    int32 magicInt32
-    int64 magicInt64
-    uint8 magicUInt8
-    uint16 magicUInt16
-    uint32 magicUInt32
-    uint64 magicUInt64
-    bool magicBool
-    []byte magicBytes
-    ReverseCommonObject magicObject
-    []ReverseCommonObject magicObjectArray
+object SendMessageGroupReq {
+  string MessageType
+  [32]byte GroupIK
+  []byte Content
+  []Attachment Attachments
+  [16]byte SessionToken
 }
+
+object SendMessageGroupResp{
+
+}
+
+object CreateGroupReq {
+    [16]byte SessionToken
+    [32]byte IdentityKey
+
+    string Name
+    string Status
+    string PictureID
+}
+
+object CreateGroupResponse {
+
+}
+
+object ReverseStringReq {
+    string str
+}
+
+object ReverseStringResponse {
+    string res
+}
+
+object SendCodeRequest {
+    string phone
+}
+
+object SendCodeResponse {}
+
+object HandleCodeRequest {
+    string phone
+    int  code
+}
+
+object HandleCodeResponse {}
+
+object RequiredOPKRequest {
+    [16]byte sessionToken
+}
+
+object RequiredOPKResponse {
+    uint16 count
+}
+
+object LoadOPKRequest {
+    [16]byte sessionToken
+    []OPKPair  OPK
+}
+
+object OPKPair {
+	uint32 OPKId
+	[32]byte OPK
+}
+
+object LoadOPKResponse {}
+
+object FindUsersByPartNicknameRequest {
+    [16]byte sessionToken
+	string PartNickname
+}
+
+object FindUsersByPartNicknameResponse {
+	[]PresentUser Users
+}
+
+object PresentUser {
+	[32]byte IdentityKey
+	string   Nickname
+	string   PictureID
+	string   Status
+}
+
+object GetInitMsgKeysRequest {
+    [16]byte    sessionToken
+	[32]byte    IdentityKey
+}
+
+object GetInitMsgKeysResponse {
+	uint32     OPKId
+	[32]byte   OPK
+	[32]byte   SignedLTPK
+	[64]byte   Signature
+}
+
+object RegisterRequest {
+	string   Phone
+	int Code
+	string Nickname
+	string PassHash
+
+	string DeviceID
+	string DeviceName
+	string FcmToken
+	[32]byte LTPK
+	[64]byte LTPKSignature
+	[32]byte IdentityKey
+}
+
+object RegisterResponse {
+	[16]byte SessionToken
+}
+
+object AuthTokenRequest {
+	[16]byte SessionToken
+}
+
+object AuthTokenResponse {
+	[16]byte SessionToken
+}
+
+object AuthCredentialsRequest {
+	string Phone
+	string PassHash
+	string DeviceID
+	string DeviceName
+}
+
+object AuthCredentialsResponse {
+	[16]byte SessionToken
+}
+
+object Attachment{
+    string Type
+    []byte Payload
+}
+
+object SendMessagePMRequest {
+    string MessageType
+    [32]byte ReceiverIK
+    [32]byte RSPK
+    []byte Content
+    []Attachment Attachments
+    [16]byte SessionToken
+}
+
+object SendMessagePMResponse {
+    uint32 MessageID
+}
+
+object PresentEvent {
+    uint64 MonotonicEventID
+    string Type
+    []byte Payload
+    int64  CreatedAt
+}
+
+object PmMessage {
+    [32]byte RemoteIK
+    [32]byte RSPK
+    uint32 MessageID
+    string MessageType
+    []byte Content
+    []Attachment Attachments
+}
+
+object PmInitMessage {
+       [32]byte RemoteIK
+       [32]byte RemoteEK
+       int UsedOPKMarkID
+}
+
+object SendInitMessagePMRequest {
+        [16]byte SessionToken
+        [32]byte ReceiverIK
+        [32]byte SelfEK
+        int UsedOPKMarkID
+}
+
+object SendInitMessagePMResponse {
+
+}
+
+object ListenUpdatesReq {
+    [16]byte sessionToken
+    int monotonicIdOffset
+}
+
+object ListenUpdatesResponse {}

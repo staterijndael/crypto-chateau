@@ -59,12 +59,12 @@ var objectDefinitions map[string]*ast.ObjectDefinition
 func (t *ObjectTemplate) GenDart(definition *ast.ObjectDefinition, objectDefinitionsByName map[string]*ast.ObjectDefinition) (string, error) {
 	b := bytes.NewBuffer(nil)
 
+	objectDefinitions = objectDefinitionsByName
+
 	err := t.tpl.ExecuteTemplate(b, "object.dart.tpl", definition)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to execute dart object template")
 	}
-
-	objectDefinitions = objectDefinitionsByName
 
 	return b.String(), nil
 }

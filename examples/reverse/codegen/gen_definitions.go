@@ -20,69 +20,940 @@ import (
 )
 
 var tagsByHandlerName = map[string]map[string]string{
-	"ReverseMagicString": {"key": "val", "ajsdajsd": "asdasd"},
-	"Rasd":               {"key": "val", "ajsdajsd": "asdasd"},
+	"SendCode":                {},
+	"HandleCode":              {},
+	"RequiredOPK":             {},
+	"LoadOPK":                 {},
+	"FindUsersByPartNickname": {},
+	"GetInitMsgKeys":          {},
+	"Register":                {},
+	"AuthToken":               {},
+	"AuthCredentials":         {},
+	"SendMessagePM":           {},
+	"SendInitMessagePM":       {},
+	"ListenUpdates":           {"keep_conn_alive": "true"},
+	"ReverseString":           {},
+	"CreateGroup":             {},
+	"SendMessageGroup":        {},
 }
 
-type Reverse interface {
-	ReverseMagicString(ctx context.Context, req *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error)
-	Rasd(ctx context.Context, req *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error)
+type UserEndpoint interface {
+	SendCode(ctx context.Context, req *SendCodeRequest) (*SendCodeResponse, error)
+	HandleCode(ctx context.Context, req *HandleCodeRequest) (*HandleCodeResponse, error)
+	RequiredOPK(ctx context.Context, req *RequiredOPKRequest) (*RequiredOPKResponse, error)
+	LoadOPK(ctx context.Context, req *LoadOPKRequest) (*LoadOPKResponse, error)
+	FindUsersByPartNickname(ctx context.Context, req *FindUsersByPartNicknameRequest) (*FindUsersByPartNicknameResponse, error)
+	GetInitMsgKeys(ctx context.Context, req *GetInitMsgKeysRequest) (*GetInitMsgKeysResponse, error)
+	Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error)
+	AuthToken(ctx context.Context, req *AuthTokenRequest) (*AuthTokenResponse, error)
+	AuthCredentials(ctx context.Context, req *AuthCredentialsRequest) (*AuthCredentialsResponse, error)
+	SendMessagePM(ctx context.Context, req *SendMessagePMRequest) (*SendMessagePMResponse, error)
+	SendInitMessagePM(ctx context.Context, req *SendInitMessagePMRequest) (*SendInitMessagePMResponse, error)
+	ListenUpdates(ctx context.Context, peer *peer.Peer, req *ListenUpdatesReq) error
+	ReverseString(ctx context.Context, req *ReverseStringReq) (*ReverseStringResponse, error)
+}
+
+type GroupEndpoint interface {
+	CreateGroup(ctx context.Context, req *CreateGroupReq) (*CreateGroupResponse, error)
+	SendMessageGroup(ctx context.Context, req *SendMessageGroupReq) (*SendMessageGroupResp, error)
 }
 
 var handlerHashMap = map[string]map[string]hash.HandlerHash{
-	"Reverse": {
-		"ReverseMagicString": hash.HandlerHash{0x90, 0xA, 0xDC, 0x45},
-		"Rasd":               hash.HandlerHash{0xCB, 0xB1, 0x2D, 0x3D},
+	"UserEndpoint": {
+		"SendCode":                hash.HandlerHash{0x8D, 0x29, 0x10, 0xB8},
+		"HandleCode":              hash.HandlerHash{0xC8, 0x46, 0x91, 0xDA},
+		"RequiredOPK":             hash.HandlerHash{0xE6, 0xF3, 0x96, 0x42},
+		"LoadOPK":                 hash.HandlerHash{0x3, 0xB, 0x41, 0x2E},
+		"FindUsersByPartNickname": hash.HandlerHash{0x50, 0x85, 0x5D, 0xE},
+		"GetInitMsgKeys":          hash.HandlerHash{0x12, 0x90, 0xA7, 0xFE},
+		"Register":                hash.HandlerHash{0x7D, 0xCB, 0xAD, 0xA0},
+		"AuthToken":               hash.HandlerHash{0x98, 0xF1, 0xCE, 0x10},
+		"AuthCredentials":         hash.HandlerHash{0xA6, 0x7, 0x86, 0xA0},
+		"SendMessagePM":           hash.HandlerHash{0x92, 0x4E, 0xFD, 0x10},
+		"SendInitMessagePM":       hash.HandlerHash{0x86, 0xC2, 0xB4, 0x1A},
+		"ListenUpdates":           hash.HandlerHash{0x28, 0xDC, 0x9C, 0xE9},
+		"ReverseString":           hash.HandlerHash{0x86, 0xC, 0xAA, 0x80},
+	},
+	"GroupEndpoint": {
+		"CreateGroup":      hash.HandlerHash{0x7C, 0x8, 0x95, 0xB1},
+		"SendMessageGroup": hash.HandlerHash{0xDB, 0xE4, 0x60, 0x89},
 	},
 }
 
-func ReverseMagicStringSqueeze(fnc func(context.Context, *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error)) server.HandlerFunc {
+func SendCodeSqueeze(fnc func(context.Context, *SendCodeRequest) (*SendCodeResponse, error)) server.HandlerFunc {
 	return func(ctx context.Context, msg message.Message) (message.Message, error) {
-		if _, ok := msg.(*ReverseMagicStringRequest); ok {
-			return fnc(ctx, msg.(*ReverseMagicStringRequest))
+		if _, ok := msg.(*SendCodeRequest); ok {
+			return fnc(ctx, msg.(*SendCodeRequest))
 		} else {
-			return nil, errors.New("unknown message type: expected ReverseMagicStringRequest")
+			return nil, errors.New("unknown message type: expected SendCodeRequest")
 		}
 	}
 }
 
-func RasdSqueeze(fnc func(context.Context, *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error)) server.HandlerFunc {
+func HandleCodeSqueeze(fnc func(context.Context, *HandleCodeRequest) (*HandleCodeResponse, error)) server.HandlerFunc {
 	return func(ctx context.Context, msg message.Message) (message.Message, error) {
-		if _, ok := msg.(*ReverseMagicStringRequest); ok {
-			return fnc(ctx, msg.(*ReverseMagicStringRequest))
+		if _, ok := msg.(*HandleCodeRequest); ok {
+			return fnc(ctx, msg.(*HandleCodeRequest))
 		} else {
-			return nil, errors.New("unknown message type: expected ReverseMagicStringRequest")
+			return nil, errors.New("unknown message type: expected HandleCodeRequest")
 		}
 	}
 }
 
-type ReverseCommonObject struct {
-	Key   [16]byte
-	Value [32]string
+func RequiredOPKSqueeze(fnc func(context.Context, *RequiredOPKRequest) (*RequiredOPKResponse, error)) server.HandlerFunc {
+	return func(ctx context.Context, msg message.Message) (message.Message, error) {
+		if _, ok := msg.(*RequiredOPKRequest); ok {
+			return fnc(ctx, msg.(*RequiredOPKRequest))
+		} else {
+			return nil, errors.New("unknown message type: expected RequiredOPKRequest")
+		}
+	}
 }
 
-var _ message.Message = (*ReverseCommonObject)(nil)
+func LoadOPKSqueeze(fnc func(context.Context, *LoadOPKRequest) (*LoadOPKResponse, error)) server.HandlerFunc {
+	return func(ctx context.Context, msg message.Message) (message.Message, error) {
+		if _, ok := msg.(*LoadOPKRequest); ok {
+			return fnc(ctx, msg.(*LoadOPKRequest))
+		} else {
+			return nil, errors.New("unknown message type: expected LoadOPKRequest")
+		}
+	}
+}
 
-func (o *ReverseCommonObject) Marshal() []byte {
+func FindUsersByPartNicknameSqueeze(fnc func(context.Context, *FindUsersByPartNicknameRequest) (*FindUsersByPartNicknameResponse, error)) server.HandlerFunc {
+	return func(ctx context.Context, msg message.Message) (message.Message, error) {
+		if _, ok := msg.(*FindUsersByPartNicknameRequest); ok {
+			return fnc(ctx, msg.(*FindUsersByPartNicknameRequest))
+		} else {
+			return nil, errors.New("unknown message type: expected FindUsersByPartNicknameRequest")
+		}
+	}
+}
+
+func GetInitMsgKeysSqueeze(fnc func(context.Context, *GetInitMsgKeysRequest) (*GetInitMsgKeysResponse, error)) server.HandlerFunc {
+	return func(ctx context.Context, msg message.Message) (message.Message, error) {
+		if _, ok := msg.(*GetInitMsgKeysRequest); ok {
+			return fnc(ctx, msg.(*GetInitMsgKeysRequest))
+		} else {
+			return nil, errors.New("unknown message type: expected GetInitMsgKeysRequest")
+		}
+	}
+}
+
+func RegisterSqueeze(fnc func(context.Context, *RegisterRequest) (*RegisterResponse, error)) server.HandlerFunc {
+	return func(ctx context.Context, msg message.Message) (message.Message, error) {
+		if _, ok := msg.(*RegisterRequest); ok {
+			return fnc(ctx, msg.(*RegisterRequest))
+		} else {
+			return nil, errors.New("unknown message type: expected RegisterRequest")
+		}
+	}
+}
+
+func AuthTokenSqueeze(fnc func(context.Context, *AuthTokenRequest) (*AuthTokenResponse, error)) server.HandlerFunc {
+	return func(ctx context.Context, msg message.Message) (message.Message, error) {
+		if _, ok := msg.(*AuthTokenRequest); ok {
+			return fnc(ctx, msg.(*AuthTokenRequest))
+		} else {
+			return nil, errors.New("unknown message type: expected AuthTokenRequest")
+		}
+	}
+}
+
+func AuthCredentialsSqueeze(fnc func(context.Context, *AuthCredentialsRequest) (*AuthCredentialsResponse, error)) server.HandlerFunc {
+	return func(ctx context.Context, msg message.Message) (message.Message, error) {
+		if _, ok := msg.(*AuthCredentialsRequest); ok {
+			return fnc(ctx, msg.(*AuthCredentialsRequest))
+		} else {
+			return nil, errors.New("unknown message type: expected AuthCredentialsRequest")
+		}
+	}
+}
+
+func SendMessagePMSqueeze(fnc func(context.Context, *SendMessagePMRequest) (*SendMessagePMResponse, error)) server.HandlerFunc {
+	return func(ctx context.Context, msg message.Message) (message.Message, error) {
+		if _, ok := msg.(*SendMessagePMRequest); ok {
+			return fnc(ctx, msg.(*SendMessagePMRequest))
+		} else {
+			return nil, errors.New("unknown message type: expected SendMessagePMRequest")
+		}
+	}
+}
+
+func SendInitMessagePMSqueeze(fnc func(context.Context, *SendInitMessagePMRequest) (*SendInitMessagePMResponse, error)) server.HandlerFunc {
+	return func(ctx context.Context, msg message.Message) (message.Message, error) {
+		if _, ok := msg.(*SendInitMessagePMRequest); ok {
+			return fnc(ctx, msg.(*SendInitMessagePMRequest))
+		} else {
+			return nil, errors.New("unknown message type: expected SendInitMessagePMRequest")
+		}
+	}
+}
+
+func ListenUpdatesSqueeze(fnc func(context.Context, *peer.Peer, *ListenUpdatesReq) error) server.StreamFunc {
+	return func(ctx context.Context, peer *peer.Peer, msg message.Message) error {
+		if _, ok := msg.(*ListenUpdatesReq); ok {
+			return fnc(ctx, peer, msg.(*ListenUpdatesReq))
+		} else {
+			return errors.New("unknown message type: expected ListenUpdatesReq")
+		}
+	}
+}
+
+func ReverseStringSqueeze(fnc func(context.Context, *ReverseStringReq) (*ReverseStringResponse, error)) server.HandlerFunc {
+	return func(ctx context.Context, msg message.Message) (message.Message, error) {
+		if _, ok := msg.(*ReverseStringReq); ok {
+			return fnc(ctx, msg.(*ReverseStringReq))
+		} else {
+			return nil, errors.New("unknown message type: expected ReverseStringReq")
+		}
+	}
+}
+
+func CreateGroupSqueeze(fnc func(context.Context, *CreateGroupReq) (*CreateGroupResponse, error)) server.HandlerFunc {
+	return func(ctx context.Context, msg message.Message) (message.Message, error) {
+		if _, ok := msg.(*CreateGroupReq); ok {
+			return fnc(ctx, msg.(*CreateGroupReq))
+		} else {
+			return nil, errors.New("unknown message type: expected CreateGroupReq")
+		}
+	}
+}
+
+func SendMessageGroupSqueeze(fnc func(context.Context, *SendMessageGroupReq) (*SendMessageGroupResp, error)) server.HandlerFunc {
+	return func(ctx context.Context, msg message.Message) (message.Message, error) {
+		if _, ok := msg.(*SendMessageGroupReq); ok {
+			return fnc(ctx, msg.(*SendMessageGroupReq))
+		} else {
+			return nil, errors.New("unknown message type: expected SendMessageGroupReq")
+		}
+	}
+}
+
+type GroupMessage struct {
+	GroupIK     [32]byte
+	MessageID   uint32
+	MessageType string
+	Content     []byte
+	Attachments []Attachment
+}
+
+var _ message.Message = (*GroupMessage)(nil)
+
+func (o *GroupMessage) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 80)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	arrBufGroupIK := make([]byte, 0, 128)
+	for _, elGroupIK := range o.GroupIK {
+		arrBufGroupIK = append(arrBufGroupIK, conv.ConvertByteToBytes(elGroupIK)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufGroupIK))...)
+	b = append(b, arrBufGroupIK...)
+	b = append(b, conv.ConvertUint32ToBytes(o.MessageID)...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.MessageType)))...)
+	b = append(b, conv.ConvertStringToBytes(o.MessageType)...)
+	arrBufContent := make([]byte, 0, 128)
+	for _, elContent := range o.Content {
+		arrBufContent = append(arrBufContent, conv.ConvertByteToBytes(elContent)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufContent))...)
+	b = append(b, arrBufContent...)
+	arrBufAttachments := make([]byte, 0, 128)
+	for _, elAttachments := range o.Attachments {
+		arrBufAttachments = append(arrBufAttachments, elAttachments.Marshal()...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufAttachments))...)
+	b = append(b, arrBufAttachments...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *GroupMessage) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read GroupIK size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read GroupIK")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elGroupIK byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read GroupIK")
+		}
+		elGroupIK = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.GroupIK[binaryCtx.pos] = elGroupIK
+		binaryCtx.pos++
+	}
+
+	binaryCtx.buf, binaryCtx.err = b.Slice(4)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read MessageID")
+	}
+	o.MessageID = conv.ConvertBytesToUint32(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read MessageType size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read MessageType")
+	}
+	o.MessageType = conv.ConvertBytesToString(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Content size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Content")
+	}
+	for binaryCtx.arrBuf.HasNext() {
+		var elContent byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read Content")
+		}
+		elContent = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.Content = append(o.Content, elContent)
+
+	}
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Attachments size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Attachments")
+	}
+	for binaryCtx.arrBuf.HasNext() {
+		var elAttachments Attachment
+
+		binaryCtx.size, binaryCtx.err = binaryCtx.arrBuf.NextSize()
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read Attachments size")
+		}
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(binaryCtx.size)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read Attachments")
+		}
+		if binaryCtx.err = elAttachments.Unmarshal(binaryCtx.buf); binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to unmarshal Attachments")
+		}
+
+		o.Attachments = append(o.Attachments, elAttachments)
+
+	}
+
+	return nil
+}
+
+func (o *GroupMessage) Copy() message.Message {
+	return &GroupMessage{}
+}
+
+type SendMessageGroupReq struct {
+	MessageType  string
+	GroupIK      [32]byte
+	Content      []byte
+	Attachments  []Attachment
+	SessionToken [16]byte
+}
+
+var _ message.Message = (*SendMessageGroupReq)(nil)
+
+func (o *SendMessageGroupReq) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 80)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.MessageType)))...)
+	b = append(b, conv.ConvertStringToBytes(o.MessageType)...)
+	arrBufGroupIK := make([]byte, 0, 128)
+	for _, elGroupIK := range o.GroupIK {
+		arrBufGroupIK = append(arrBufGroupIK, conv.ConvertByteToBytes(elGroupIK)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufGroupIK))...)
+	b = append(b, arrBufGroupIK...)
+	arrBufContent := make([]byte, 0, 128)
+	for _, elContent := range o.Content {
+		arrBufContent = append(arrBufContent, conv.ConvertByteToBytes(elContent)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufContent))...)
+	b = append(b, arrBufContent...)
+	arrBufAttachments := make([]byte, 0, 128)
+	for _, elAttachments := range o.Attachments {
+		arrBufAttachments = append(arrBufAttachments, elAttachments.Marshal()...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufAttachments))...)
+	b = append(b, arrBufAttachments...)
+	arrBufSessionToken := make([]byte, 0, 128)
+	for _, elSessionToken := range o.SessionToken {
+		arrBufSessionToken = append(arrBufSessionToken, conv.ConvertByteToBytes(elSessionToken)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufSessionToken))...)
+	b = append(b, arrBufSessionToken...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *SendMessageGroupReq) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read MessageType size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read MessageType")
+	}
+	o.MessageType = conv.ConvertBytesToString(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read GroupIK size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read GroupIK")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elGroupIK byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read GroupIK")
+		}
+		elGroupIK = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.GroupIK[binaryCtx.pos] = elGroupIK
+		binaryCtx.pos++
+	}
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Content size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Content")
+	}
+	for binaryCtx.arrBuf.HasNext() {
+		var elContent byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read Content")
+		}
+		elContent = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.Content = append(o.Content, elContent)
+
+	}
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Attachments size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Attachments")
+	}
+	for binaryCtx.arrBuf.HasNext() {
+		var elAttachments Attachment
+
+		binaryCtx.size, binaryCtx.err = binaryCtx.arrBuf.NextSize()
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read Attachments size")
+		}
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(binaryCtx.size)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read Attachments")
+		}
+		if binaryCtx.err = elAttachments.Unmarshal(binaryCtx.buf); binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to unmarshal Attachments")
+		}
+
+		o.Attachments = append(o.Attachments, elAttachments)
+
+	}
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elSessionToken byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+		}
+		elSessionToken = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.SessionToken[binaryCtx.pos] = elSessionToken
+		binaryCtx.pos++
+	}
+
+	return nil
+}
+
+func (o *SendMessageGroupReq) Copy() message.Message {
+	return &SendMessageGroupReq{}
+}
+
+type SendMessageGroupResp struct {
+}
+
+var _ message.Message = (*SendMessageGroupResp)(nil)
+
+func (o *SendMessageGroupResp) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 0)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *SendMessageGroupResp) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+
+	return nil
+}
+
+func (o *SendMessageGroupResp) Copy() message.Message {
+	return &SendMessageGroupResp{}
+}
+
+type CreateGroupReq struct {
+	SessionToken [16]byte
+	IdentityKey  [32]byte
+	Name         string
+	Status       string
+	PictureID    string
+}
+
+var _ message.Message = (*CreateGroupReq)(nil)
+
+func (o *CreateGroupReq) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 80)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	arrBufSessionToken := make([]byte, 0, 128)
+	for _, elSessionToken := range o.SessionToken {
+		arrBufSessionToken = append(arrBufSessionToken, conv.ConvertByteToBytes(elSessionToken)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufSessionToken))...)
+	b = append(b, arrBufSessionToken...)
+	arrBufIdentityKey := make([]byte, 0, 128)
+	for _, elIdentityKey := range o.IdentityKey {
+		arrBufIdentityKey = append(arrBufIdentityKey, conv.ConvertByteToBytes(elIdentityKey)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufIdentityKey))...)
+	b = append(b, arrBufIdentityKey...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.Name)))...)
+	b = append(b, conv.ConvertStringToBytes(o.Name)...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.Status)))...)
+	b = append(b, conv.ConvertStringToBytes(o.Status)...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.PictureID)))...)
+	b = append(b, conv.ConvertStringToBytes(o.PictureID)...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *CreateGroupReq) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elSessionToken byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+		}
+		elSessionToken = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.SessionToken[binaryCtx.pos] = elSessionToken
+		binaryCtx.pos++
+	}
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read IdentityKey size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read IdentityKey")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elIdentityKey byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read IdentityKey")
+		}
+		elIdentityKey = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.IdentityKey[binaryCtx.pos] = elIdentityKey
+		binaryCtx.pos++
+	}
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Name size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Name")
+	}
+	o.Name = conv.ConvertBytesToString(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Status size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Status")
+	}
+	o.Status = conv.ConvertBytesToString(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read PictureID size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read PictureID")
+	}
+	o.PictureID = conv.ConvertBytesToString(binaryCtx.buf)
+
+	return nil
+}
+
+func (o *CreateGroupReq) Copy() message.Message {
+	return &CreateGroupReq{}
+}
+
+type CreateGroupResponse struct {
+}
+
+var _ message.Message = (*CreateGroupResponse)(nil)
+
+func (o *CreateGroupResponse) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 0)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *CreateGroupResponse) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+
+	return nil
+}
+
+func (o *CreateGroupResponse) Copy() message.Message {
+	return &CreateGroupResponse{}
+}
+
+type ReverseStringReq struct {
+	Str string
+}
+
+var _ message.Message = (*ReverseStringReq)(nil)
+
+func (o *ReverseStringReq) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 16)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.Str)))...)
+	b = append(b, conv.ConvertStringToBytes(o.Str)...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *ReverseStringReq) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Str size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Str")
+	}
+	o.Str = conv.ConvertBytesToString(binaryCtx.buf)
+
+	return nil
+}
+
+func (o *ReverseStringReq) Copy() message.Message {
+	return &ReverseStringReq{}
+}
+
+type ReverseStringResponse struct {
+	Res string
+}
+
+var _ message.Message = (*ReverseStringResponse)(nil)
+
+func (o *ReverseStringResponse) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 16)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.Res)))...)
+	b = append(b, conv.ConvertStringToBytes(o.Res)...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *ReverseStringResponse) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Res size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Res")
+	}
+	o.Res = conv.ConvertBytesToString(binaryCtx.buf)
+
+	return nil
+}
+
+func (o *ReverseStringResponse) Copy() message.Message {
+	return &ReverseStringResponse{}
+}
+
+type SendCodeRequest struct {
+	Phone string
+}
+
+var _ message.Message = (*SendCodeRequest)(nil)
+
+func (o *SendCodeRequest) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 16)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.Phone)))...)
+	b = append(b, conv.ConvertStringToBytes(o.Phone)...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *SendCodeRequest) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Phone size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Phone")
+	}
+	o.Phone = conv.ConvertBytesToString(binaryCtx.buf)
+
+	return nil
+}
+
+func (o *SendCodeRequest) Copy() message.Message {
+	return &SendCodeRequest{}
+}
+
+type SendCodeResponse struct {
+}
+
+var _ message.Message = (*SendCodeResponse)(nil)
+
+func (o *SendCodeResponse) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 0)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *SendCodeResponse) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+
+	return nil
+}
+
+func (o *SendCodeResponse) Copy() message.Message {
+	return &SendCodeResponse{}
+}
+
+type HandleCodeRequest struct {
+	Phone string
+	Code  int
+}
+
+var _ message.Message = (*HandleCodeRequest)(nil)
+
+func (o *HandleCodeRequest) Marshal() []byte {
 	var (
 		b = make([]byte, 0, 32)
 	)
 
 	size := conv.ConvertSizeToBytes(0)
 	b = append(b, size...)
-	arrBufKey := make([]byte, 0, 128)
-	for _, elKey := range o.Key {
-		arrBufKey = append(arrBufKey, conv.ConvertByteToBytes(elKey)...)
-	}
-	b = append(b, conv.ConvertSizeToBytes(len(arrBufKey))...)
-	b = append(b, arrBufKey...)
-	arrBufValue := make([]byte, 0, 128)
-	for _, elValue := range o.Value {
-		arrBufValue = append(arrBufValue, conv.ConvertSizeToBytes(len([]byte(elValue)))...)
-		arrBufValue = append(arrBufValue, conv.ConvertStringToBytes(elValue)...)
-	}
-	b = append(b, conv.ConvertSizeToBytes(len(arrBufValue))...)
-	b = append(b, arrBufValue...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.Phone)))...)
+	b = append(b, conv.ConvertStringToBytes(o.Phone)...)
+	b = append(b, conv.ConvertIntToBytes(o.Code)...)
 
 	size = conv.ConvertSizeToBytes(len(b) - len(size))
 	for i := 0; i < len(size); i++ {
@@ -92,7 +963,7 @@ func (o *ReverseCommonObject) Marshal() []byte {
 	return b
 }
 
-func (o *ReverseCommonObject) Unmarshal(b *conv.BinaryIterator) error {
+func (o *HandleCodeRequest) Unmarshal(b *conv.BinaryIterator) error {
 	binaryCtx := struct {
 		err                error
 		size, arrSize, pos int
@@ -100,109 +971,42 @@ func (o *ReverseCommonObject) Unmarshal(b *conv.BinaryIterator) error {
 	}{}
 
 	binaryCtx.err = nil
+
 	binaryCtx.size, binaryCtx.err = b.NextSize()
 	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read Key size")
+		return errors.Wrap(binaryCtx.err, "failed to read Phone size")
 	}
-	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
 	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read Key")
+		return errors.Wrap(binaryCtx.err, "failed to read Phone")
 	}
-	binaryCtx.pos = 0
-	for binaryCtx.arrBuf.HasNext() {
-		var elKey byte
+	o.Phone = conv.ConvertBytesToString(binaryCtx.buf)
 
-		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
-		if binaryCtx.err != nil {
-			return errors.Wrap(binaryCtx.err, "failed to read Key")
-		}
-		elKey = conv.ConvertBytesToByte(binaryCtx.buf)
-
-		o.Key[binaryCtx.pos] = elKey
-		binaryCtx.pos++
-	}
-	binaryCtx.size, binaryCtx.err = b.NextSize()
+	binaryCtx.buf, binaryCtx.err = b.Slice(8)
 	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read Value size")
+		return errors.Wrap(binaryCtx.err, "failed to read Code")
 	}
-	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read Value")
-	}
-	binaryCtx.pos = 0
-	for binaryCtx.arrBuf.HasNext() {
-		var elValue string
-
-		binaryCtx.size, binaryCtx.err = binaryCtx.arrBuf.NextSize()
-		if binaryCtx.err != nil {
-			return errors.Wrap(binaryCtx.err, "failed to read Value size")
-		}
-		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(binaryCtx.size)
-		if binaryCtx.err != nil {
-			return errors.Wrap(binaryCtx.err, "failed to read Value")
-		}
-		elValue = conv.ConvertBytesToString(binaryCtx.buf)
-
-		o.Value[binaryCtx.pos] = elValue
-		binaryCtx.pos++
-	}
+	o.Code = conv.ConvertBytesToInt(binaryCtx.buf)
 
 	return nil
 }
 
-func (o *ReverseCommonObject) Copy() message.Message {
-	return &ReverseCommonObject{}
+func (o *HandleCodeRequest) Copy() message.Message {
+	return &HandleCodeRequest{}
 }
 
-type ReverseMagicStringRequest struct {
-	MagicString      string
-	MagicInt8        int8
-	MagicInt16       int16
-	MagicInt32       int32
-	MagicInt64       int64
-	MagicUInt8       uint8
-	MagicUInt16      uint16
-	MagicUInt32      uint32
-	MagicUInt64      uint64
-	MagicBool        bool
-	MagicBytes       []byte
-	MagicObject      ReverseCommonObject
-	MagicObjectArray []ReverseCommonObject
+type HandleCodeResponse struct {
 }
 
-var _ message.Message = (*ReverseMagicStringRequest)(nil)
+var _ message.Message = (*HandleCodeResponse)(nil)
 
-func (o *ReverseMagicStringRequest) Marshal() []byte {
+func (o *HandleCodeResponse) Marshal() []byte {
 	var (
-		b = make([]byte, 0, 208)
+		b = make([]byte, 0, 0)
 	)
 
 	size := conv.ConvertSizeToBytes(0)
 	b = append(b, size...)
-	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.MagicString)))...)
-	b = append(b, conv.ConvertStringToBytes(o.MagicString)...)
-	b = append(b, conv.ConvertInt8ToBytes(o.MagicInt8)...)
-	b = append(b, conv.ConvertInt16ToBytes(o.MagicInt16)...)
-	b = append(b, conv.ConvertInt32ToBytes(o.MagicInt32)...)
-	b = append(b, conv.ConvertInt64ToBytes(o.MagicInt64)...)
-	b = append(b, conv.ConvertUint8ToBytes(o.MagicUInt8)...)
-	b = append(b, conv.ConvertUint16ToBytes(o.MagicUInt16)...)
-	b = append(b, conv.ConvertUint32ToBytes(o.MagicUInt32)...)
-	b = append(b, conv.ConvertUint64ToBytes(o.MagicUInt64)...)
-	b = append(b, conv.ConvertBoolToBytes(o.MagicBool)...)
-	arrBufMagicBytes := make([]byte, 0, 128)
-	for _, elMagicBytes := range o.MagicBytes {
-		arrBufMagicBytes = append(arrBufMagicBytes, conv.ConvertByteToBytes(elMagicBytes)...)
-	}
-	b = append(b, conv.ConvertSizeToBytes(len(arrBufMagicBytes))...)
-	b = append(b, arrBufMagicBytes...)
-	b = append(b, o.MagicObject.Marshal()...)
-	arrBufMagicObjectArray := make([]byte, 0, 128)
-	for _, elMagicObjectArray := range o.MagicObjectArray {
-		arrBufMagicObjectArray = append(arrBufMagicObjectArray, elMagicObjectArray.Marshal()...)
-	}
-	b = append(b, conv.ConvertSizeToBytes(len(arrBufMagicObjectArray))...)
-	b = append(b, arrBufMagicObjectArray...)
 
 	size = conv.ConvertSizeToBytes(len(b) - len(size))
 	for i := 0; i < len(size); i++ {
@@ -212,7 +1016,7 @@ func (o *ReverseMagicStringRequest) Marshal() []byte {
 	return b
 }
 
-func (o *ReverseMagicStringRequest) Unmarshal(b *conv.BinaryIterator) error {
+func (o *HandleCodeResponse) Unmarshal(b *conv.BinaryIterator) error {
 	binaryCtx := struct {
 		err                error
 		size, arrSize, pos int
@@ -221,186 +1025,32 @@ func (o *ReverseMagicStringRequest) Unmarshal(b *conv.BinaryIterator) error {
 
 	binaryCtx.err = nil
 
-	binaryCtx.size, binaryCtx.err = b.NextSize()
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicString size")
-	}
-	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicString")
-	}
-	o.MagicString = conv.ConvertBytesToString(binaryCtx.buf)
-
-	binaryCtx.buf, binaryCtx.err = b.Slice(1)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicInt8")
-	}
-	o.MagicInt8 = conv.ConvertBytesToInt8(binaryCtx.buf)
-
-	binaryCtx.buf, binaryCtx.err = b.Slice(2)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicInt16")
-	}
-	o.MagicInt16 = conv.ConvertBytesToInt16(binaryCtx.buf)
-
-	binaryCtx.buf, binaryCtx.err = b.Slice(4)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicInt32")
-	}
-	o.MagicInt32 = conv.ConvertBytesToInt32(binaryCtx.buf)
-
-	binaryCtx.buf, binaryCtx.err = b.Slice(8)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicInt64")
-	}
-	o.MagicInt64 = conv.ConvertBytesToInt64(binaryCtx.buf)
-
-	binaryCtx.buf, binaryCtx.err = b.Slice(1)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicUInt8")
-	}
-	o.MagicUInt8 = conv.ConvertBytesToUint8(binaryCtx.buf)
-
-	binaryCtx.buf, binaryCtx.err = b.Slice(2)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicUInt16")
-	}
-	o.MagicUInt16 = conv.ConvertBytesToUint16(binaryCtx.buf)
-
-	binaryCtx.buf, binaryCtx.err = b.Slice(4)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicUInt32")
-	}
-	o.MagicUInt32 = conv.ConvertBytesToUint32(binaryCtx.buf)
-
-	binaryCtx.buf, binaryCtx.err = b.Slice(8)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicUInt64")
-	}
-	o.MagicUInt64 = conv.ConvertBytesToUint64(binaryCtx.buf)
-
-	binaryCtx.buf, binaryCtx.err = b.Slice(1)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicBool")
-	}
-	o.MagicBool = conv.ConvertBytesToBool(binaryCtx.buf)
-
-	binaryCtx.size, binaryCtx.err = b.NextSize()
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicBytes size")
-	}
-	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicBytes")
-	}
-	for binaryCtx.arrBuf.HasNext() {
-		var elMagicBytes byte
-
-		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
-		if binaryCtx.err != nil {
-			return errors.Wrap(binaryCtx.err, "failed to read MagicBytes")
-		}
-		elMagicBytes = conv.ConvertBytesToByte(binaryCtx.buf)
-
-		o.MagicBytes = append(o.MagicBytes, elMagicBytes)
-
-	}
-
-	binaryCtx.size, binaryCtx.err = b.NextSize()
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicObject size")
-	}
-	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicObject")
-	}
-	if binaryCtx.err = o.MagicObject.Unmarshal(binaryCtx.buf); binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to unmarshal MagicObject")
-	}
-
-	binaryCtx.size, binaryCtx.err = b.NextSize()
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicObjectArray size")
-	}
-	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicObjectArray")
-	}
-	for binaryCtx.arrBuf.HasNext() {
-		var elMagicObjectArray ReverseCommonObject
-
-		binaryCtx.size, binaryCtx.err = binaryCtx.arrBuf.NextSize()
-		if binaryCtx.err != nil {
-			return errors.Wrap(binaryCtx.err, "failed to read MagicObjectArray size")
-		}
-		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(binaryCtx.size)
-		if binaryCtx.err != nil {
-			return errors.Wrap(binaryCtx.err, "failed to read MagicObjectArray")
-		}
-		if binaryCtx.err = elMagicObjectArray.Unmarshal(binaryCtx.buf); binaryCtx.err != nil {
-			return errors.Wrap(binaryCtx.err, "failed to unmarshal MagicObjectArray")
-		}
-
-		o.MagicObjectArray = append(o.MagicObjectArray, elMagicObjectArray)
-
-	}
-
 	return nil
 }
 
-func (o *ReverseMagicStringRequest) Copy() message.Message {
-	return &ReverseMagicStringRequest{}
+func (o *HandleCodeResponse) Copy() message.Message {
+	return &HandleCodeResponse{}
 }
 
-type ReverseMagicStringResponse struct {
-	ReversedMagicString string
-	MagicInt8           int8
-	MagicInt16          int16
-	MagicInt32          int32
-	MagicInt64          int64
-	MagicUInt8          uint8
-	MagicUInt16         uint16
-	MagicUInt32         uint32
-	MagicUInt64         uint64
-	MagicBool           bool
-	MagicBytes          []byte
-	MagicObject         ReverseCommonObject
-	MagicObjectArray    []ReverseCommonObject
+type RequiredOPKRequest struct {
+	SessionToken [16]byte
 }
 
-var _ message.Message = (*ReverseMagicStringResponse)(nil)
+var _ message.Message = (*RequiredOPKRequest)(nil)
 
-func (o *ReverseMagicStringResponse) Marshal() []byte {
+func (o *RequiredOPKRequest) Marshal() []byte {
 	var (
-		b = make([]byte, 0, 208)
+		b = make([]byte, 0, 16)
 	)
 
 	size := conv.ConvertSizeToBytes(0)
 	b = append(b, size...)
-	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.ReversedMagicString)))...)
-	b = append(b, conv.ConvertStringToBytes(o.ReversedMagicString)...)
-	b = append(b, conv.ConvertInt8ToBytes(o.MagicInt8)...)
-	b = append(b, conv.ConvertInt16ToBytes(o.MagicInt16)...)
-	b = append(b, conv.ConvertInt32ToBytes(o.MagicInt32)...)
-	b = append(b, conv.ConvertInt64ToBytes(o.MagicInt64)...)
-	b = append(b, conv.ConvertUint8ToBytes(o.MagicUInt8)...)
-	b = append(b, conv.ConvertUint16ToBytes(o.MagicUInt16)...)
-	b = append(b, conv.ConvertUint32ToBytes(o.MagicUInt32)...)
-	b = append(b, conv.ConvertUint64ToBytes(o.MagicUInt64)...)
-	b = append(b, conv.ConvertBoolToBytes(o.MagicBool)...)
-	arrBufMagicBytes := make([]byte, 0, 128)
-	for _, elMagicBytes := range o.MagicBytes {
-		arrBufMagicBytes = append(arrBufMagicBytes, conv.ConvertByteToBytes(elMagicBytes)...)
+	arrBufSessionToken := make([]byte, 0, 128)
+	for _, elSessionToken := range o.SessionToken {
+		arrBufSessionToken = append(arrBufSessionToken, conv.ConvertByteToBytes(elSessionToken)...)
 	}
-	b = append(b, conv.ConvertSizeToBytes(len(arrBufMagicBytes))...)
-	b = append(b, arrBufMagicBytes...)
-	b = append(b, o.MagicObject.Marshal()...)
-	arrBufMagicObjectArray := make([]byte, 0, 128)
-	for _, elMagicObjectArray := range o.MagicObjectArray {
-		arrBufMagicObjectArray = append(arrBufMagicObjectArray, elMagicObjectArray.Marshal()...)
-	}
-	b = append(b, conv.ConvertSizeToBytes(len(arrBufMagicObjectArray))...)
-	b = append(b, arrBufMagicObjectArray...)
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufSessionToken))...)
+	b = append(b, arrBufSessionToken...)
 
 	size = conv.ConvertSizeToBytes(len(b) - len(size))
 	for i := 0; i < len(size); i++ {
@@ -410,7 +1060,835 @@ func (o *ReverseMagicStringResponse) Marshal() []byte {
 	return b
 }
 
-func (o *ReverseMagicStringResponse) Unmarshal(b *conv.BinaryIterator) error {
+func (o *RequiredOPKRequest) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elSessionToken byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+		}
+		elSessionToken = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.SessionToken[binaryCtx.pos] = elSessionToken
+		binaryCtx.pos++
+	}
+
+	return nil
+}
+
+func (o *RequiredOPKRequest) Copy() message.Message {
+	return &RequiredOPKRequest{}
+}
+
+type RequiredOPKResponse struct {
+	Count uint16
+}
+
+var _ message.Message = (*RequiredOPKResponse)(nil)
+
+func (o *RequiredOPKResponse) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 16)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	b = append(b, conv.ConvertUint16ToBytes(o.Count)...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *RequiredOPKResponse) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+
+	binaryCtx.buf, binaryCtx.err = b.Slice(2)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Count")
+	}
+	o.Count = conv.ConvertBytesToUint16(binaryCtx.buf)
+
+	return nil
+}
+
+func (o *RequiredOPKResponse) Copy() message.Message {
+	return &RequiredOPKResponse{}
+}
+
+type LoadOPKRequest struct {
+	SessionToken [16]byte
+	OPK          []OPKPair
+}
+
+var _ message.Message = (*LoadOPKRequest)(nil)
+
+func (o *LoadOPKRequest) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 32)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	arrBufSessionToken := make([]byte, 0, 128)
+	for _, elSessionToken := range o.SessionToken {
+		arrBufSessionToken = append(arrBufSessionToken, conv.ConvertByteToBytes(elSessionToken)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufSessionToken))...)
+	b = append(b, arrBufSessionToken...)
+	arrBufOPK := make([]byte, 0, 128)
+	for _, elOPK := range o.OPK {
+		arrBufOPK = append(arrBufOPK, elOPK.Marshal()...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufOPK))...)
+	b = append(b, arrBufOPK...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *LoadOPKRequest) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elSessionToken byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+		}
+		elSessionToken = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.SessionToken[binaryCtx.pos] = elSessionToken
+		binaryCtx.pos++
+	}
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read OPK size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read OPK")
+	}
+	for binaryCtx.arrBuf.HasNext() {
+		var elOPK OPKPair
+
+		binaryCtx.size, binaryCtx.err = binaryCtx.arrBuf.NextSize()
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read OPK size")
+		}
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(binaryCtx.size)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read OPK")
+		}
+		if binaryCtx.err = elOPK.Unmarshal(binaryCtx.buf); binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to unmarshal OPK")
+		}
+
+		o.OPK = append(o.OPK, elOPK)
+
+	}
+
+	return nil
+}
+
+func (o *LoadOPKRequest) Copy() message.Message {
+	return &LoadOPKRequest{}
+}
+
+type OPKPair struct {
+	OPKId uint32
+	OPK   [32]byte
+}
+
+var _ message.Message = (*OPKPair)(nil)
+
+func (o *OPKPair) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 32)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	b = append(b, conv.ConvertUint32ToBytes(o.OPKId)...)
+	arrBufOPK := make([]byte, 0, 128)
+	for _, elOPK := range o.OPK {
+		arrBufOPK = append(arrBufOPK, conv.ConvertByteToBytes(elOPK)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufOPK))...)
+	b = append(b, arrBufOPK...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *OPKPair) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+
+	binaryCtx.buf, binaryCtx.err = b.Slice(4)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read OPKId")
+	}
+	o.OPKId = conv.ConvertBytesToUint32(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read OPK size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read OPK")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elOPK byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read OPK")
+		}
+		elOPK = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.OPK[binaryCtx.pos] = elOPK
+		binaryCtx.pos++
+	}
+
+	return nil
+}
+
+func (o *OPKPair) Copy() message.Message {
+	return &OPKPair{}
+}
+
+type LoadOPKResponse struct {
+}
+
+var _ message.Message = (*LoadOPKResponse)(nil)
+
+func (o *LoadOPKResponse) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 0)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *LoadOPKResponse) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+
+	return nil
+}
+
+func (o *LoadOPKResponse) Copy() message.Message {
+	return &LoadOPKResponse{}
+}
+
+type FindUsersByPartNicknameRequest struct {
+	SessionToken [16]byte
+	PartNickname string
+}
+
+var _ message.Message = (*FindUsersByPartNicknameRequest)(nil)
+
+func (o *FindUsersByPartNicknameRequest) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 32)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	arrBufSessionToken := make([]byte, 0, 128)
+	for _, elSessionToken := range o.SessionToken {
+		arrBufSessionToken = append(arrBufSessionToken, conv.ConvertByteToBytes(elSessionToken)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufSessionToken))...)
+	b = append(b, arrBufSessionToken...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.PartNickname)))...)
+	b = append(b, conv.ConvertStringToBytes(o.PartNickname)...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *FindUsersByPartNicknameRequest) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elSessionToken byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+		}
+		elSessionToken = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.SessionToken[binaryCtx.pos] = elSessionToken
+		binaryCtx.pos++
+	}
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read PartNickname size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read PartNickname")
+	}
+	o.PartNickname = conv.ConvertBytesToString(binaryCtx.buf)
+
+	return nil
+}
+
+func (o *FindUsersByPartNicknameRequest) Copy() message.Message {
+	return &FindUsersByPartNicknameRequest{}
+}
+
+type FindUsersByPartNicknameResponse struct {
+	Users []PresentUser
+}
+
+var _ message.Message = (*FindUsersByPartNicknameResponse)(nil)
+
+func (o *FindUsersByPartNicknameResponse) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 16)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	arrBufUsers := make([]byte, 0, 128)
+	for _, elUsers := range o.Users {
+		arrBufUsers = append(arrBufUsers, elUsers.Marshal()...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufUsers))...)
+	b = append(b, arrBufUsers...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *FindUsersByPartNicknameResponse) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Users size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Users")
+	}
+	for binaryCtx.arrBuf.HasNext() {
+		var elUsers PresentUser
+
+		binaryCtx.size, binaryCtx.err = binaryCtx.arrBuf.NextSize()
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read Users size")
+		}
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(binaryCtx.size)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read Users")
+		}
+		if binaryCtx.err = elUsers.Unmarshal(binaryCtx.buf); binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to unmarshal Users")
+		}
+
+		o.Users = append(o.Users, elUsers)
+
+	}
+
+	return nil
+}
+
+func (o *FindUsersByPartNicknameResponse) Copy() message.Message {
+	return &FindUsersByPartNicknameResponse{}
+}
+
+type PresentUser struct {
+	IdentityKey [32]byte
+	Nickname    string
+	PictureID   string
+	Status      string
+}
+
+var _ message.Message = (*PresentUser)(nil)
+
+func (o *PresentUser) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 64)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	arrBufIdentityKey := make([]byte, 0, 128)
+	for _, elIdentityKey := range o.IdentityKey {
+		arrBufIdentityKey = append(arrBufIdentityKey, conv.ConvertByteToBytes(elIdentityKey)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufIdentityKey))...)
+	b = append(b, arrBufIdentityKey...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.Nickname)))...)
+	b = append(b, conv.ConvertStringToBytes(o.Nickname)...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.PictureID)))...)
+	b = append(b, conv.ConvertStringToBytes(o.PictureID)...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.Status)))...)
+	b = append(b, conv.ConvertStringToBytes(o.Status)...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *PresentUser) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read IdentityKey size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read IdentityKey")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elIdentityKey byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read IdentityKey")
+		}
+		elIdentityKey = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.IdentityKey[binaryCtx.pos] = elIdentityKey
+		binaryCtx.pos++
+	}
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Nickname size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Nickname")
+	}
+	o.Nickname = conv.ConvertBytesToString(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read PictureID size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read PictureID")
+	}
+	o.PictureID = conv.ConvertBytesToString(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Status size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Status")
+	}
+	o.Status = conv.ConvertBytesToString(binaryCtx.buf)
+
+	return nil
+}
+
+func (o *PresentUser) Copy() message.Message {
+	return &PresentUser{}
+}
+
+type GetInitMsgKeysRequest struct {
+	SessionToken [16]byte
+	IdentityKey  [32]byte
+}
+
+var _ message.Message = (*GetInitMsgKeysRequest)(nil)
+
+func (o *GetInitMsgKeysRequest) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 32)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	arrBufSessionToken := make([]byte, 0, 128)
+	for _, elSessionToken := range o.SessionToken {
+		arrBufSessionToken = append(arrBufSessionToken, conv.ConvertByteToBytes(elSessionToken)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufSessionToken))...)
+	b = append(b, arrBufSessionToken...)
+	arrBufIdentityKey := make([]byte, 0, 128)
+	for _, elIdentityKey := range o.IdentityKey {
+		arrBufIdentityKey = append(arrBufIdentityKey, conv.ConvertByteToBytes(elIdentityKey)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufIdentityKey))...)
+	b = append(b, arrBufIdentityKey...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *GetInitMsgKeysRequest) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elSessionToken byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+		}
+		elSessionToken = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.SessionToken[binaryCtx.pos] = elSessionToken
+		binaryCtx.pos++
+	}
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read IdentityKey size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read IdentityKey")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elIdentityKey byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read IdentityKey")
+		}
+		elIdentityKey = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.IdentityKey[binaryCtx.pos] = elIdentityKey
+		binaryCtx.pos++
+	}
+
+	return nil
+}
+
+func (o *GetInitMsgKeysRequest) Copy() message.Message {
+	return &GetInitMsgKeysRequest{}
+}
+
+type GetInitMsgKeysResponse struct {
+	OPKId      uint32
+	OPK        [32]byte
+	SignedLTPK [32]byte
+	Signature  [64]byte
+}
+
+var _ message.Message = (*GetInitMsgKeysResponse)(nil)
+
+func (o *GetInitMsgKeysResponse) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 64)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	b = append(b, conv.ConvertUint32ToBytes(o.OPKId)...)
+	arrBufOPK := make([]byte, 0, 128)
+	for _, elOPK := range o.OPK {
+		arrBufOPK = append(arrBufOPK, conv.ConvertByteToBytes(elOPK)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufOPK))...)
+	b = append(b, arrBufOPK...)
+	arrBufSignedLTPK := make([]byte, 0, 128)
+	for _, elSignedLTPK := range o.SignedLTPK {
+		arrBufSignedLTPK = append(arrBufSignedLTPK, conv.ConvertByteToBytes(elSignedLTPK)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufSignedLTPK))...)
+	b = append(b, arrBufSignedLTPK...)
+	arrBufSignature := make([]byte, 0, 128)
+	for _, elSignature := range o.Signature {
+		arrBufSignature = append(arrBufSignature, conv.ConvertByteToBytes(elSignature)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufSignature))...)
+	b = append(b, arrBufSignature...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *GetInitMsgKeysResponse) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+
+	binaryCtx.buf, binaryCtx.err = b.Slice(4)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read OPKId")
+	}
+	o.OPKId = conv.ConvertBytesToUint32(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read OPK size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read OPK")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elOPK byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read OPK")
+		}
+		elOPK = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.OPK[binaryCtx.pos] = elOPK
+		binaryCtx.pos++
+	}
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SignedLTPK size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SignedLTPK")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elSignedLTPK byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read SignedLTPK")
+		}
+		elSignedLTPK = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.SignedLTPK[binaryCtx.pos] = elSignedLTPK
+		binaryCtx.pos++
+	}
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Signature size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Signature")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elSignature byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read Signature")
+		}
+		elSignature = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.Signature[binaryCtx.pos] = elSignature
+		binaryCtx.pos++
+	}
+
+	return nil
+}
+
+func (o *GetInitMsgKeysResponse) Copy() message.Message {
+	return &GetInitMsgKeysResponse{}
+}
+
+type RegisterRequest struct {
+	Phone         string
+	Code          int
+	Nickname      string
+	PassHash      string
+	DeviceID      string
+	DeviceName    string
+	FcmToken      string
+	LTPK          [32]byte
+	LTPKSignature [64]byte
+	IdentityKey   [32]byte
+}
+
+var _ message.Message = (*RegisterRequest)(nil)
+
+func (o *RegisterRequest) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 160)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.Phone)))...)
+	b = append(b, conv.ConvertStringToBytes(o.Phone)...)
+	b = append(b, conv.ConvertIntToBytes(o.Code)...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.Nickname)))...)
+	b = append(b, conv.ConvertStringToBytes(o.Nickname)...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.PassHash)))...)
+	b = append(b, conv.ConvertStringToBytes(o.PassHash)...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.DeviceID)))...)
+	b = append(b, conv.ConvertStringToBytes(o.DeviceID)...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.DeviceName)))...)
+	b = append(b, conv.ConvertStringToBytes(o.DeviceName)...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.FcmToken)))...)
+	b = append(b, conv.ConvertStringToBytes(o.FcmToken)...)
+	arrBufLTPK := make([]byte, 0, 128)
+	for _, elLTPK := range o.LTPK {
+		arrBufLTPK = append(arrBufLTPK, conv.ConvertByteToBytes(elLTPK)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufLTPK))...)
+	b = append(b, arrBufLTPK...)
+	arrBufLTPKSignature := make([]byte, 0, 128)
+	for _, elLTPKSignature := range o.LTPKSignature {
+		arrBufLTPKSignature = append(arrBufLTPKSignature, conv.ConvertByteToBytes(elLTPKSignature)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufLTPKSignature))...)
+	b = append(b, arrBufLTPKSignature...)
+	arrBufIdentityKey := make([]byte, 0, 128)
+	for _, elIdentityKey := range o.IdentityKey {
+		arrBufIdentityKey = append(arrBufIdentityKey, conv.ConvertByteToBytes(elIdentityKey)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufIdentityKey))...)
+	b = append(b, arrBufIdentityKey...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *RegisterRequest) Unmarshal(b *conv.BinaryIterator) error {
 	binaryCtx := struct {
 		err                error
 		size, arrSize, pos int
@@ -421,161 +1899,1649 @@ func (o *ReverseMagicStringResponse) Unmarshal(b *conv.BinaryIterator) error {
 
 	binaryCtx.size, binaryCtx.err = b.NextSize()
 	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read ReversedMagicString size")
+		return errors.Wrap(binaryCtx.err, "failed to read Phone size")
 	}
 	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
 	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read ReversedMagicString")
+		return errors.Wrap(binaryCtx.err, "failed to read Phone")
 	}
-	o.ReversedMagicString = conv.ConvertBytesToString(binaryCtx.buf)
-
-	binaryCtx.buf, binaryCtx.err = b.Slice(1)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicInt8")
-	}
-	o.MagicInt8 = conv.ConvertBytesToInt8(binaryCtx.buf)
-
-	binaryCtx.buf, binaryCtx.err = b.Slice(2)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicInt16")
-	}
-	o.MagicInt16 = conv.ConvertBytesToInt16(binaryCtx.buf)
-
-	binaryCtx.buf, binaryCtx.err = b.Slice(4)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicInt32")
-	}
-	o.MagicInt32 = conv.ConvertBytesToInt32(binaryCtx.buf)
+	o.Phone = conv.ConvertBytesToString(binaryCtx.buf)
 
 	binaryCtx.buf, binaryCtx.err = b.Slice(8)
 	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicInt64")
+		return errors.Wrap(binaryCtx.err, "failed to read Code")
 	}
-	o.MagicInt64 = conv.ConvertBytesToInt64(binaryCtx.buf)
-
-	binaryCtx.buf, binaryCtx.err = b.Slice(1)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicUInt8")
-	}
-	o.MagicUInt8 = conv.ConvertBytesToUint8(binaryCtx.buf)
-
-	binaryCtx.buf, binaryCtx.err = b.Slice(2)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicUInt16")
-	}
-	o.MagicUInt16 = conv.ConvertBytesToUint16(binaryCtx.buf)
-
-	binaryCtx.buf, binaryCtx.err = b.Slice(4)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicUInt32")
-	}
-	o.MagicUInt32 = conv.ConvertBytesToUint32(binaryCtx.buf)
-
-	binaryCtx.buf, binaryCtx.err = b.Slice(8)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicUInt64")
-	}
-	o.MagicUInt64 = conv.ConvertBytesToUint64(binaryCtx.buf)
-
-	binaryCtx.buf, binaryCtx.err = b.Slice(1)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicBool")
-	}
-	o.MagicBool = conv.ConvertBytesToBool(binaryCtx.buf)
+	o.Code = conv.ConvertBytesToInt(binaryCtx.buf)
 
 	binaryCtx.size, binaryCtx.err = b.NextSize()
 	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicBytes size")
+		return errors.Wrap(binaryCtx.err, "failed to read Nickname size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Nickname")
+	}
+	o.Nickname = conv.ConvertBytesToString(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read PassHash size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read PassHash")
+	}
+	o.PassHash = conv.ConvertBytesToString(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read DeviceID size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read DeviceID")
+	}
+	o.DeviceID = conv.ConvertBytesToString(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read DeviceName size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read DeviceName")
+	}
+	o.DeviceName = conv.ConvertBytesToString(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read FcmToken size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read FcmToken")
+	}
+	o.FcmToken = conv.ConvertBytesToString(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read LTPK size")
 	}
 	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
 	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicBytes")
+		return errors.Wrap(binaryCtx.err, "failed to read LTPK")
 	}
+	binaryCtx.pos = 0
 	for binaryCtx.arrBuf.HasNext() {
-		var elMagicBytes byte
+		var elLTPK byte
 
 		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
 		if binaryCtx.err != nil {
-			return errors.Wrap(binaryCtx.err, "failed to read MagicBytes")
+			return errors.Wrap(binaryCtx.err, "failed to read LTPK")
 		}
-		elMagicBytes = conv.ConvertBytesToByte(binaryCtx.buf)
+		elLTPK = conv.ConvertBytesToByte(binaryCtx.buf)
 
-		o.MagicBytes = append(o.MagicBytes, elMagicBytes)
-
+		o.LTPK[binaryCtx.pos] = elLTPK
+		binaryCtx.pos++
 	}
-
 	binaryCtx.size, binaryCtx.err = b.NextSize()
 	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicObject size")
-	}
-	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicObject")
-	}
-	if binaryCtx.err = o.MagicObject.Unmarshal(binaryCtx.buf); binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to unmarshal MagicObject")
-	}
-
-	binaryCtx.size, binaryCtx.err = b.NextSize()
-	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicObjectArray size")
+		return errors.Wrap(binaryCtx.err, "failed to read LTPKSignature size")
 	}
 	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
 	if binaryCtx.err != nil {
-		return errors.Wrap(binaryCtx.err, "failed to read MagicObjectArray")
+		return errors.Wrap(binaryCtx.err, "failed to read LTPKSignature")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elLTPKSignature byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read LTPKSignature")
+		}
+		elLTPKSignature = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.LTPKSignature[binaryCtx.pos] = elLTPKSignature
+		binaryCtx.pos++
+	}
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read IdentityKey size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read IdentityKey")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elIdentityKey byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read IdentityKey")
+		}
+		elIdentityKey = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.IdentityKey[binaryCtx.pos] = elIdentityKey
+		binaryCtx.pos++
+	}
+
+	return nil
+}
+
+func (o *RegisterRequest) Copy() message.Message {
+	return &RegisterRequest{}
+}
+
+type RegisterResponse struct {
+	SessionToken [16]byte
+}
+
+var _ message.Message = (*RegisterResponse)(nil)
+
+func (o *RegisterResponse) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 16)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	arrBufSessionToken := make([]byte, 0, 128)
+	for _, elSessionToken := range o.SessionToken {
+		arrBufSessionToken = append(arrBufSessionToken, conv.ConvertByteToBytes(elSessionToken)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufSessionToken))...)
+	b = append(b, arrBufSessionToken...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *RegisterResponse) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elSessionToken byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+		}
+		elSessionToken = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.SessionToken[binaryCtx.pos] = elSessionToken
+		binaryCtx.pos++
+	}
+
+	return nil
+}
+
+func (o *RegisterResponse) Copy() message.Message {
+	return &RegisterResponse{}
+}
+
+type AuthTokenRequest struct {
+	SessionToken [16]byte
+}
+
+var _ message.Message = (*AuthTokenRequest)(nil)
+
+func (o *AuthTokenRequest) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 16)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	arrBufSessionToken := make([]byte, 0, 128)
+	for _, elSessionToken := range o.SessionToken {
+		arrBufSessionToken = append(arrBufSessionToken, conv.ConvertByteToBytes(elSessionToken)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufSessionToken))...)
+	b = append(b, arrBufSessionToken...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *AuthTokenRequest) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elSessionToken byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+		}
+		elSessionToken = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.SessionToken[binaryCtx.pos] = elSessionToken
+		binaryCtx.pos++
+	}
+
+	return nil
+}
+
+func (o *AuthTokenRequest) Copy() message.Message {
+	return &AuthTokenRequest{}
+}
+
+type AuthTokenResponse struct {
+	SessionToken [16]byte
+}
+
+var _ message.Message = (*AuthTokenResponse)(nil)
+
+func (o *AuthTokenResponse) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 16)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	arrBufSessionToken := make([]byte, 0, 128)
+	for _, elSessionToken := range o.SessionToken {
+		arrBufSessionToken = append(arrBufSessionToken, conv.ConvertByteToBytes(elSessionToken)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufSessionToken))...)
+	b = append(b, arrBufSessionToken...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *AuthTokenResponse) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elSessionToken byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+		}
+		elSessionToken = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.SessionToken[binaryCtx.pos] = elSessionToken
+		binaryCtx.pos++
+	}
+
+	return nil
+}
+
+func (o *AuthTokenResponse) Copy() message.Message {
+	return &AuthTokenResponse{}
+}
+
+type AuthCredentialsRequest struct {
+	Phone      string
+	PassHash   string
+	DeviceID   string
+	DeviceName string
+}
+
+var _ message.Message = (*AuthCredentialsRequest)(nil)
+
+func (o *AuthCredentialsRequest) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 64)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.Phone)))...)
+	b = append(b, conv.ConvertStringToBytes(o.Phone)...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.PassHash)))...)
+	b = append(b, conv.ConvertStringToBytes(o.PassHash)...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.DeviceID)))...)
+	b = append(b, conv.ConvertStringToBytes(o.DeviceID)...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.DeviceName)))...)
+	b = append(b, conv.ConvertStringToBytes(o.DeviceName)...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *AuthCredentialsRequest) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Phone size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Phone")
+	}
+	o.Phone = conv.ConvertBytesToString(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read PassHash size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read PassHash")
+	}
+	o.PassHash = conv.ConvertBytesToString(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read DeviceID size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read DeviceID")
+	}
+	o.DeviceID = conv.ConvertBytesToString(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read DeviceName size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read DeviceName")
+	}
+	o.DeviceName = conv.ConvertBytesToString(binaryCtx.buf)
+
+	return nil
+}
+
+func (o *AuthCredentialsRequest) Copy() message.Message {
+	return &AuthCredentialsRequest{}
+}
+
+type AuthCredentialsResponse struct {
+	SessionToken [16]byte
+}
+
+var _ message.Message = (*AuthCredentialsResponse)(nil)
+
+func (o *AuthCredentialsResponse) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 16)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	arrBufSessionToken := make([]byte, 0, 128)
+	for _, elSessionToken := range o.SessionToken {
+		arrBufSessionToken = append(arrBufSessionToken, conv.ConvertByteToBytes(elSessionToken)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufSessionToken))...)
+	b = append(b, arrBufSessionToken...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *AuthCredentialsResponse) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elSessionToken byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+		}
+		elSessionToken = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.SessionToken[binaryCtx.pos] = elSessionToken
+		binaryCtx.pos++
+	}
+
+	return nil
+}
+
+func (o *AuthCredentialsResponse) Copy() message.Message {
+	return &AuthCredentialsResponse{}
+}
+
+type Attachment struct {
+	Type    string
+	Payload []byte
+}
+
+var _ message.Message = (*Attachment)(nil)
+
+func (o *Attachment) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 32)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.Type)))...)
+	b = append(b, conv.ConvertStringToBytes(o.Type)...)
+	arrBufPayload := make([]byte, 0, 128)
+	for _, elPayload := range o.Payload {
+		arrBufPayload = append(arrBufPayload, conv.ConvertByteToBytes(elPayload)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufPayload))...)
+	b = append(b, arrBufPayload...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *Attachment) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Type size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Type")
+	}
+	o.Type = conv.ConvertBytesToString(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Payload size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Payload")
 	}
 	for binaryCtx.arrBuf.HasNext() {
-		var elMagicObjectArray ReverseCommonObject
+		var elPayload byte
 
-		binaryCtx.size, binaryCtx.err = binaryCtx.arrBuf.NextSize()
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
 		if binaryCtx.err != nil {
-			return errors.Wrap(binaryCtx.err, "failed to read MagicObjectArray size")
+			return errors.Wrap(binaryCtx.err, "failed to read Payload")
 		}
-		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(binaryCtx.size)
-		if binaryCtx.err != nil {
-			return errors.Wrap(binaryCtx.err, "failed to read MagicObjectArray")
-		}
-		if binaryCtx.err = elMagicObjectArray.Unmarshal(binaryCtx.buf); binaryCtx.err != nil {
-			return errors.Wrap(binaryCtx.err, "failed to unmarshal MagicObjectArray")
-		}
+		elPayload = conv.ConvertBytesToByte(binaryCtx.buf)
 
-		o.MagicObjectArray = append(o.MagicObjectArray, elMagicObjectArray)
+		o.Payload = append(o.Payload, elPayload)
 
 	}
 
 	return nil
 }
 
-func (o *ReverseMagicStringResponse) Copy() message.Message {
-	return &ReverseMagicStringResponse{}
+func (o *Attachment) Copy() message.Message {
+	return &Attachment{}
 }
-func GetHandlers(reverse Reverse) map[hash.HandlerHash]*server.Handler {
+
+type SendMessagePMRequest struct {
+	MessageType  string
+	ReceiverIK   [32]byte
+	RSPK         [32]byte
+	Content      []byte
+	Attachments  []Attachment
+	SessionToken [16]byte
+}
+
+var _ message.Message = (*SendMessagePMRequest)(nil)
+
+func (o *SendMessagePMRequest) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 96)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.MessageType)))...)
+	b = append(b, conv.ConvertStringToBytes(o.MessageType)...)
+	arrBufReceiverIK := make([]byte, 0, 128)
+	for _, elReceiverIK := range o.ReceiverIK {
+		arrBufReceiverIK = append(arrBufReceiverIK, conv.ConvertByteToBytes(elReceiverIK)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufReceiverIK))...)
+	b = append(b, arrBufReceiverIK...)
+	arrBufRSPK := make([]byte, 0, 128)
+	for _, elRSPK := range o.RSPK {
+		arrBufRSPK = append(arrBufRSPK, conv.ConvertByteToBytes(elRSPK)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufRSPK))...)
+	b = append(b, arrBufRSPK...)
+	arrBufContent := make([]byte, 0, 128)
+	for _, elContent := range o.Content {
+		arrBufContent = append(arrBufContent, conv.ConvertByteToBytes(elContent)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufContent))...)
+	b = append(b, arrBufContent...)
+	arrBufAttachments := make([]byte, 0, 128)
+	for _, elAttachments := range o.Attachments {
+		arrBufAttachments = append(arrBufAttachments, elAttachments.Marshal()...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufAttachments))...)
+	b = append(b, arrBufAttachments...)
+	arrBufSessionToken := make([]byte, 0, 128)
+	for _, elSessionToken := range o.SessionToken {
+		arrBufSessionToken = append(arrBufSessionToken, conv.ConvertByteToBytes(elSessionToken)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufSessionToken))...)
+	b = append(b, arrBufSessionToken...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *SendMessagePMRequest) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read MessageType size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read MessageType")
+	}
+	o.MessageType = conv.ConvertBytesToString(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read ReceiverIK size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read ReceiverIK")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elReceiverIK byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read ReceiverIK")
+		}
+		elReceiverIK = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.ReceiverIK[binaryCtx.pos] = elReceiverIK
+		binaryCtx.pos++
+	}
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read RSPK size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read RSPK")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elRSPK byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read RSPK")
+		}
+		elRSPK = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.RSPK[binaryCtx.pos] = elRSPK
+		binaryCtx.pos++
+	}
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Content size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Content")
+	}
+	for binaryCtx.arrBuf.HasNext() {
+		var elContent byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read Content")
+		}
+		elContent = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.Content = append(o.Content, elContent)
+
+	}
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Attachments size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Attachments")
+	}
+	for binaryCtx.arrBuf.HasNext() {
+		var elAttachments Attachment
+
+		binaryCtx.size, binaryCtx.err = binaryCtx.arrBuf.NextSize()
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read Attachments size")
+		}
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(binaryCtx.size)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read Attachments")
+		}
+		if binaryCtx.err = elAttachments.Unmarshal(binaryCtx.buf); binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to unmarshal Attachments")
+		}
+
+		o.Attachments = append(o.Attachments, elAttachments)
+
+	}
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elSessionToken byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+		}
+		elSessionToken = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.SessionToken[binaryCtx.pos] = elSessionToken
+		binaryCtx.pos++
+	}
+
+	return nil
+}
+
+func (o *SendMessagePMRequest) Copy() message.Message {
+	return &SendMessagePMRequest{}
+}
+
+type SendMessagePMResponse struct {
+	MessageID uint32
+}
+
+var _ message.Message = (*SendMessagePMResponse)(nil)
+
+func (o *SendMessagePMResponse) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 16)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	b = append(b, conv.ConvertUint32ToBytes(o.MessageID)...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *SendMessagePMResponse) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+
+	binaryCtx.buf, binaryCtx.err = b.Slice(4)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read MessageID")
+	}
+	o.MessageID = conv.ConvertBytesToUint32(binaryCtx.buf)
+
+	return nil
+}
+
+func (o *SendMessagePMResponse) Copy() message.Message {
+	return &SendMessagePMResponse{}
+}
+
+type PresentEvent struct {
+	MonotonicEventID uint64
+	Type             string
+	Payload          []byte
+	CreatedAt        int64
+}
+
+var _ message.Message = (*PresentEvent)(nil)
+
+func (o *PresentEvent) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 64)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	b = append(b, conv.ConvertUint64ToBytes(o.MonotonicEventID)...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.Type)))...)
+	b = append(b, conv.ConvertStringToBytes(o.Type)...)
+	arrBufPayload := make([]byte, 0, 128)
+	for _, elPayload := range o.Payload {
+		arrBufPayload = append(arrBufPayload, conv.ConvertByteToBytes(elPayload)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufPayload))...)
+	b = append(b, arrBufPayload...)
+	b = append(b, conv.ConvertInt64ToBytes(o.CreatedAt)...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *PresentEvent) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+
+	binaryCtx.buf, binaryCtx.err = b.Slice(8)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read MonotonicEventID")
+	}
+	o.MonotonicEventID = conv.ConvertBytesToUint64(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Type size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Type")
+	}
+	o.Type = conv.ConvertBytesToString(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Payload size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Payload")
+	}
+	for binaryCtx.arrBuf.HasNext() {
+		var elPayload byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read Payload")
+		}
+		elPayload = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.Payload = append(o.Payload, elPayload)
+
+	}
+
+	binaryCtx.buf, binaryCtx.err = b.Slice(8)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read CreatedAt")
+	}
+	o.CreatedAt = conv.ConvertBytesToInt64(binaryCtx.buf)
+
+	return nil
+}
+
+func (o *PresentEvent) Copy() message.Message {
+	return &PresentEvent{}
+}
+
+type PmMessage struct {
+	RemoteIK    [32]byte
+	RSPK        [32]byte
+	MessageID   uint32
+	MessageType string
+	Content     []byte
+	Attachments []Attachment
+}
+
+var _ message.Message = (*PmMessage)(nil)
+
+func (o *PmMessage) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 96)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	arrBufRemoteIK := make([]byte, 0, 128)
+	for _, elRemoteIK := range o.RemoteIK {
+		arrBufRemoteIK = append(arrBufRemoteIK, conv.ConvertByteToBytes(elRemoteIK)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufRemoteIK))...)
+	b = append(b, arrBufRemoteIK...)
+	arrBufRSPK := make([]byte, 0, 128)
+	for _, elRSPK := range o.RSPK {
+		arrBufRSPK = append(arrBufRSPK, conv.ConvertByteToBytes(elRSPK)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufRSPK))...)
+	b = append(b, arrBufRSPK...)
+	b = append(b, conv.ConvertUint32ToBytes(o.MessageID)...)
+	b = append(b, conv.ConvertSizeToBytes(len([]byte(o.MessageType)))...)
+	b = append(b, conv.ConvertStringToBytes(o.MessageType)...)
+	arrBufContent := make([]byte, 0, 128)
+	for _, elContent := range o.Content {
+		arrBufContent = append(arrBufContent, conv.ConvertByteToBytes(elContent)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufContent))...)
+	b = append(b, arrBufContent...)
+	arrBufAttachments := make([]byte, 0, 128)
+	for _, elAttachments := range o.Attachments {
+		arrBufAttachments = append(arrBufAttachments, elAttachments.Marshal()...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufAttachments))...)
+	b = append(b, arrBufAttachments...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *PmMessage) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read RemoteIK size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read RemoteIK")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elRemoteIK byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read RemoteIK")
+		}
+		elRemoteIK = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.RemoteIK[binaryCtx.pos] = elRemoteIK
+		binaryCtx.pos++
+	}
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read RSPK size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read RSPK")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elRSPK byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read RSPK")
+		}
+		elRSPK = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.RSPK[binaryCtx.pos] = elRSPK
+		binaryCtx.pos++
+	}
+
+	binaryCtx.buf, binaryCtx.err = b.Slice(4)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read MessageID")
+	}
+	o.MessageID = conv.ConvertBytesToUint32(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read MessageType size")
+	}
+	binaryCtx.buf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read MessageType")
+	}
+	o.MessageType = conv.ConvertBytesToString(binaryCtx.buf)
+
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Content size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Content")
+	}
+	for binaryCtx.arrBuf.HasNext() {
+		var elContent byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read Content")
+		}
+		elContent = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.Content = append(o.Content, elContent)
+
+	}
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Attachments size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read Attachments")
+	}
+	for binaryCtx.arrBuf.HasNext() {
+		var elAttachments Attachment
+
+		binaryCtx.size, binaryCtx.err = binaryCtx.arrBuf.NextSize()
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read Attachments size")
+		}
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(binaryCtx.size)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read Attachments")
+		}
+		if binaryCtx.err = elAttachments.Unmarshal(binaryCtx.buf); binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to unmarshal Attachments")
+		}
+
+		o.Attachments = append(o.Attachments, elAttachments)
+
+	}
+
+	return nil
+}
+
+func (o *PmMessage) Copy() message.Message {
+	return &PmMessage{}
+}
+
+type PmInitMessage struct {
+	RemoteIK      [32]byte
+	RemoteEK      [32]byte
+	UsedOPKMarkID int
+}
+
+var _ message.Message = (*PmInitMessage)(nil)
+
+func (o *PmInitMessage) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 48)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	arrBufRemoteIK := make([]byte, 0, 128)
+	for _, elRemoteIK := range o.RemoteIK {
+		arrBufRemoteIK = append(arrBufRemoteIK, conv.ConvertByteToBytes(elRemoteIK)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufRemoteIK))...)
+	b = append(b, arrBufRemoteIK...)
+	arrBufRemoteEK := make([]byte, 0, 128)
+	for _, elRemoteEK := range o.RemoteEK {
+		arrBufRemoteEK = append(arrBufRemoteEK, conv.ConvertByteToBytes(elRemoteEK)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufRemoteEK))...)
+	b = append(b, arrBufRemoteEK...)
+	b = append(b, conv.ConvertIntToBytes(o.UsedOPKMarkID)...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *PmInitMessage) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read RemoteIK size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read RemoteIK")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elRemoteIK byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read RemoteIK")
+		}
+		elRemoteIK = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.RemoteIK[binaryCtx.pos] = elRemoteIK
+		binaryCtx.pos++
+	}
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read RemoteEK size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read RemoteEK")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elRemoteEK byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read RemoteEK")
+		}
+		elRemoteEK = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.RemoteEK[binaryCtx.pos] = elRemoteEK
+		binaryCtx.pos++
+	}
+
+	binaryCtx.buf, binaryCtx.err = b.Slice(8)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read UsedOPKMarkID")
+	}
+	o.UsedOPKMarkID = conv.ConvertBytesToInt(binaryCtx.buf)
+
+	return nil
+}
+
+func (o *PmInitMessage) Copy() message.Message {
+	return &PmInitMessage{}
+}
+
+type SendInitMessagePMRequest struct {
+	SessionToken  [16]byte
+	ReceiverIK    [32]byte
+	SelfEK        [32]byte
+	UsedOPKMarkID int
+}
+
+var _ message.Message = (*SendInitMessagePMRequest)(nil)
+
+func (o *SendInitMessagePMRequest) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 64)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	arrBufSessionToken := make([]byte, 0, 128)
+	for _, elSessionToken := range o.SessionToken {
+		arrBufSessionToken = append(arrBufSessionToken, conv.ConvertByteToBytes(elSessionToken)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufSessionToken))...)
+	b = append(b, arrBufSessionToken...)
+	arrBufReceiverIK := make([]byte, 0, 128)
+	for _, elReceiverIK := range o.ReceiverIK {
+		arrBufReceiverIK = append(arrBufReceiverIK, conv.ConvertByteToBytes(elReceiverIK)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufReceiverIK))...)
+	b = append(b, arrBufReceiverIK...)
+	arrBufSelfEK := make([]byte, 0, 128)
+	for _, elSelfEK := range o.SelfEK {
+		arrBufSelfEK = append(arrBufSelfEK, conv.ConvertByteToBytes(elSelfEK)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufSelfEK))...)
+	b = append(b, arrBufSelfEK...)
+	b = append(b, conv.ConvertIntToBytes(o.UsedOPKMarkID)...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *SendInitMessagePMRequest) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elSessionToken byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+		}
+		elSessionToken = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.SessionToken[binaryCtx.pos] = elSessionToken
+		binaryCtx.pos++
+	}
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read ReceiverIK size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read ReceiverIK")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elReceiverIK byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read ReceiverIK")
+		}
+		elReceiverIK = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.ReceiverIK[binaryCtx.pos] = elReceiverIK
+		binaryCtx.pos++
+	}
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SelfEK size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SelfEK")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elSelfEK byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read SelfEK")
+		}
+		elSelfEK = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.SelfEK[binaryCtx.pos] = elSelfEK
+		binaryCtx.pos++
+	}
+
+	binaryCtx.buf, binaryCtx.err = b.Slice(8)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read UsedOPKMarkID")
+	}
+	o.UsedOPKMarkID = conv.ConvertBytesToInt(binaryCtx.buf)
+
+	return nil
+}
+
+func (o *SendInitMessagePMRequest) Copy() message.Message {
+	return &SendInitMessagePMRequest{}
+}
+
+type SendInitMessagePMResponse struct {
+}
+
+var _ message.Message = (*SendInitMessagePMResponse)(nil)
+
+func (o *SendInitMessagePMResponse) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 0)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *SendInitMessagePMResponse) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+
+	return nil
+}
+
+func (o *SendInitMessagePMResponse) Copy() message.Message {
+	return &SendInitMessagePMResponse{}
+}
+
+type ListenUpdatesReq struct {
+	SessionToken      [16]byte
+	MonotonicIdOffset int
+}
+
+var _ message.Message = (*ListenUpdatesReq)(nil)
+
+func (o *ListenUpdatesReq) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 32)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+	arrBufSessionToken := make([]byte, 0, 128)
+	for _, elSessionToken := range o.SessionToken {
+		arrBufSessionToken = append(arrBufSessionToken, conv.ConvertByteToBytes(elSessionToken)...)
+	}
+	b = append(b, conv.ConvertSizeToBytes(len(arrBufSessionToken))...)
+	b = append(b, arrBufSessionToken...)
+	b = append(b, conv.ConvertIntToBytes(o.MonotonicIdOffset)...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *ListenUpdatesReq) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+	binaryCtx.size, binaryCtx.err = b.NextSize()
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken size")
+	}
+	binaryCtx.arrBuf, binaryCtx.err = b.Slice(binaryCtx.size)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+	}
+	binaryCtx.pos = 0
+	for binaryCtx.arrBuf.HasNext() {
+		var elSessionToken byte
+
+		binaryCtx.buf, binaryCtx.err = binaryCtx.arrBuf.Slice(1)
+		if binaryCtx.err != nil {
+			return errors.Wrap(binaryCtx.err, "failed to read SessionToken")
+		}
+		elSessionToken = conv.ConvertBytesToByte(binaryCtx.buf)
+
+		o.SessionToken[binaryCtx.pos] = elSessionToken
+		binaryCtx.pos++
+	}
+
+	binaryCtx.buf, binaryCtx.err = b.Slice(8)
+	if binaryCtx.err != nil {
+		return errors.Wrap(binaryCtx.err, "failed to read MonotonicIdOffset")
+	}
+	o.MonotonicIdOffset = conv.ConvertBytesToInt(binaryCtx.buf)
+
+	return nil
+}
+
+func (o *ListenUpdatesReq) Copy() message.Message {
+	return &ListenUpdatesReq{}
+}
+
+type ListenUpdatesResponse struct {
+}
+
+var _ message.Message = (*ListenUpdatesResponse)(nil)
+
+func (o *ListenUpdatesResponse) Marshal() []byte {
+	var (
+		b = make([]byte, 0, 0)
+	)
+
+	size := conv.ConvertSizeToBytes(0)
+	b = append(b, size...)
+
+	size = conv.ConvertSizeToBytes(len(b) - len(size))
+	for i := 0; i < len(size); i++ {
+		b[i] = size[i]
+	}
+
+	return b
+}
+
+func (o *ListenUpdatesResponse) Unmarshal(b *conv.BinaryIterator) error {
+	binaryCtx := struct {
+		err                error
+		size, arrSize, pos int
+		buf, arrBuf        *conv.BinaryIterator
+	}{}
+
+	binaryCtx.err = nil
+
+	return nil
+}
+
+func (o *ListenUpdatesResponse) Copy() message.Message {
+	return &ListenUpdatesResponse{}
+}
+func GetHandlers(userEndpoint UserEndpoint, groupEndpoint GroupEndpoint) map[hash.HandlerHash]*server.Handler {
 	handlers := make(map[hash.HandlerHash]*server.Handler)
 
-	var callFuncReverseMagicString server.HandlerFunc
-	if reverse != nil {
-		callFuncReverseMagicString = ReverseMagicStringSqueeze(reverse.ReverseMagicString)
+	var callFuncSendCode server.HandlerFunc
+	if userEndpoint != nil {
+		callFuncSendCode = SendCodeSqueeze(userEndpoint.SendCode)
 	}
 
-	handlers[hash.HandlerHash{0x90, 0xA, 0xDC, 0x45}] = &server.Handler{
-		CallFuncHandler: callFuncReverseMagicString,
+	handlers[hash.HandlerHash{0x8D, 0x29, 0x10, 0xB8}] = &server.Handler{
+		CallFuncHandler: callFuncSendCode,
 		HandlerType:     server.HandlerT,
-		RequestMsgType:  &ReverseMagicStringRequest{},
-		ResponseMsgType: &ReverseMagicStringResponse{},
-		Tags:            tagsByHandlerName["ReverseMagicString"],
+		RequestMsgType:  &SendCodeRequest{},
+		ResponseMsgType: &SendCodeResponse{},
+		Tags:            tagsByHandlerName["SendCode"],
 	}
 
-	var callFuncRasd server.HandlerFunc
-	if reverse != nil {
-		callFuncRasd = RasdSqueeze(reverse.Rasd)
+	var callFuncHandleCode server.HandlerFunc
+	if userEndpoint != nil {
+		callFuncHandleCode = HandleCodeSqueeze(userEndpoint.HandleCode)
 	}
 
-	handlers[hash.HandlerHash{0xCB, 0xB1, 0x2D, 0x3D}] = &server.Handler{
-		CallFuncHandler: callFuncRasd,
+	handlers[hash.HandlerHash{0xC8, 0x46, 0x91, 0xDA}] = &server.Handler{
+		CallFuncHandler: callFuncHandleCode,
 		HandlerType:     server.HandlerT,
-		RequestMsgType:  &ReverseMagicStringRequest{},
-		ResponseMsgType: &ReverseMagicStringResponse{},
-		Tags:            tagsByHandlerName["Rasd"],
+		RequestMsgType:  &HandleCodeRequest{},
+		ResponseMsgType: &HandleCodeResponse{},
+		Tags:            tagsByHandlerName["HandleCode"],
+	}
+
+	var callFuncRequiredOPK server.HandlerFunc
+	if userEndpoint != nil {
+		callFuncRequiredOPK = RequiredOPKSqueeze(userEndpoint.RequiredOPK)
+	}
+
+	handlers[hash.HandlerHash{0xE6, 0xF3, 0x96, 0x42}] = &server.Handler{
+		CallFuncHandler: callFuncRequiredOPK,
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &RequiredOPKRequest{},
+		ResponseMsgType: &RequiredOPKResponse{},
+		Tags:            tagsByHandlerName["RequiredOPK"],
+	}
+
+	var callFuncLoadOPK server.HandlerFunc
+	if userEndpoint != nil {
+		callFuncLoadOPK = LoadOPKSqueeze(userEndpoint.LoadOPK)
+	}
+
+	handlers[hash.HandlerHash{0x3, 0xB, 0x41, 0x2E}] = &server.Handler{
+		CallFuncHandler: callFuncLoadOPK,
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &LoadOPKRequest{},
+		ResponseMsgType: &LoadOPKResponse{},
+		Tags:            tagsByHandlerName["LoadOPK"],
+	}
+
+	var callFuncFindUsersByPartNickname server.HandlerFunc
+	if userEndpoint != nil {
+		callFuncFindUsersByPartNickname = FindUsersByPartNicknameSqueeze(userEndpoint.FindUsersByPartNickname)
+	}
+
+	handlers[hash.HandlerHash{0x50, 0x85, 0x5D, 0xE}] = &server.Handler{
+		CallFuncHandler: callFuncFindUsersByPartNickname,
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &FindUsersByPartNicknameRequest{},
+		ResponseMsgType: &FindUsersByPartNicknameResponse{},
+		Tags:            tagsByHandlerName["FindUsersByPartNickname"],
+	}
+
+	var callFuncGetInitMsgKeys server.HandlerFunc
+	if userEndpoint != nil {
+		callFuncGetInitMsgKeys = GetInitMsgKeysSqueeze(userEndpoint.GetInitMsgKeys)
+	}
+
+	handlers[hash.HandlerHash{0x12, 0x90, 0xA7, 0xFE}] = &server.Handler{
+		CallFuncHandler: callFuncGetInitMsgKeys,
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &GetInitMsgKeysRequest{},
+		ResponseMsgType: &GetInitMsgKeysResponse{},
+		Tags:            tagsByHandlerName["GetInitMsgKeys"],
+	}
+
+	var callFuncRegister server.HandlerFunc
+	if userEndpoint != nil {
+		callFuncRegister = RegisterSqueeze(userEndpoint.Register)
+	}
+
+	handlers[hash.HandlerHash{0x7D, 0xCB, 0xAD, 0xA0}] = &server.Handler{
+		CallFuncHandler: callFuncRegister,
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &RegisterRequest{},
+		ResponseMsgType: &RegisterResponse{},
+		Tags:            tagsByHandlerName["Register"],
+	}
+
+	var callFuncAuthToken server.HandlerFunc
+	if userEndpoint != nil {
+		callFuncAuthToken = AuthTokenSqueeze(userEndpoint.AuthToken)
+	}
+
+	handlers[hash.HandlerHash{0x98, 0xF1, 0xCE, 0x10}] = &server.Handler{
+		CallFuncHandler: callFuncAuthToken,
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &AuthTokenRequest{},
+		ResponseMsgType: &AuthTokenResponse{},
+		Tags:            tagsByHandlerName["AuthToken"],
+	}
+
+	var callFuncAuthCredentials server.HandlerFunc
+	if userEndpoint != nil {
+		callFuncAuthCredentials = AuthCredentialsSqueeze(userEndpoint.AuthCredentials)
+	}
+
+	handlers[hash.HandlerHash{0xA6, 0x7, 0x86, 0xA0}] = &server.Handler{
+		CallFuncHandler: callFuncAuthCredentials,
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &AuthCredentialsRequest{},
+		ResponseMsgType: &AuthCredentialsResponse{},
+		Tags:            tagsByHandlerName["AuthCredentials"],
+	}
+
+	var callFuncSendMessagePM server.HandlerFunc
+	if userEndpoint != nil {
+		callFuncSendMessagePM = SendMessagePMSqueeze(userEndpoint.SendMessagePM)
+	}
+
+	handlers[hash.HandlerHash{0x92, 0x4E, 0xFD, 0x10}] = &server.Handler{
+		CallFuncHandler: callFuncSendMessagePM,
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &SendMessagePMRequest{},
+		ResponseMsgType: &SendMessagePMResponse{},
+		Tags:            tagsByHandlerName["SendMessagePM"],
+	}
+
+	var callFuncSendInitMessagePM server.HandlerFunc
+	if userEndpoint != nil {
+		callFuncSendInitMessagePM = SendInitMessagePMSqueeze(userEndpoint.SendInitMessagePM)
+	}
+
+	handlers[hash.HandlerHash{0x86, 0xC2, 0xB4, 0x1A}] = &server.Handler{
+		CallFuncHandler: callFuncSendInitMessagePM,
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &SendInitMessagePMRequest{},
+		ResponseMsgType: &SendInitMessagePMResponse{},
+		Tags:            tagsByHandlerName["SendInitMessagePM"],
+	}
+
+	var callFuncListenUpdates server.StreamFunc
+	if userEndpoint != nil {
+		callFuncListenUpdates = ListenUpdatesSqueeze(userEndpoint.ListenUpdates)
+	}
+
+	handlers[hash.HandlerHash{0x28, 0xDC, 0x9C, 0xE9}] = &server.Handler{
+		CallFuncStream:  callFuncListenUpdates,
+		HandlerType:     server.StreamT,
+		RequestMsgType:  &ListenUpdatesReq{},
+		ResponseMsgType: &ListenUpdatesResponse{},
+		Tags:            tagsByHandlerName["ListenUpdates"],
+	}
+
+	var callFuncReverseString server.HandlerFunc
+	if userEndpoint != nil {
+		callFuncReverseString = ReverseStringSqueeze(userEndpoint.ReverseString)
+	}
+
+	handlers[hash.HandlerHash{0x86, 0xC, 0xAA, 0x80}] = &server.Handler{
+		CallFuncHandler: callFuncReverseString,
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &ReverseStringReq{},
+		ResponseMsgType: &ReverseStringResponse{},
+		Tags:            tagsByHandlerName["ReverseString"],
+	}
+
+	var callFuncCreateGroup server.HandlerFunc
+	if groupEndpoint != nil {
+		callFuncCreateGroup = CreateGroupSqueeze(groupEndpoint.CreateGroup)
+	}
+
+	handlers[hash.HandlerHash{0x7C, 0x8, 0x95, 0xB1}] = &server.Handler{
+		CallFuncHandler: callFuncCreateGroup,
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &CreateGroupReq{},
+		ResponseMsgType: &CreateGroupResponse{},
+		Tags:            tagsByHandlerName["CreateGroup"],
+	}
+
+	var callFuncSendMessageGroup server.HandlerFunc
+	if groupEndpoint != nil {
+		callFuncSendMessageGroup = SendMessageGroupSqueeze(groupEndpoint.SendMessageGroup)
+	}
+
+	handlers[hash.HandlerHash{0xDB, 0xE4, 0x60, 0x89}] = &server.Handler{
+		CallFuncHandler: callFuncSendMessageGroup,
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &SendMessageGroupReq{},
+		ResponseMsgType: &SendMessageGroupResp{},
+		Tags:            tagsByHandlerName["SendMessageGroup"],
 	}
 
 	return handlers
@@ -584,53 +3550,221 @@ func GetHandlers(reverse Reverse) map[hash.HandlerHash]*server.Handler {
 func GetEmptyHandlers() map[hash.HandlerHash]*server.Handler {
 	handlers := make(map[hash.HandlerHash]*server.Handler)
 
-	handlers[hash.HandlerHash{0x90, 0xA, 0xDC, 0x45}] = &server.Handler{
+	handlers[hash.HandlerHash{0x8D, 0x29, 0x10, 0xB8}] = &server.Handler{
 		HandlerType:     server.HandlerT,
-		RequestMsgType:  &ReverseMagicStringRequest{},
-		ResponseMsgType: &ReverseMagicStringResponse{},
+		RequestMsgType:  &SendCodeRequest{},
+		ResponseMsgType: &SendCodeResponse{},
 	}
 
-	handlers[hash.HandlerHash{0xCB, 0xB1, 0x2D, 0x3D}] = &server.Handler{
+	handlers[hash.HandlerHash{0xC8, 0x46, 0x91, 0xDA}] = &server.Handler{
 		HandlerType:     server.HandlerT,
-		RequestMsgType:  &ReverseMagicStringRequest{},
-		ResponseMsgType: &ReverseMagicStringResponse{},
+		RequestMsgType:  &HandleCodeRequest{},
+		ResponseMsgType: &HandleCodeResponse{},
+	}
+
+	handlers[hash.HandlerHash{0xE6, 0xF3, 0x96, 0x42}] = &server.Handler{
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &RequiredOPKRequest{},
+		ResponseMsgType: &RequiredOPKResponse{},
+	}
+
+	handlers[hash.HandlerHash{0x3, 0xB, 0x41, 0x2E}] = &server.Handler{
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &LoadOPKRequest{},
+		ResponseMsgType: &LoadOPKResponse{},
+	}
+
+	handlers[hash.HandlerHash{0x50, 0x85, 0x5D, 0xE}] = &server.Handler{
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &FindUsersByPartNicknameRequest{},
+		ResponseMsgType: &FindUsersByPartNicknameResponse{},
+	}
+
+	handlers[hash.HandlerHash{0x12, 0x90, 0xA7, 0xFE}] = &server.Handler{
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &GetInitMsgKeysRequest{},
+		ResponseMsgType: &GetInitMsgKeysResponse{},
+	}
+
+	handlers[hash.HandlerHash{0x7D, 0xCB, 0xAD, 0xA0}] = &server.Handler{
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &RegisterRequest{},
+		ResponseMsgType: &RegisterResponse{},
+	}
+
+	handlers[hash.HandlerHash{0x98, 0xF1, 0xCE, 0x10}] = &server.Handler{
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &AuthTokenRequest{},
+		ResponseMsgType: &AuthTokenResponse{},
+	}
+
+	handlers[hash.HandlerHash{0xA6, 0x7, 0x86, 0xA0}] = &server.Handler{
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &AuthCredentialsRequest{},
+		ResponseMsgType: &AuthCredentialsResponse{},
+	}
+
+	handlers[hash.HandlerHash{0x92, 0x4E, 0xFD, 0x10}] = &server.Handler{
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &SendMessagePMRequest{},
+		ResponseMsgType: &SendMessagePMResponse{},
+	}
+
+	handlers[hash.HandlerHash{0x86, 0xC2, 0xB4, 0x1A}] = &server.Handler{
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &SendInitMessagePMRequest{},
+		ResponseMsgType: &SendInitMessagePMResponse{},
+	}
+
+	handlers[hash.HandlerHash{0x28, 0xDC, 0x9C, 0xE9}] = &server.Handler{
+		HandlerType:     server.StreamT,
+		RequestMsgType:  &ListenUpdatesReq{},
+		ResponseMsgType: &ListenUpdatesResponse{},
+	}
+
+	handlers[hash.HandlerHash{0x86, 0xC, 0xAA, 0x80}] = &server.Handler{
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &ReverseStringReq{},
+		ResponseMsgType: &ReverseStringResponse{},
+	}
+
+	handlers[hash.HandlerHash{0x7C, 0x8, 0x95, 0xB1}] = &server.Handler{
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &CreateGroupReq{},
+		ResponseMsgType: &CreateGroupResponse{},
+	}
+
+	handlers[hash.HandlerHash{0xDB, 0xE4, 0x60, 0x89}] = &server.Handler{
+		HandlerType:     server.HandlerT,
+		RequestMsgType:  &SendMessageGroupReq{},
+		ResponseMsgType: &SendMessageGroupResp{},
 	}
 
 	return handlers
 }
 
-func NewServer(cfg *server.Config, logger *zap.Logger, reverse Reverse) *server.Server {
-	handlers := GetHandlers(reverse)
+func NewServer(cfg *server.Config, logger *zap.Logger, userEndpoint UserEndpoint, groupEndpoint GroupEndpoint) *server.Server {
+	handlers := GetHandlers(userEndpoint, groupEndpoint)
 
 	return server.NewServer(cfg, logger, handlers)
 }
 
 func CallClientMethod(ctx context.Context, host string, port int, serviceName string, methodName string, req message.Message) (message.Message, error) {
-	if serviceName == "Reverse" {
-		if methodName == "ReverseMagicString" {
-			client, err := NewClientReverse(host, port)
+	if serviceName == "UserEndpoint" {
+		if methodName == "SendCode" {
+			client, err := NewClientUserEndpoint(host, port)
 			if err != nil {
 				return nil, err
 			}
-			return client.ReverseMagicString(ctx, req.(*ReverseMagicStringRequest))
+			return client.SendCode(ctx, req.(*SendCodeRequest))
 		}
-		if methodName == "Rasd" {
-			client, err := NewClientReverse(host, port)
+		if methodName == "HandleCode" {
+			client, err := NewClientUserEndpoint(host, port)
 			if err != nil {
 				return nil, err
 			}
-			return client.Rasd(ctx, req.(*ReverseMagicStringRequest))
+			return client.HandleCode(ctx, req.(*HandleCodeRequest))
+		}
+		if methodName == "RequiredOPK" {
+			client, err := NewClientUserEndpoint(host, port)
+			if err != nil {
+				return nil, err
+			}
+			return client.RequiredOPK(ctx, req.(*RequiredOPKRequest))
+		}
+		if methodName == "LoadOPK" {
+			client, err := NewClientUserEndpoint(host, port)
+			if err != nil {
+				return nil, err
+			}
+			return client.LoadOPK(ctx, req.(*LoadOPKRequest))
+		}
+		if methodName == "FindUsersByPartNickname" {
+			client, err := NewClientUserEndpoint(host, port)
+			if err != nil {
+				return nil, err
+			}
+			return client.FindUsersByPartNickname(ctx, req.(*FindUsersByPartNicknameRequest))
+		}
+		if methodName == "GetInitMsgKeys" {
+			client, err := NewClientUserEndpoint(host, port)
+			if err != nil {
+				return nil, err
+			}
+			return client.GetInitMsgKeys(ctx, req.(*GetInitMsgKeysRequest))
+		}
+		if methodName == "Register" {
+			client, err := NewClientUserEndpoint(host, port)
+			if err != nil {
+				return nil, err
+			}
+			return client.Register(ctx, req.(*RegisterRequest))
+		}
+		if methodName == "AuthToken" {
+			client, err := NewClientUserEndpoint(host, port)
+			if err != nil {
+				return nil, err
+			}
+			return client.AuthToken(ctx, req.(*AuthTokenRequest))
+		}
+		if methodName == "AuthCredentials" {
+			client, err := NewClientUserEndpoint(host, port)
+			if err != nil {
+				return nil, err
+			}
+			return client.AuthCredentials(ctx, req.(*AuthCredentialsRequest))
+		}
+		if methodName == "SendMessagePM" {
+			client, err := NewClientUserEndpoint(host, port)
+			if err != nil {
+				return nil, err
+			}
+			return client.SendMessagePM(ctx, req.(*SendMessagePMRequest))
+		}
+		if methodName == "SendInitMessagePM" {
+			client, err := NewClientUserEndpoint(host, port)
+			if err != nil {
+				return nil, err
+			}
+			return client.SendInitMessagePM(ctx, req.(*SendInitMessagePMRequest))
+		}
+		if methodName == "ListenUpdates" {
+		}
+
+		if methodName == "ReverseString" {
+			client, err := NewClientUserEndpoint(host, port)
+			if err != nil {
+				return nil, err
+			}
+			return client.ReverseString(ctx, req.(*ReverseStringReq))
+		}
+	}
+
+	if serviceName == "GroupEndpoint" {
+		if methodName == "CreateGroup" {
+			client, err := NewClientGroupEndpoint(host, port)
+			if err != nil {
+				return nil, err
+			}
+			return client.CreateGroup(ctx, req.(*CreateGroupReq))
+		}
+		if methodName == "SendMessageGroup" {
+			client, err := NewClientGroupEndpoint(host, port)
+			if err != nil {
+				return nil, err
+			}
+			return client.SendMessageGroup(ctx, req.(*SendMessageGroupReq))
 		}
 	}
 
 	return nil, errors.New("unknown service or method")
 }
 
-type ClientReverse struct {
+type ClientUserEndpoint struct {
 	multiplexConnPool *multiplex_conn.MultiplexConnPool
 }
 
-func NewClientReverse(host string, port int) (*ClientReverse, error) {
+func NewClientUserEndpoint(host string, port int) (*ClientUserEndpoint, error) {
 	conn, err := net.Dial("tcp", host+":"+strconv.Itoa(port))
 	if err != nil {
 		return nil, err
@@ -641,19 +3775,19 @@ func NewClientReverse(host string, port int) (*ClientReverse, error) {
 	}
 	multiplexConnPool := multiplex_conn.NewMultiplexConnPool(conn, true)
 	multiplexConnPool.Run()
-	client := &ClientReverse{multiplexConnPool: multiplexConnPool}
+	client := &ClientUserEndpoint{multiplexConnPool: multiplexConnPool}
 	return client, nil
 }
 
-func (c *ClientReverse) ReverseMagicString(ctx context.Context, req *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error) {
+func (c *ClientUserEndpoint) SendCode(ctx context.Context, req *SendCodeRequest) (*SendCodeResponse, error) {
 	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
 	peer := peer.NewPeer(multiplexConn)
-	err := peer.SendRequestClient(hash.HandlerHash{0x90, 0xA, 0xDC, 0x45}, req)
+	err := peer.SendRequestClient(hash.HandlerHash{0x8D, 0x29, 0x10, 0xB8}, req)
 	if err != nil {
 		return nil, err
 	}
 
-	respMsg := &ReverseMagicStringResponse{}
+	respMsg := &SendCodeResponse{}
 	err = peer.ReadMessage(respMsg)
 	if err != nil {
 		return nil, err
@@ -662,15 +3796,252 @@ func (c *ClientReverse) ReverseMagicString(ctx context.Context, req *ReverseMagi
 	return respMsg, nil
 }
 
-func (c *ClientReverse) Rasd(ctx context.Context, req *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error) {
+func (c *ClientUserEndpoint) HandleCode(ctx context.Context, req *HandleCodeRequest) (*HandleCodeResponse, error) {
 	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
 	peer := peer.NewPeer(multiplexConn)
-	err := peer.SendRequestClient(hash.HandlerHash{0xCB, 0xB1, 0x2D, 0x3D}, req)
+	err := peer.SendRequestClient(hash.HandlerHash{0xC8, 0x46, 0x91, 0xDA}, req)
 	if err != nil {
 		return nil, err
 	}
 
-	respMsg := &ReverseMagicStringResponse{}
+	respMsg := &HandleCodeResponse{}
+	err = peer.ReadMessage(respMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	return respMsg, nil
+}
+
+func (c *ClientUserEndpoint) RequiredOPK(ctx context.Context, req *RequiredOPKRequest) (*RequiredOPKResponse, error) {
+	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
+	peer := peer.NewPeer(multiplexConn)
+	err := peer.SendRequestClient(hash.HandlerHash{0xE6, 0xF3, 0x96, 0x42}, req)
+	if err != nil {
+		return nil, err
+	}
+
+	respMsg := &RequiredOPKResponse{}
+	err = peer.ReadMessage(respMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	return respMsg, nil
+}
+
+func (c *ClientUserEndpoint) LoadOPK(ctx context.Context, req *LoadOPKRequest) (*LoadOPKResponse, error) {
+	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
+	peer := peer.NewPeer(multiplexConn)
+	err := peer.SendRequestClient(hash.HandlerHash{0x3, 0xB, 0x41, 0x2E}, req)
+	if err != nil {
+		return nil, err
+	}
+
+	respMsg := &LoadOPKResponse{}
+	err = peer.ReadMessage(respMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	return respMsg, nil
+}
+
+func (c *ClientUserEndpoint) FindUsersByPartNickname(ctx context.Context, req *FindUsersByPartNicknameRequest) (*FindUsersByPartNicknameResponse, error) {
+	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
+	peer := peer.NewPeer(multiplexConn)
+	err := peer.SendRequestClient(hash.HandlerHash{0x50, 0x85, 0x5D, 0xE}, req)
+	if err != nil {
+		return nil, err
+	}
+
+	respMsg := &FindUsersByPartNicknameResponse{}
+	err = peer.ReadMessage(respMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	return respMsg, nil
+}
+
+func (c *ClientUserEndpoint) GetInitMsgKeys(ctx context.Context, req *GetInitMsgKeysRequest) (*GetInitMsgKeysResponse, error) {
+	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
+	peer := peer.NewPeer(multiplexConn)
+	err := peer.SendRequestClient(hash.HandlerHash{0x12, 0x90, 0xA7, 0xFE}, req)
+	if err != nil {
+		return nil, err
+	}
+
+	respMsg := &GetInitMsgKeysResponse{}
+	err = peer.ReadMessage(respMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	return respMsg, nil
+}
+
+func (c *ClientUserEndpoint) Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
+	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
+	peer := peer.NewPeer(multiplexConn)
+	err := peer.SendRequestClient(hash.HandlerHash{0x7D, 0xCB, 0xAD, 0xA0}, req)
+	if err != nil {
+		return nil, err
+	}
+
+	respMsg := &RegisterResponse{}
+	err = peer.ReadMessage(respMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	return respMsg, nil
+}
+
+func (c *ClientUserEndpoint) AuthToken(ctx context.Context, req *AuthTokenRequest) (*AuthTokenResponse, error) {
+	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
+	peer := peer.NewPeer(multiplexConn)
+	err := peer.SendRequestClient(hash.HandlerHash{0x98, 0xF1, 0xCE, 0x10}, req)
+	if err != nil {
+		return nil, err
+	}
+
+	respMsg := &AuthTokenResponse{}
+	err = peer.ReadMessage(respMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	return respMsg, nil
+}
+
+func (c *ClientUserEndpoint) AuthCredentials(ctx context.Context, req *AuthCredentialsRequest) (*AuthCredentialsResponse, error) {
+	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
+	peer := peer.NewPeer(multiplexConn)
+	err := peer.SendRequestClient(hash.HandlerHash{0xA6, 0x7, 0x86, 0xA0}, req)
+	if err != nil {
+		return nil, err
+	}
+
+	respMsg := &AuthCredentialsResponse{}
+	err = peer.ReadMessage(respMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	return respMsg, nil
+}
+
+func (c *ClientUserEndpoint) SendMessagePM(ctx context.Context, req *SendMessagePMRequest) (*SendMessagePMResponse, error) {
+	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
+	peer := peer.NewPeer(multiplexConn)
+	err := peer.SendRequestClient(hash.HandlerHash{0x92, 0x4E, 0xFD, 0x10}, req)
+	if err != nil {
+		return nil, err
+	}
+
+	respMsg := &SendMessagePMResponse{}
+	err = peer.ReadMessage(respMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	return respMsg, nil
+}
+
+func (c *ClientUserEndpoint) SendInitMessagePM(ctx context.Context, req *SendInitMessagePMRequest) (*SendInitMessagePMResponse, error) {
+	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
+	peer := peer.NewPeer(multiplexConn)
+	err := peer.SendRequestClient(hash.HandlerHash{0x86, 0xC2, 0xB4, 0x1A}, req)
+	if err != nil {
+		return nil, err
+	}
+
+	respMsg := &SendInitMessagePMResponse{}
+	err = peer.ReadMessage(respMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	return respMsg, nil
+}
+
+func (c *ClientUserEndpoint) ListenUpdates(ctx context.Context, req *ListenUpdatesReq) (*peer.Peer, error) {
+	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
+	peer := peer.NewPeer(multiplexConn)
+	err := peer.SendRequestClient(hash.HandlerHash{0x28, 0xDC, 0x9C, 0xE9}, req)
+	if err != nil {
+		return nil, err
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	return peer, nil
+}
+
+func (c *ClientUserEndpoint) ReverseString(ctx context.Context, req *ReverseStringReq) (*ReverseStringResponse, error) {
+	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
+	peer := peer.NewPeer(multiplexConn)
+	err := peer.SendRequestClient(hash.HandlerHash{0x86, 0xC, 0xAA, 0x80}, req)
+	if err != nil {
+		return nil, err
+	}
+
+	respMsg := &ReverseStringResponse{}
+	err = peer.ReadMessage(respMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	return respMsg, nil
+}
+
+type ClientGroupEndpoint struct {
+	multiplexConnPool *multiplex_conn.MultiplexConnPool
+}
+
+func NewClientGroupEndpoint(host string, port int) (*ClientGroupEndpoint, error) {
+	conn, err := net.Dial("tcp", host+":"+strconv.Itoa(port))
+	if err != nil {
+		return nil, err
+	}
+	conn, err = handshake.ServerHandshake(conn)
+	if err != nil {
+		return nil, err
+	}
+	multiplexConnPool := multiplex_conn.NewMultiplexConnPool(conn, true)
+	multiplexConnPool.Run()
+	client := &ClientGroupEndpoint{multiplexConnPool: multiplexConnPool}
+	return client, nil
+}
+
+func (c *ClientGroupEndpoint) CreateGroup(ctx context.Context, req *CreateGroupReq) (*CreateGroupResponse, error) {
+	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
+	peer := peer.NewPeer(multiplexConn)
+	err := peer.SendRequestClient(hash.HandlerHash{0x7C, 0x8, 0x95, 0xB1}, req)
+	if err != nil {
+		return nil, err
+	}
+
+	respMsg := &CreateGroupResponse{}
+	err = peer.ReadMessage(respMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	return respMsg, nil
+}
+
+func (c *ClientGroupEndpoint) SendMessageGroup(ctx context.Context, req *SendMessageGroupReq) (*SendMessageGroupResp, error) {
+	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
+	peer := peer.NewPeer(multiplexConn)
+	err := peer.SendRequestClient(hash.HandlerHash{0xDB, 0xE4, 0x60, 0x89}, req)
+	if err != nil {
+		return nil, err
+	}
+
+	respMsg := &SendMessageGroupResp{}
 	err = peer.ReadMessage(respMsg)
 	if err != nil {
 		return nil, err
