@@ -91,7 +91,7 @@ func (p *MultiplexConnPool) Run() {
 			select {
 			case toWriteMsg := <-p.toWriteQueue:
 				dataWithRequestID := make([]byte, 0, len(toWriteMsg.Data)+2)
-				dataWithRequestID = append(dataWithRequestID, byte(uint16(toWriteMsg.RequestID)), byte(uint16(toWriteMsg.RequestID)>>8))
+				dataWithRequestID = append(dataWithRequestID, byte(uint16(toWriteMsg.RequestID)>>8), byte(uint16(toWriteMsg.RequestID)))
 				dataWithRequestID = append(dataWithRequestID, toWriteMsg.Data...)
 
 				_, err := p.tcpConn.Write(dataWithRequestID)
@@ -140,7 +140,7 @@ func (p *MultiplexConnPool) Run() {
 
 			buf = buf[:n]
 
-			requestID := uint16(buf[0]) | uint16(buf[1])<<8
+			requestID := uint16(buf[0])<<8 | uint16(buf[1])
 			p.multiplexConnByRequestIDMx.Lock()
 			if multiplexConn, ok := p.multiplexConnByRequestID[uint32(requestID)]; ok {
 				multiplexConn.readQueue <- buf[2:]
