@@ -143,13 +143,15 @@ func (p *MultiplexConnPool) Run() {
 			requestID := uint16(buf[0])<<8 | uint16(buf[1])
 			p.multiplexConnByRequestIDMx.Lock()
 			if multiplexConn, ok := p.multiplexConnByRequestID[uint32(requestID)]; ok {
-				multiplexConn.readQueue <- buf[2:]
+				select {
+				case multiplexConn.readQueue <- buf[2:]:
+				}
 			} else {
 				newMultiplexConn := &MultiplexConn{
 					requestID:          uint32(requestID),
 					localAddr:          p.tcpConn.LocalAddr(),
 					remoteAddr:         p.tcpConn.RemoteAddr(),
-					readQueue:          make(chan []byte, 5),
+					readQueue:          make(chan []byte, 500),
 					writeQueue:         p.toWriteQueue,
 					errChan:            make(chan error),
 					connReservedDataMx: sync.Mutex{},
