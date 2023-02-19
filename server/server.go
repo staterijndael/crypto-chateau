@@ -123,7 +123,7 @@ func (s *Server) handleConnPool(ctx context.Context, connPool *multiplex_conn.Mu
 	for !isFinished {
 		select {
 		case newConn := <-newMultiplexConnsChan:
-			connPool.SetRawTCPReadDeadline(time.Now().Add(5 * time.Minute))
+			connPool.SetRawTCPDeadline(time.Now().Add(5 * time.Minute))
 			go func() {
 				multiplexPeer := peer.NewPeer(newConn)
 				err := s.handleMethod(ctx, multiplexPeer)

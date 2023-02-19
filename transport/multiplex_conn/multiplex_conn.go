@@ -73,8 +73,8 @@ func (p *MultiplexConnPool) NewMultiplexConn() *MultiplexConn {
 	return newMultiplexConn
 }
 
-func (p *MultiplexConnPool) SetRawTCPReadDeadline(t time.Time) error {
-	return p.tcpConn.SetReadDeadline(t)
+func (p *MultiplexConnPool) SetRawTCPDeadline(t time.Time) error {
+	return p.tcpConn.SetDeadline(t)
 }
 
 func (p *MultiplexConnPool) Close() {
