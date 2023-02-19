@@ -112,6 +112,7 @@ func (s *Server) handleRequest(ctx context.Context, peer *peer.Peer) {
 	}
 
 	multiplexConnPool := multiplex_conn.NewMultiplexConnPool(peer.Pipe.GetConn(), false)
+	multiplexConnPool.SetRawTCPDeadline(time.Now().Add(5 * time.Minute))
 	multiplexConnPool.Run()
 
 	s.handleConnPool(ctx, multiplexConnPool)
