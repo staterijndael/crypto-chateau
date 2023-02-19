@@ -112,7 +112,13 @@ func (s *Server) handleRequest(ctx context.Context, peer *peer.Peer) {
 	}
 
 	multiplexConnPool := multiplex_conn.NewMultiplexConnPool(peer.Pipe.GetConn(), false)
-	multiplexConnPool.SetRawTCPDeadline(time.Now().Add(5 * time.Minute))
+	err = multiplexConnPool.SetRawTCPDeadline(time.Now().Add(5 * time.Minute))
+	if err != nil {
+		s.logger.Info("error set raw tcp deadline for conn poll",
+			zap.Error(err),
+		)
+		return
+	}
 	multiplexConnPool.Run()
 
 	s.handleConnPool(ctx, multiplexConnPool)
@@ -124,7 +130,13 @@ func (s *Server) handleConnPool(ctx context.Context, connPool *multiplex_conn.Mu
 	for !isFinished {
 		select {
 		case newConn := <-newMultiplexConnsChan:
-			connPool.SetRawTCPDeadline(time.Now().Add(5 * time.Minute))
+			err := connPool.SetRawTCPDeadline(time.Now().Add(5 * time.Minute))
+			if err != nil {
+				s.logger.Info("error set raw tcp deadline for conn poll",
+					zap.Error(err),
+				)
+				return
+			}
 			go func() {
 				multiplexPeer := peer.NewPeer(newConn)
 				err := s.handleMethod(ctx, multiplexPeer)
