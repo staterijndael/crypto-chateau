@@ -56,6 +56,7 @@ func fillImports() {
 		
 			"github.com/pkg/errors"
 			"go.uber.org/zap"
+			"time"
 		
 			"github.com/oringik/crypto-chateau/gen/conv"
 			"github.com/oringik/crypto-chateau/gen/hash"
@@ -93,6 +94,7 @@ func fillClients() {
 		result += "\t\treturn nil, err\n"
 		result += "\t}\n"
 		result += "multiplexConnPool := multiplex_conn.NewMultiplexConnPool(conn, true)\n"
+		result += "multiplexConnPool.SetRawTCPDeadline(time.Now().Add(5 * time.Minute))\n"
 		result += "multiplexConnPool.Run()\n"
 		result += "client := &Client" + service.Name + "{multiplexConnPool: multiplexConnPool}\n"
 		result += "return client, nil\n"
@@ -146,6 +148,7 @@ func fillClients() {
 			result += "error)"
 			result += "{\n"
 			result += "multiplexConn := c.multiplexConnPool.NewMultiplexConn()\n"
+			result += "c.multiplexConnPool.SetRawTCPDeadline(time.Now().Add(5 * time.Minute))\n"
 			result += "peer := peer.NewPeer(multiplexConn)\n"
 			result += "\terr := peer.SendRequestClient(" + "hash.HandlerHash{" + method.Hash.Code() + "}, " + method.Params[0].Name + ")\n"
 			result += "\t if err != nil{\n"

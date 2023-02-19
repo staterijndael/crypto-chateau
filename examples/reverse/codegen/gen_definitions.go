@@ -9,6 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"time"
 
 	"github.com/oringik/crypto-chateau/gen/conv"
 	"github.com/oringik/crypto-chateau/gen/hash"
@@ -647,6 +648,7 @@ func NewClientReverse(host string, port int) (*ClientReverse, error) {
 		return nil, err
 	}
 	multiplexConnPool := multiplex_conn.NewMultiplexConnPool(conn, true)
+	multiplexConnPool.SetRawTCPDeadline(time.Now().Add(5 * time.Minute))
 	multiplexConnPool.Run()
 	client := &ClientReverse{multiplexConnPool: multiplexConnPool}
 	return client, nil
@@ -654,6 +656,7 @@ func NewClientReverse(host string, port int) (*ClientReverse, error) {
 
 func (c *ClientReverse) ReverseMagicString(ctx context.Context, req *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error) {
 	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
+	c.multiplexConnPool.SetRawTCPDeadline(time.Now().Add(5 * time.Minute))
 	peer := peer.NewPeer(multiplexConn)
 	err := peer.SendRequestClient(hash.HandlerHash{0x90, 0xA, 0xDC, 0x45}, req)
 	if err != nil {
@@ -671,6 +674,7 @@ func (c *ClientReverse) ReverseMagicString(ctx context.Context, req *ReverseMagi
 
 func (c *ClientReverse) Rasd(ctx context.Context, req *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error) {
 	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
+	c.multiplexConnPool.SetRawTCPDeadline(time.Now().Add(5 * time.Minute))
 	peer := peer.NewPeer(multiplexConn)
 	err := peer.SendRequestClient(hash.HandlerHash{0xCB, 0xB1, 0x2D, 0x3D}, req)
 	if err != nil {
@@ -700,6 +704,7 @@ func NewClientReverse2(host string, port int) (*ClientReverse2, error) {
 		return nil, err
 	}
 	multiplexConnPool := multiplex_conn.NewMultiplexConnPool(conn, true)
+	multiplexConnPool.SetRawTCPDeadline(time.Now().Add(5 * time.Minute))
 	multiplexConnPool.Run()
 	client := &ClientReverse2{multiplexConnPool: multiplexConnPool}
 	return client, nil
