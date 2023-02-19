@@ -86,13 +86,12 @@ func (p *MultiplexConnPool) ListenClients() chan *MultiplexConn {
 }
 
 func (p *MultiplexConnPool) Run() {
-	mxWrite := sync.Mutex{}
-	mxRead := sync.Mutex{}
+	mx := sync.Mutex{}
 	go func() {
 		for {
 			select {
 			case toWriteMsg := <-p.toWriteQueue:
-				mxWrite.Lock()
+				mx.Lock()
 				dataWithRequestID := make([]byte, 0, len(toWriteMsg.Data)+2)
 				dataWithRequestID = append(dataWithRequestID, byte(uint16(toWriteMsg.RequestID)>>8), byte(uint16(toWriteMsg.RequestID)))
 				dataWithRequestID = append(dataWithRequestID, toWriteMsg.Data...)
@@ -101,7 +100,7 @@ func (p *MultiplexConnPool) Run() {
 				p.multiplexConnByRequestIDMx.RLock()
 				multiplexConn, ok := p.multiplexConnByRequestID[toWriteMsg.RequestID]
 				if !ok {
-					mxWrite.Unlock()
+					mx.Unlock()
 					fmt.Println("multiplex conn not found: requestID: " + strconv.Itoa(int(toWriteMsg.RequestID)))
 					p.multiplexConnByRequestIDMx.RUnlock()
 					continue
@@ -109,7 +108,7 @@ func (p *MultiplexConnPool) Run() {
 				p.multiplexConnByRequestIDMx.RUnlock()
 
 				multiplexConn.errChan <- err
-				mxWrite.Unlock()
+				mx.Unlock()
 			case requestID := <-p.closeConnsCh:
 				p.multiplexConnByRequestIDMx.Lock()
 				multiplexConn, ok := p.multiplexConnByRequestID[requestID]
@@ -131,18 +130,18 @@ func (p *MultiplexConnPool) Run() {
 
 	go func() {
 		for {
-			mxRead.Lock()
+			mx.Lock()
 			buf := make([]byte, 4096)
 			n, err := p.tcpConn.Read(buf)
 			if err != nil {
 				p.tcpConn.Close()
-				mxRead.Unlock()
+				mx.Unlock()
 				return
 			}
 
 			if n == 0 {
 				p.tcpConn.Close()
-				mxRead.Unlock()
+				mx.Unlock()
 				break
 			}
 
@@ -174,7 +173,7 @@ func (p *MultiplexConnPool) Run() {
 				p.listenClients <- newMultiplexConn
 			}
 			p.multiplexConnByRequestIDMx.Unlock()
-			mxRead.Unlock()
+			mx.Unlock()
 		}
 	}()
 }
