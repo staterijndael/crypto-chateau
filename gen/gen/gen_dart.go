@@ -27,18 +27,15 @@ func GenerateDefinitionsDart(astLocal *ast2.Ast) string {
 }
 
 func fillImportsDart() {
-	resultDart += "import 'dart:convert';\n"
-	resultDart += "import 'dart:async';\n"
-	resultDart += "import 'dart:typed_data';\n"
-	resultDart += "import 'package:crypto_chateau_dart/client/models.dart';\n"
-	resultDart += "import 'package:crypto_chateau_dart/client/conv.dart';\n"
-	resultDart += "import 'package:crypto_chateau_dart/transport/peer.dart';\n"
-	resultDart += "import 'package:crypto_chateau_dart/transport/pipe.dart';\n"
-	resultDart += "import 'dart:io';\n"
-	resultDart += "import 'package:crypto_chateau_dart/client/binary_iterator.dart';\n"
-	resultDart += "import 'package:crypto_chateau_dart/transport/conn.dart';\n"
-	resultDart += "import 'package:crypto_chateau_dart/transport/multiplex_conn.dart';\n"
-	resultDart += "import 'package:crypto_chateau_dart/transport/handler.dart';\n\n"
+	resultDart += `
+import 'dart:async';
+import 'dart:typed_data';
+import 'package:crypto_chateau_dart/client/models.dart';
+import 'package:crypto_chateau_dart/client/conv.dart';
+import 'package:crypto_chateau_dart/transport/connection/connection.dart';
+import 'package:crypto_chateau_dart/client/binary_iterator.dart';
+import 'package:crypto_chateau_dart/transport/handler.dart';
+`
 }
 
 func fillHandlerHash() {
@@ -106,17 +103,6 @@ func fillMethodsDart() {
   }
 }` + "\n\n"
 
-	resultDart += `class ConnectParams {
-  String host;
-  int port;
-  bool isEncryptionEnabled;
-
-  ConnectParams(
-      {required this.host,
-      required this.port,
-      required this.isEncryptionEnabled});
-}` + "\n\n"
-
 	resultDart += `
 class Client {
   final ConnectParams connectParams;
@@ -139,9 +125,7 @@ class Client {
       pool: MultiplexRequestLoop(connection),
     );
   }
-
-  Future<ReverseStringResponse> reverseString(ReverseStringReq request) => _pool.sendRequest(HandlerHash(hash: [0x86, 0xC, 0xAA, 0x80]), request, ReverseStringResponse(Res: ''));
-}`
+`
 	resultDart += "// handlers\n\n"
 	for _, service := range astDart.Chateau.Services {
 		for _, method := range service.Methods {
