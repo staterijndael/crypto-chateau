@@ -130,9 +130,8 @@ class Client {
 	for _, service := range astDart.Chateau.Services {
 		for _, method := range service.Methods {
 			if method.MethodType == ast2.Handler {
-				resultDart += fmt.Sprintf("\tFuture<%s> %s(%s request) async {\n", method.Returns[0].Type.ObjectName, strings.ToLower(method.Name[:1])+method.Name[1:], method.Params[0].Type.ObjectName)
-				resultDart += fmt.Sprintf("\t\t_pool.sendRequest(HandlerHash(hash:[%s]), request, %s(%s));\n", method.Hash.Code(), method.Returns[0].Type.ObjectName, ast2.FillDefaultObjectValues(astDart.Chateau.ObjectDefinitionByObjectName, method.Returns[0].Type.ObjectName))
-				resultDart += fmt.Sprintf("\t}\n\n")
+				resultDart += fmt.Sprintf("\tFuture<%s> %s(%s request) => ", method.Returns[0].Type.ObjectName, strings.ToLower(method.Name[:1])+method.Name[1:], method.Params[0].Type.ObjectName)
+				resultDart += fmt.Sprintf("_pool.sendRequest(HandlerHash(hash:[%s]), request, %s(%s));\n", method.Hash.Code(), method.Returns[0].Type.ObjectName, ast2.FillDefaultObjectValues(astDart.Chateau.ObjectDefinitionByObjectName, method.Returns[0].Type.ObjectName))
 			} else if method.MethodType == ast2.Stream {
 				resultDart += fmt.Sprintf("\tPeer %s() {\n", strings.ToLower(method.Name[:1])+method.Name[1:])
 				resultDart += fmt.Sprintf("\t\treturn peer;\n")
