@@ -117,36 +117,37 @@ func fillMethodsDart() {
       required this.isEncryptionEnabled});
 }` + "\n\n"
 
-	resultDart += "class Client {\n"
-	resultDart += "\tConnectParams connectParams;\n\n"
-	resultDart += "\tlate Peer peer;\n"
-	resultDart += "\tlate MultiplexConnPool pool;\n"
-	resultDart += "\tCompleter<void>? _completer;"
-	resultDart += "\tClient({required this.connectParams}){\n"
-	resultDart += "\t\t_completer = _createCompleter();\n"
-	resultDart += "\t}\n"
-	resultDart += `  Completer<void> _createCompleter() {
-    _connect();
-    return Completer<void>();
+	resultDart += `
+class Client {
+  final ConnectParams connectParams;
+  final MultiplexRequestLoop _pool;
+
+  const Client._({
+    required this.connectParams,
+    required MultiplexRequestLoop pool,
+  }) : _pool = pool;
+
+  factory Client({
+    required ConnectParams connectParams,
+  }) {
+    final encryption = Encryption();
+    final connection =
+    Connection.root(connectParams).pipe().cipher(encryption).handshake(encryption).multiplex().pipe();
+
+    return Client._(
+      connectParams: connectParams,
+      pool: MultiplexRequestLoop(connection),
+    );
   }
 
-  Future<void> _connect() async {
-     Socket tcpConn =
-        await Socket.connect(connectParams.host, connectParams.port);
-    Peer peer = Peer(Pipe(Conn(tcpConn)));
-    await peer.establishSecureConn();
-    pool = MultiplexConnPool(peer.pipe.tcpConn, true);
-    pool.run();
-    _completer!.complete();
-  }
-
-  Future<void> get connected => _completer!.future;`
+  Future<ReverseStringResponse> reverseString(ReverseStringReq request) => _pool.sendRequest(HandlerHash(hash: [0x86, 0xC, 0xAA, 0x80]), request, ReverseStringResponse(Res: ''));
+}`
 	resultDart += "// handlers\n\n"
 	for _, service := range astDart.Chateau.Services {
 		for _, method := range service.Methods {
 			if method.MethodType == ast2.Handler {
 				resultDart += fmt.Sprintf("\tFuture<%s> %s(%s request) async {\n", method.Returns[0].Type.ObjectName, strings.ToLower(method.Name[:1])+method.Name[1:], method.Params[0].Type.ObjectName)
-				resultDart += fmt.Sprintf("\t\t_pool.sendRequest(HandlerHash(hash:[%s]), request, %s(%s));", method.Hash.Code(), method.Returns[0].Type.ObjectName, ast2.FillDefaultObjectValues(astDart.Chateau.ObjectDefinitionByObjectName, method.Returns[0].Type.ObjectName))
+				resultDart += fmt.Sprintf("\t\t_pool.sendRequest(HandlerHash(hash:[%s]), request, %s(%s));\n", method.Hash.Code(), method.Returns[0].Type.ObjectName, ast2.FillDefaultObjectValues(astDart.Chateau.ObjectDefinitionByObjectName, method.Returns[0].Type.ObjectName))
 				resultDart += fmt.Sprintf("\t}\n\n")
 			} else if method.MethodType == ast2.Stream {
 				resultDart += fmt.Sprintf("\tPeer %s() {\n", strings.ToLower(method.Name[:1])+method.Name[1:])
