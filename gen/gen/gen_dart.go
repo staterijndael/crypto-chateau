@@ -146,7 +146,7 @@ func fillMethodsDart() {
 		for _, method := range service.Methods {
 			if method.MethodType == ast2.Handler {
 				resultDart += fmt.Sprintf("\tFuture<%s> %s(%s request) async {\n", method.Returns[0].Type.ObjectName, strings.ToLower(method.Name[:1])+method.Name[1:], method.Params[0].Type.ObjectName)
-				resultDart += fmt.Sprintf("\t\t_pool.sendRequest(HandlerHash(hash:[%s]), request, %s);", method.Hash.Code(), method.Returns[0].Type.ObjectName)
+				resultDart += fmt.Sprintf("\t\t_pool.sendRequest(HandlerHash(hash:[%s]), request, %s(%s));", method.Hash.Code(), method.Returns[0].Type.ObjectName, ast2.FillDefaultObjectValues(astDart.Chateau.ObjectDefinitionByObjectName, method.Returns[0].Type.ObjectName))
 				resultDart += fmt.Sprintf("\t}\n\n")
 			} else if method.MethodType == ast2.Stream {
 				resultDart += fmt.Sprintf("\tPeer %s() {\n", strings.ToLower(method.Name[:1])+method.Name[1:])
