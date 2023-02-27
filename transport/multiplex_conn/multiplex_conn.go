@@ -127,7 +127,6 @@ func (p *MultiplexConnPool) Run() {
 	go func() {
 		for {
 			buf := make([]byte, 4096)
-			p.tcpConn.SetDeadline(time.Now().Add(5 * time.Minute))
 			n, err := p.tcpConn.Read(buf)
 			if err != nil {
 				p.tcpConn.Close()

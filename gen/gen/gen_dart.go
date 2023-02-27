@@ -146,11 +146,7 @@ func fillMethodsDart() {
 		for _, method := range service.Methods {
 			if method.MethodType == ast2.Handler {
 				resultDart += fmt.Sprintf("\tFuture<%s> %s(%s request) async {\n", method.Returns[0].Type.ObjectName, strings.ToLower(method.Name[:1])+method.Name[1:], method.Params[0].Type.ObjectName)
-				resultDart += fmt.Sprintf("MultiplexConn multiplexConn = pool.newMultiplexConn();\n")
-				resultDart += fmt.Sprintf("Peer peer = Peer(Pipe(multiplexConn));\n\n")
-				resultDart += fmt.Sprintf("\t\t\tpeer.sendRequestClient(HandlerHash(hash:[%s]), request);\n", method.Hash.Code())
-				resultDart += fmt.Sprintf("\t\t\t%s resp = await peer.readMessage(%s(%s)) as %s;\n", method.Returns[0].Type.ObjectName, method.Returns[0].Type.ObjectName, ast2.FillDefaultObjectValues(astDart.Chateau.ObjectDefinitionByObjectName, method.Returns[0].Type.ObjectName), method.Returns[0].Type.ObjectName)
-				resultDart += "\t\t\treturn resp;\n"
+				resultDart += fmt.Sprintf("\t\t_pool.sendRequest(request);")
 				resultDart += fmt.Sprintf("\t}\n\n")
 			} else if method.MethodType == ast2.Stream {
 				resultDart += fmt.Sprintf("\tPeer %s() {\n", strings.ToLower(method.Name[:1])+method.Name[1:])
