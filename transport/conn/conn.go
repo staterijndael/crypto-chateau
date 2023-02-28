@@ -58,13 +58,6 @@ func (cn *Conn) EnableEncryption(sharedKey [32]byte) error {
 }
 
 func (cn *Conn) Write(p []byte) (int, error) {
-	if cn.cfg.WriteDeadline > 0 {
-		err := cn.SetWriteDeadline(time.Now().Add(cn.cfg.WriteDeadline))
-		if err != nil {
-			return 0, err
-		}
-	}
-
 	if cn.encryption.enabled {
 		encryptedData, err := aes_256.Encrypt(p, cn.encryption.sharedKey)
 		if err != nil {
@@ -102,13 +95,6 @@ func (cn *Conn) Read(b []byte) (int, error) {
 		return len(cn.connReservedData), nil
 	}
 	cn.connReservedDataMx.Unlock()
-
-	if cn.cfg.ReadDeadline > 0 {
-		err := cn.SetReadDeadline(time.Now().Add(cn.cfg.ReadDeadline))
-		if err != nil {
-			return 0, err
-		}
-	}
 
 	fullMsg, err := cn.msgController.GetFullMessage(cn.tcpConn, len(b), 4096)
 	if err != nil {
