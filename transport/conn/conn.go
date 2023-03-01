@@ -2,6 +2,7 @@ package conn
 
 import (
 	"errors"
+	"fmt"
 	"github.com/oringik/crypto-chateau/aes-256"
 	"github.com/oringik/crypto-chateau/transport"
 	"github.com/oringik/crypto-chateau/transport/message"
@@ -76,6 +77,8 @@ func (cn *Conn) Write(p []byte) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+
+	fmt.Println(string(dataWithLength))
 
 	return n, nil
 }
