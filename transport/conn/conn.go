@@ -78,7 +78,7 @@ func (cn *Conn) Write(p []byte) (int, error) {
 		return 0, err
 	}
 
-	fmt.Println(string(dataWithLength))
+	fmt.Println(dataWithLength)
 
 	return n, nil
 }
