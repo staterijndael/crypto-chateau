@@ -44,6 +44,8 @@ class {{.Name | ToCamel}} implements Message {
   {{.Name | ToCamel}}();
   {{end}}
 
+  {{.Name | ToCamel}} Copy() => {{.Name | ToCamel}}({{printf "%s" (FillDefaultObjectParams (.Name))}});
+
   Uint8List Marshal() {
       List<int> b = [];
 

@@ -1,16 +1,11 @@
-import 'dart:convert';
+
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:crypto_chateau_dart/client/models.dart';
 import 'package:crypto_chateau_dart/client/conv.dart';
-import 'package:crypto_chateau_dart/transport/peer.dart';
-import 'package:crypto_chateau_dart/transport/pipe.dart';
-import 'dart:io';
+import 'package:crypto_chateau_dart/transport/connection/connection.dart';
 import 'package:crypto_chateau_dart/client/binary_iterator.dart';
-import 'package:crypto_chateau_dart/transport/conn.dart';
-import 'package:crypto_chateau_dart/transport/multiplex_conn.dart';
 import 'package:crypto_chateau_dart/transport/handler.dart';
-
 var handlerHashMap = {
 	"Reverse":{
 		"ReverseMagicString":[0x90, 0xA, 0xDC, 0x45],
@@ -51,59 +46,33 @@ extension ExtendList<T> on List<T> {
   }
 }
 
-class ConnectParams {
-  String host;
-  int port;
-  bool isEncryptionEnabled;
-
-  ConnectParams(
-      {required this.host,
-      required this.port,
-      required this.isEncryptionEnabled});
-}
 
 class Client {
-	ConnectParams connectParams;
+  final ConnectParams connectParams;
+  final MultiplexRequestLoop _pool;
 
-	late Peer peer;
-	late MultiplexConnPool pool;
-	Completer<void>? _completer;	Client({required this.connectParams}){
-		_completer = _createCompleter();
-	}
-  Completer<void> _createCompleter() {
-    _connect();
-    return Completer<void>();
+  const Client._({
+    required this.connectParams,
+    required MultiplexRequestLoop pool,
+  }) : _pool = pool;
+
+  factory Client({
+    required ConnectParams connectParams,
+  }) {
+    final encryption = Encryption();
+    final connection =
+    Connection.root(connectParams).pipe().cipher(encryption).handshake(encryption).multiplex().pipe();
+
+    return Client._(
+      connectParams: connectParams,
+      pool: MultiplexRequestLoop(connection),
+    );
   }
+// handlers
 
-  Future<void> _connect() async {
-     Socket tcpConn =
-        await Socket.connect(connectParams.host, connectParams.port);
-    Peer peer = Peer(Pipe(Conn(tcpConn)));
-    await peer.establishSecureConn();
-    pool = MultiplexConnPool(peer.pipe.tcpConn, true);
-    pool.run();
-    _completer!.complete();
-  }
+	Future<ReverseMagicStringResponse> reverseMagicString(ReverseMagicStringRequest request) => _pool.sendRequest(HandlerHash(hash:[0x90, 0xA, 0xDC, 0x45]), request, ReverseMagicStringResponse(ReversedMagicString: "",MagicInt8: 0,MagicInt16: 0,MagicInt32: 0,MagicInt64: 0,MagicUInt8: 0,MagicUInt16: 0,MagicUInt32: 0,MagicUInt64: 0,MagicBool: true,MagicBytes: List.filled(0, 0xff, growable: true),MagicObject: ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true)),MagicObjectArray: List.filled(0, ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true)), growable: true)));
 
-  Future<void> get connected => _completer!.future;// handlers
-
-	Future<ReverseMagicStringResponse> reverseMagicString(ReverseMagicStringRequest request) async {
-MultiplexConn multiplexConn = pool.newMultiplexConn();
-Peer peer = Peer(Pipe(multiplexConn));
-
-			peer.sendRequestClient(HandlerHash(hash:[0x90, 0xA, 0xDC, 0x45]), request);
-			ReverseMagicStringResponse resp = await peer.readMessage(ReverseMagicStringResponse(ReversedMagicString: "",MagicInt8: 0,MagicInt16: 0,MagicInt32: 0,MagicInt64: 0,MagicUInt8: 0,MagicUInt16: 0,MagicUInt32: 0,MagicUInt64: 0,MagicBool: true,MagicBytes: List.filled(0, 0xff, growable: true),MagicObject: ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true)),MagicObjectArray: List.filled(0, ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true)), growable: true))) as ReverseMagicStringResponse;
-			return resp;
-	}
-
-	Future<ReverseMagicStringResponse> rasd(ReverseMagicStringRequest request) async {
-MultiplexConn multiplexConn = pool.newMultiplexConn();
-Peer peer = Peer(Pipe(multiplexConn));
-
-			peer.sendRequestClient(HandlerHash(hash:[0xCB, 0xB1, 0x2D, 0x3D]), request);
-			ReverseMagicStringResponse resp = await peer.readMessage(ReverseMagicStringResponse(ReversedMagicString: "",MagicInt8: 0,MagicInt16: 0,MagicInt32: 0,MagicInt64: 0,MagicUInt8: 0,MagicUInt16: 0,MagicUInt32: 0,MagicUInt64: 0,MagicBool: true,MagicBytes: List.filled(0, 0xff, growable: true),MagicObject: ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true)),MagicObjectArray: List.filled(0, ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true)), growable: true))) as ReverseMagicStringResponse;
-			return resp;
-	}
+	Future<ReverseMagicStringResponse> rasd(ReverseMagicStringRequest request) => _pool.sendRequest(HandlerHash(hash:[0xCB, 0xB1, 0x2D, 0x3D]), request, ReverseMagicStringResponse(ReversedMagicString: "",MagicInt8: 0,MagicInt16: 0,MagicInt32: 0,MagicInt64: 0,MagicUInt8: 0,MagicUInt16: 0,MagicUInt32: 0,MagicUInt64: 0,MagicBool: true,MagicBytes: List.filled(0, 0xff, growable: true),MagicObject: ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true)),MagicObjectArray: List.filled(0, ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true)), growable: true)));
 
 }
 
@@ -117,6 +86,8 @@ class ReverseCommonObject implements Message {
     required this.Value,
   });
   
+
+  ReverseCommonObject Copy() => ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true));
 
   Uint8List Marshal() {
       List<int> b = [];
@@ -221,6 +192,8 @@ class ReverseMagicStringRequest implements Message {
     required this.MagicObjectArray,
   });
   
+
+  ReverseMagicStringRequest Copy() => ReverseMagicStringRequest(MagicString: "",MagicInt8: 0,MagicInt16: 0,MagicInt32: 0,MagicInt64: 0,MagicUInt8: 0,MagicUInt16: 0,MagicUInt32: 0,MagicUInt64: 0,MagicBool: true,MagicBytes: List.filled(0, 0xff, growable: true),MagicObject: ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true)),MagicObjectArray: List.filled(0, ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true)), growable: true));
 
   Uint8List Marshal() {
       List<int> b = [];
@@ -401,6 +374,8 @@ class ReverseMagicStringResponse implements Message {
     required this.MagicObjectArray,
   });
   
+
+  ReverseMagicStringResponse Copy() => ReverseMagicStringResponse(ReversedMagicString: "",MagicInt8: 0,MagicInt16: 0,MagicInt32: 0,MagicInt64: 0,MagicUInt8: 0,MagicUInt16: 0,MagicUInt32: 0,MagicUInt64: 0,MagicBool: true,MagicBytes: List.filled(0, 0xff, growable: true),MagicObject: ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true)),MagicObjectArray: List.filled(0, ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true)), growable: true));
 
   Uint8List Marshal() {
       List<int> b = [];
