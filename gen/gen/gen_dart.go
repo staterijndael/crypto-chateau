@@ -106,36 +106,39 @@ func fillMethodsDart() {
 	resultDart += `
 class Client {
   final ConnectParams connectParams;
-  final MultiplexRequestLoop _pool;
+  final Peer _peer;
 
   const Client._({
     required this.connectParams,
-    required MultiplexRequestLoop pool,
-  }) : _pool = pool;
+    required Peer peer,
+  }) : _peer = peer;
 
   factory Client({
     required ConnectParams connectParams,
   }) {
     final encryption = Encryption();
-    final connection =
-    Connection.root(connectParams).pipe().cipher(encryption).handshake(encryption).multiplex().pipe();
+    final connection = Connection.root(connectParams).pipe().cipher(encryption);
 
     return Client._(
       connectParams: connectParams,
-      pool: MultiplexRequestLoop(connection),
+      peer: Peer(
+        MultiplexConnection(
+          connection,
+        ),
+      ),
     );
   }
+
 `
 	resultDart += "// handlers\n\n"
 	for _, service := range astDart.Chateau.Services {
 		for _, method := range service.Methods {
 			if method.MethodType == ast2.Handler {
 				resultDart += fmt.Sprintf("\tFuture<%s> %s(%s request) => ", method.Returns[0].Type.ObjectName, strings.ToLower(method.Name[:1])+method.Name[1:], method.Params[0].Type.ObjectName)
-				resultDart += fmt.Sprintf("_pool.sendRequest(HandlerHash(hash:[%s]), request, %s(%s));\n\n", method.Hash.Code(), method.Returns[0].Type.ObjectName, ast2.FillDefaultObjectValues(astDart.Chateau.ObjectDefinitionByObjectName, method.Returns[0].Type.ObjectName))
+				resultDart += fmt.Sprintf("_peer.sendRequest(HandlerHash(hash:[%s]), request).then(%s.fromBytes);\n\n", method.Hash.Code(), method.Returns[0].Type.ObjectName)
 			} else if method.MethodType == ast2.Stream {
-				resultDart += fmt.Sprintf("\tPeer %s() {\n", strings.ToLower(method.Name[:1])+method.Name[1:])
-				resultDart += fmt.Sprintf("\t\treturn peer;\n")
-				resultDart += "\t}\n\n"
+				resultDart += fmt.Sprintf("\tStream<%s> %s(%s request) => ", method.Returns[0].Type.ObjectName, strings.ToLower(method.Name[:1])+method.Name[1:], method.Params[0].Type.ObjectName)
+				resultDart += fmt.Sprintf("_peer.sendStreamRequest(HandlerHash(hash:[%s]), request).map(%s.fromBytes);\n\n", method.Hash.Code(), method.Returns[0].Type.ObjectName)
 			}
 		}
 	}

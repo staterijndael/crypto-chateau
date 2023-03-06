@@ -46,6 +46,9 @@ class {{.Name | ToCamel}} implements Message {
 
   {{.Name | ToCamel}} Copy() => {{.Name | ToCamel}}({{printf "%s" (FillDefaultObjectParams (.Name))}});
 
+  static {{.Name | ToCamel}} fromBytes(Uint8List bytes) => {{.Name | ToCamel}}(
+        {{FillDefaultObjectParams (.Name)}})..Unmarshal(BinaryIterator(bytes));
+
   Uint8List Marshal() {
       List<int> b = [];
 
@@ -141,8 +144,7 @@ class {{.Name | ToCamel}} implements Message {
   	  	       {{ DartType .Type true }} {{printf "%s = %s(%s)" $outputVar (DartType .Type true) (FillDefaultObjectParams (DartType .Type true))}};
   	  	   {{end}}
           {{- template "unmarshal" dict "Type" .Type "Name" .Name "BufName" "binaryCtx.arrBuf" "OutputVar" $outputVar }}
-           {{.Name | ToCamel}}![binaryCtx.pos] = {{$outputVar}};
-           binaryCtx.pos++;
+           {{.Name | ToCamel}}!.add({{$outputVar}});
   	}
   	{{- end}}
       {{- end}}
