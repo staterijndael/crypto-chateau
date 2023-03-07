@@ -83,8 +83,8 @@ class Client {
 
 
 class ReverseCommonObject implements Message {
-  List<int> Key;
-  List<String> Value;
+  List<int>? Key;
+  List<String>? Value;
   ReverseCommonObject({
     required this.Key,
     required this.Value,
@@ -131,7 +131,9 @@ class ReverseCommonObject implements Message {
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
   	binaryCtx.pos = 0;
 
+    bool isEmptyKey = true;
   	while (binaryCtx.arrBuf.hasNext()) {
+  	        isEmptyKey = false;
   	  	   
   	  	   
   	  	       int elKey;
@@ -143,12 +145,18 @@ class ReverseCommonObject implements Message {
   
            Key!.add(elKey);
   	}
+
+  	if (isEmptyKey){
+  	    Key = null;
+  	}
   	binaryCtx.size = b.nextSize();
 
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
   	binaryCtx.pos = 0;
 
+    bool isEmptyValue = true;
   	while (binaryCtx.arrBuf.hasNext()) {
+  	        isEmptyValue = false;
   	  	   
   	  	   
   	  	       String elValue;
@@ -161,24 +169,28 @@ class ReverseCommonObject implements Message {
   
            Value!.add(elValue);
   	}
+
+  	if (isEmptyValue){
+  	    Value = null;
+  	}
   }
 
 }
 
 class ReverseMagicStringRequest implements Message {
-  String MagicString;
-  int MagicInt8;
-  int MagicInt16;
-  int MagicInt32;
-  int MagicInt64;
-  int MagicUInt8;
-  int MagicUInt16;
-  int MagicUInt32;
-  int MagicUInt64;
-  bool MagicBool;
-  List<int> MagicBytes;
-  ReverseCommonObject MagicObject;
-  List<ReverseCommonObject> MagicObjectArray;
+  String? MagicString;
+  int? MagicInt8;
+  int? MagicInt16;
+  int? MagicInt32;
+  int? MagicInt64;
+  int? MagicUInt8;
+  int? MagicUInt16;
+  int? MagicUInt32;
+  int? MagicUInt64;
+  bool? MagicBool;
+  List<int>? MagicBytes;
+  ReverseCommonObject? MagicObject;
+  List<ReverseCommonObject>? MagicObjectArray;
   ReverseMagicStringRequest({
     required this.MagicString,
     required this.MagicInt8,
@@ -306,7 +318,9 @@ class ReverseMagicStringRequest implements Message {
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
   	binaryCtx.pos = 0;
 
+    bool isEmptyMagicBytes = true;
   	while (binaryCtx.arrBuf.hasNext()) {
+  	        isEmptyMagicBytes = false;
   	  	   
   	  	   
   	  	       int elMagicBytes;
@@ -317,6 +331,10 @@ class ReverseMagicStringRequest implements Message {
   
   
            MagicBytes!.add(elMagicBytes);
+  	}
+
+  	if (isEmptyMagicBytes){
+  	    MagicBytes = null;
   	}
       
   
@@ -330,7 +348,9 @@ class ReverseMagicStringRequest implements Message {
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
   	binaryCtx.pos = 0;
 
+    bool isEmptyMagicObjectArray = true;
   	while (binaryCtx.arrBuf.hasNext()) {
+  	        isEmptyMagicObjectArray = false;
   	  	   
   	  	   ReverseCommonObject elMagicObjectArray = ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true));
   	  	   
@@ -342,24 +362,28 @@ class ReverseMagicStringRequest implements Message {
   
            MagicObjectArray!.add(elMagicObjectArray);
   	}
+
+  	if (isEmptyMagicObjectArray){
+  	    MagicObjectArray = null;
+  	}
   }
 
 }
 
 class ReverseMagicStringResponse implements Message {
-  String ReversedMagicString;
-  int MagicInt8;
-  int MagicInt16;
-  int MagicInt32;
-  int MagicInt64;
-  int MagicUInt8;
-  int MagicUInt16;
-  int MagicUInt32;
-  int MagicUInt64;
-  bool MagicBool;
-  List<int> MagicBytes;
-  ReverseCommonObject MagicObject;
-  List<ReverseCommonObject> MagicObjectArray;
+  String? ReversedMagicString;
+  int? MagicInt8;
+  int? MagicInt16;
+  int? MagicInt32;
+  int? MagicInt64;
+  int? MagicUInt8;
+  int? MagicUInt16;
+  int? MagicUInt32;
+  int? MagicUInt64;
+  bool? MagicBool;
+  List<int>? MagicBytes;
+  ReverseCommonObject? MagicObject;
+  List<ReverseCommonObject>? MagicObjectArray;
   ReverseMagicStringResponse({
     required this.ReversedMagicString,
     required this.MagicInt8,
@@ -487,7 +511,9 @@ class ReverseMagicStringResponse implements Message {
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
   	binaryCtx.pos = 0;
 
+    bool isEmptyMagicBytes = true;
   	while (binaryCtx.arrBuf.hasNext()) {
+  	        isEmptyMagicBytes = false;
   	  	   
   	  	   
   	  	       int elMagicBytes;
@@ -498,6 +524,10 @@ class ReverseMagicStringResponse implements Message {
   
   
            MagicBytes!.add(elMagicBytes);
+  	}
+
+  	if (isEmptyMagicBytes){
+  	    MagicBytes = null;
   	}
       
   
@@ -511,7 +541,9 @@ class ReverseMagicStringResponse implements Message {
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
   	binaryCtx.pos = 0;
 
+    bool isEmptyMagicObjectArray = true;
   	while (binaryCtx.arrBuf.hasNext()) {
+  	        isEmptyMagicObjectArray = false;
   	  	   
   	  	   ReverseCommonObject elMagicObjectArray = ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true));
   	  	   
@@ -522,6 +554,10 @@ class ReverseMagicStringResponse implements Message {
   
   
            MagicObjectArray!.add(elMagicObjectArray);
+  	}
+
+  	if (isEmptyMagicObjectArray){
+  	    MagicObjectArray = null;
   	}
   }
 

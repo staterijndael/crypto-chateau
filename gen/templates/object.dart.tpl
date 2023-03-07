@@ -31,7 +31,7 @@
 
 class {{.Name | ToCamel}} implements Message {
   {{- range .Fields}}
-  {{ .Type | DartType }} {{ .Name | ToCamel }};
+  {{ .Type | DartType }}? {{ .Name | ToCamel }};
   {{- end}}
 
   {{- if not (eq (.Fields | GetSliceLength) 0) }}
@@ -136,7 +136,9 @@ class {{.Name | ToCamel}} implements Message {
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
   	binaryCtx.pos = 0;
 
+    bool isEmpty{{.Name | ToCamel}} = true;
   	while (binaryCtx.arrBuf.hasNext()) {
+  	        isEmpty{{.Name | ToCamel}} = false;
   	  	   {{$outputVar := printf "el%s" (.Name | ToCamel) }}
   	  	   {{if eq .Type.ObjectName ""}}
   	  	       {{ DartType .Type true }} {{$outputVar}};
@@ -145,6 +147,10 @@ class {{.Name | ToCamel}} implements Message {
   	  	   {{end}}
           {{- template "unmarshal" dict "Type" .Type "Name" .Name "BufName" "binaryCtx.arrBuf" "OutputVar" $outputVar }}
            {{.Name | ToCamel}}!.add({{$outputVar}});
+  	}
+
+  	if (isEmpty{{.Name | ToCamel}}){
+  	    {{.Name | ToCamel}} = null;
   	}
   	{{- end}}
       {{- end}}
