@@ -131,9 +131,13 @@ class ReverseCommonObject implements Message {
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
   	binaryCtx.pos = 0;
 
+    
     bool isEmptyKey = true;
+    
   	while (binaryCtx.arrBuf.hasNext()) {
-  	        isEmptyKey = false;
+  	       
+  	       isEmptyKey = false;
+  	       
   	  	   
   	  	   
   	  	       int elKey;
@@ -146,17 +150,23 @@ class ReverseCommonObject implements Message {
            Key!.add(elKey);
   	}
 
+    
   	if (isEmptyKey){
   	    Key = null;
   	}
+  	
   	binaryCtx.size = b.nextSize();
 
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
   	binaryCtx.pos = 0;
 
+    
     bool isEmptyValue = true;
+    
   	while (binaryCtx.arrBuf.hasNext()) {
-  	        isEmptyValue = false;
+  	       
+  	       isEmptyValue = false;
+  	       
   	  	   
   	  	   
   	  	       String elValue;
@@ -170,9 +180,11 @@ class ReverseCommonObject implements Message {
            Value!.add(elValue);
   	}
 
+    
   	if (isEmptyValue){
   	    Value = null;
   	}
+  	
   }
 
 }
@@ -318,9 +330,9 @@ class ReverseMagicStringRequest implements Message {
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
   	binaryCtx.pos = 0;
 
-    bool isEmptyMagicBytes = true;
+    
   	while (binaryCtx.arrBuf.hasNext()) {
-  	        isEmptyMagicBytes = false;
+  	       
   	  	   
   	  	   
   	  	       int elMagicBytes;
@@ -333,9 +345,7 @@ class ReverseMagicStringRequest implements Message {
            MagicBytes!.add(elMagicBytes);
   	}
 
-  	if (isEmptyMagicBytes){
-  	    MagicBytes = null;
-  	}
+    
       
   
       binaryCtx.size = b.nextSize();
@@ -348,9 +358,9 @@ class ReverseMagicStringRequest implements Message {
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
   	binaryCtx.pos = 0;
 
-    bool isEmptyMagicObjectArray = true;
+    
   	while (binaryCtx.arrBuf.hasNext()) {
-  	        isEmptyMagicObjectArray = false;
+  	       
   	  	   
   	  	   ReverseCommonObject elMagicObjectArray = ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true));
   	  	   
@@ -363,9 +373,7 @@ class ReverseMagicStringRequest implements Message {
            MagicObjectArray!.add(elMagicObjectArray);
   	}
 
-  	if (isEmptyMagicObjectArray){
-  	    MagicObjectArray = null;
-  	}
+    
   }
 
 }
@@ -511,9 +519,9 @@ class ReverseMagicStringResponse implements Message {
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
   	binaryCtx.pos = 0;
 
-    bool isEmptyMagicBytes = true;
+    
   	while (binaryCtx.arrBuf.hasNext()) {
-  	        isEmptyMagicBytes = false;
+  	       
   	  	   
   	  	   
   	  	       int elMagicBytes;
@@ -526,9 +534,7 @@ class ReverseMagicStringResponse implements Message {
            MagicBytes!.add(elMagicBytes);
   	}
 
-  	if (isEmptyMagicBytes){
-  	    MagicBytes = null;
-  	}
+    
       
   
       binaryCtx.size = b.nextSize();
@@ -541,9 +547,9 @@ class ReverseMagicStringResponse implements Message {
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
   	binaryCtx.pos = 0;
 
-    bool isEmptyMagicObjectArray = true;
+    
   	while (binaryCtx.arrBuf.hasNext()) {
-  	        isEmptyMagicObjectArray = false;
+  	       
   	  	   
   	  	   ReverseCommonObject elMagicObjectArray = ReverseCommonObject(Key: List.filled(0, 0xff, growable: true),Value: List.filled(0, "", growable: true));
   	  	   
@@ -556,9 +562,7 @@ class ReverseMagicStringResponse implements Message {
            MagicObjectArray!.add(elMagicObjectArray);
   	}
 
-  	if (isEmptyMagicObjectArray){
-  	    MagicObjectArray = null;
-  	}
+    
   }
 
 }

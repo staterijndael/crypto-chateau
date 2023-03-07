@@ -136,9 +136,13 @@ class {{.Name | ToCamel}} implements Message {
   	binaryCtx.arrBuf = b.slice(binaryCtx.size);
   	binaryCtx.pos = 0;
 
+    {{if not (eq (.Type.ArrSize) 0) }}
     bool isEmpty{{.Name | ToCamel}} = true;
+    {{end}}
   	while (binaryCtx.arrBuf.hasNext()) {
-  	        isEmpty{{.Name | ToCamel}} = false;
+  	       {{if not (eq (.Type.ArrSize) 0) }}
+  	       isEmpty{{.Name | ToCamel}} = false;
+  	       {{end}}
   	  	   {{$outputVar := printf "el%s" (.Name | ToCamel) }}
   	  	   {{if eq .Type.ObjectName ""}}
   	  	       {{ DartType .Type true }} {{$outputVar}};
@@ -149,9 +153,11 @@ class {{.Name | ToCamel}} implements Message {
            {{.Name | ToCamel}}!.add({{$outputVar}});
   	}
 
+    {{if not (eq (.Type.ArrSize) 0) }}
   	if (isEmpty{{.Name | ToCamel}}){
   	    {{.Name | ToCamel}} = null;
   	}
+  	{{end}}
   	{{- end}}
       {{- end}}
   }
