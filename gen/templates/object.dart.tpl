@@ -31,7 +31,11 @@
 
 class {{.Name | ToCamel}} implements Message {
   {{- range .Fields}}
+  {{if or (not .Type.IsArray) (eq (.Type.ArrSize) 0)}}
+  {{ .Type | DartType }} {{ .Name | ToCamel }};
+  {{else}}
   {{ .Type | DartType }}? {{ .Name | ToCamel }};
+  {{end}}
   {{- end}}
 
   {{- if not (eq (.Fields | GetSliceLength) 0) }}

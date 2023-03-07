@@ -83,8 +83,12 @@ class Client {
 
 
 class ReverseCommonObject implements Message {
+  
   List<int>? Key;
+  
+  
   List<String>? Value;
+  
   ReverseCommonObject({
     required this.Key,
     required this.Value,
@@ -190,19 +194,45 @@ class ReverseCommonObject implements Message {
 }
 
 class ReverseMagicStringRequest implements Message {
-  String? MagicString;
-  int? MagicInt8;
-  int? MagicInt16;
-  int? MagicInt32;
-  int? MagicInt64;
-  int? MagicUInt8;
-  int? MagicUInt16;
-  int? MagicUInt32;
-  int? MagicUInt64;
-  bool? MagicBool;
-  List<int>? MagicBytes;
-  ReverseCommonObject? MagicObject;
-  List<ReverseCommonObject>? MagicObjectArray;
+  
+  String MagicString;
+  
+  
+  int MagicInt8;
+  
+  
+  int MagicInt16;
+  
+  
+  int MagicInt32;
+  
+  
+  int MagicInt64;
+  
+  
+  int MagicUInt8;
+  
+  
+  int MagicUInt16;
+  
+  
+  int MagicUInt32;
+  
+  
+  int MagicUInt64;
+  
+  
+  bool MagicBool;
+  
+  
+  List<int> MagicBytes;
+  
+  
+  ReverseCommonObject MagicObject;
+  
+  
+  List<ReverseCommonObject> MagicObjectArray;
+  
   ReverseMagicStringRequest({
     required this.MagicString,
     required this.MagicInt8,
@@ -379,19 +409,45 @@ class ReverseMagicStringRequest implements Message {
 }
 
 class ReverseMagicStringResponse implements Message {
-  String? ReversedMagicString;
-  int? MagicInt8;
-  int? MagicInt16;
-  int? MagicInt32;
-  int? MagicInt64;
-  int? MagicUInt8;
-  int? MagicUInt16;
-  int? MagicUInt32;
-  int? MagicUInt64;
-  bool? MagicBool;
-  List<int>? MagicBytes;
-  ReverseCommonObject? MagicObject;
-  List<ReverseCommonObject>? MagicObjectArray;
+  
+  String ReversedMagicString;
+  
+  
+  int MagicInt8;
+  
+  
+  int MagicInt16;
+  
+  
+  int MagicInt32;
+  
+  
+  int MagicInt64;
+  
+  
+  int MagicUInt8;
+  
+  
+  int MagicUInt16;
+  
+  
+  int MagicUInt32;
+  
+  
+  int MagicUInt64;
+  
+  
+  bool MagicBool;
+  
+  
+  List<int> MagicBytes;
+  
+  
+  ReverseCommonObject MagicObject;
+  
+  
+  List<ReverseCommonObject> MagicObjectArray;
+  
   ReverseMagicStringResponse({
     required this.ReversedMagicString,
     required this.MagicInt8,
