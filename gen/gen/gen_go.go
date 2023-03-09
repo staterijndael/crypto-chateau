@@ -157,7 +157,7 @@ func fillClients() {
 
 			if method.MethodType != ast2.Stream {
 				result += fmt.Sprintf(`
-	respMsg := &%s{}
+	respMsg := &%s{%s}
 	err = peer.ReadMessage(respMsg)
 	if err != nil{
 		return nil, err
@@ -165,7 +165,7 @@ func fillClients() {
 	
 	
 	return respMsg, nil
-`, method.Returns[0].Type.ObjectName)
+`, method.Returns[0].Type.ObjectName, ast2.FillDefaultObjectValuesGo(ast.Chateau.ObjectDefinitionByObjectName, method.Returns[0].Type.ObjectName))
 			} else {
 				result += "\tif err != nil{\n"
 				result += "\t\t return nil, err\n"
@@ -303,7 +303,7 @@ func fillObjects() error {
 
 	var genObject string
 	for _, object := range ast.Chateau.ObjectDefinitions {
-		genObject, err = ot.Gen(object)
+		genObject, err = ot.Gen(object, ast.Chateau.ObjectDefinitionByObjectName)
 		if err != nil {
 			return errors.Wrap(err, "failed to generate object")
 		}
@@ -349,10 +349,10 @@ func fillGetHandlers() {
 			result += fmt.Sprintf("\t"+`handlers[hash.HandlerHash{%s}] = &server.Handler{
 		CallFunc%s:      callFunc%s,
 		HandlerType:     %s,
-		RequestMsgType:  &%s{},
-		ResponseMsgType: &%s{},
+		RequestMsgType:  &%s{%s},
+		ResponseMsgType: &%s{%s},
 		Tags:            tagsByHandlerName["%s"],
-	}`+"\n\n", method.Hash.Code(), string(method.MethodType), method.Name, methodType, method.Params[0].Type.ObjectName, method.Returns[0].Type.ObjectName, method.Name)
+	}`+"\n\n", method.Hash.Code(), string(method.MethodType), method.Name, methodType, method.Params[0].Type.ObjectName, ast2.FillDefaultObjectValuesGo(ast.Chateau.ObjectDefinitionByObjectName, method.Params[0].Type.ObjectName), method.Returns[0].Type.ObjectName, ast2.FillDefaultObjectValuesGo(ast.Chateau.ObjectDefinitionByObjectName, method.Returns[0].Type.ObjectName), method.Name)
 		}
 	}
 	result += "\treturn handlers\n"

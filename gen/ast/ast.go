@@ -610,6 +610,18 @@ func FillDefaultObjectValues(objectDefinitions map[string]*ObjectDefinition, obj
 	return fieldsFilled
 }
 
+func FillDefaultObjectValuesGo(objectDefinitions map[string]*ObjectDefinition, objectName string) string {
+	object := objectDefinitions[objectName]
+	var fieldsFilled string
+	for i, objField := range object.Fields {
+		fieldsFilled += FillTypeWithDefaultValueGo(objField, false, true)
+		if i != len(object.Fields)-1 {
+			fieldsFilled += ","
+		}
+	}
+	return fieldsFilled
+}
+
 func FillTypeWithDefaultValue(field *Field, isArrChecked bool, isWithFieldName bool) string {
 	res := strings.ToUpper(field.Name[0:1]) + field.Name[1:] + ": "
 	if !isWithFieldName {
@@ -630,6 +642,63 @@ func FillTypeWithDefaultValue(field *Field, isArrChecked bool, isWithFieldName b
 	return res
 }
 
+func FillWithDefaultValueTypeGo(tp *TypeLink) string {
+	var res string
+	switch tp.Type {
+	case String:
+		res = `""`
+	case Int8, Int16, Int32, Int64, Uint8, Uint16, Uint32, Uint64, Int:
+		res = "0"
+	case Bool:
+		res = "true"
+	case Byte:
+		res = "0xff"
+	case Object:
+		var fieldsFilled string
+		for i, objField := range tp.ObjectLink.Fields {
+			fieldsFilled += FillTypeWithDefaultValueGo(objField, false, true)
+			if i != len(tp.ObjectLink.Fields)-1 {
+				fieldsFilled += ","
+			}
+		}
+		res = tp.ObjectName + "{" + fieldsFilled + "}"
+	}
+
+	if tp.IsArray && tp.ArrSize > 0 {
+		return "&" + res
+	}
+
+	return res
+}
+
+func FillTypeWithDefaultValueGo(field *Field, isArrChecked bool, isWithFieldName bool) string {
+	res := strings.ToUpper(field.Name[0:1]) + field.Name[1:] + ": "
+	if !isWithFieldName {
+		res = ""
+	}
+
+	if field.Type.IsArray && !isArrChecked {
+		var tp string
+		if field.Type.ObjectName != "" {
+			tp = field.Type.ObjectName
+		} else {
+			tp = AstTypeToGoType[field.Type.Type]
+		}
+
+		if field.Type.ArrSize > 0 {
+			res += "&[" + strconv.Itoa(field.Type.ArrSize) + "]" + tp + "{}"
+		} else {
+			res += "[]" + tp + "{}"
+		}
+
+		return res
+	}
+
+	res += FillWithDefaultValueTypeGo(&field.Type)
+
+	return res
+}
+
 func FillWithDefaultValueType(tp *TypeLink) string {
 	switch tp.Type {
 	case String:
@@ -643,7 +712,7 @@ func FillWithDefaultValueType(tp *TypeLink) string {
 	case Object:
 		var fieldsFilled string
 		for i, objField := range tp.ObjectLink.Fields {
-			fieldsFilled += FillTypeWithDefaultValue(objField, false, true)
+			fieldsFilled += FillTypeWithDefaultValueGo(objField, false, true)
 			if i != len(tp.ObjectLink.Fields)-1 {
 				fieldsFilled += ","
 			}

@@ -43,8 +43,10 @@ func NewObjectTemplateDart() (*ObjectTemplate, error) {
 	}, nil
 }
 
-func (t *ObjectTemplate) Gen(definition *ast.ObjectDefinition) (string, error) {
+func (t *ObjectTemplate) Gen(definition *ast.ObjectDefinition, objectDefinitionsByName map[string]*ast.ObjectDefinition) (string, error) {
 	b := bytes.NewBuffer(nil)
+
+	objectDefinitions = objectDefinitionsByName
 
 	err := t.tpl.ExecuteTemplate(b, "object.go.tpl", definition)
 	if err != nil {
@@ -88,12 +90,13 @@ var objectTemplateFunc = template.FuncMap{
 	"eqType": func(a ast.Type, b string) bool {
 		return strings.EqualFold(ast.AstTypeToGoType[a], b)
 	},
-	"GoType":                  GoType,
-	"DartType":                DartType,
-	"FillDefaultObjectParams": FillDefaultObjectParams,
-	"FillDefaultValue":        FillDefaultValue,
-	"GetSliceLength":          GetSliceLength,
-	"ToCamel":                 strcase.ToCamel,
+	"GoType":                    GoType,
+	"DartType":                  DartType,
+	"FillDefaultObjectParams":   FillDefaultObjectParams,
+	"FillDefaultObjectParamsGo": FillDefaultObjectParamsGo,
+	"FillDefaultValue":          FillDefaultValue,
+	"GetSliceLength":            GetSliceLength,
+	"ToCamel":                   strcase.ToCamel,
 }
 
 func GetSliceLength(slice any) int {
@@ -102,6 +105,10 @@ func GetSliceLength(slice any) int {
 
 func FillDefaultObjectParams(objectName string) string {
 	return ast.FillDefaultObjectValues(objectDefinitions, objectName)
+}
+
+func FillDefaultObjectParamsGo(objectName string) string {
+	return ast.FillDefaultObjectValuesGo(objectDefinitions, objectName)
 }
 
 func FillDefaultValue(t *ast.TypeLink) string {

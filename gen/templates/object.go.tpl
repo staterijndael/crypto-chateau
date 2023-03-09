@@ -2,7 +2,11 @@
 
 type {{.Name | ToCamel}} struct {
 {{- range .Fields}}
+    {{if or (not .Type.IsArray) (eq (.Type.ArrSize) 0)}}
     {{ .Name | ToCamel }} {{ .Type | GoType }}
+    {{else}}
+    {{ .Name | ToCamel }} *{{ .Type | GoType }}
+    {{end}}
 {{- end}}
 }
 
@@ -191,7 +195,12 @@ func (o *{{.Name | ToCamel}}) Unmarshal(b *conv.BinaryIterator) error {
 	{{- end}}
 	for binaryCtx.arrBuf.HasNext() {
         {{- $outputVar := printf "el%s" (.Name | ToCamel) -}}
+        {{if eqType .Type.Type "object"}}
+        var {{$outputVar}} {{ GoType .Type true }} = {{printf "%s{%s}" (.Type.ObjectName) (FillDefaultObjectParamsGo .Type.ObjectName)}}
+        {{else}}
         var {{$outputVar}} {{ GoType .Type true }}
+        {{end}}
+
         {{- template "unmarshal" dict "Type" .Type "Name" .Name "BufName" "binaryCtx.arrBuf" "OutputVar" $outputVar }}
         {{if eq .Type.ArrSize 0 -}}
         o.{{.Name | ToCamel}} = append(o.{{.Name | ToCamel}}, {{$outputVar}})
@@ -207,5 +216,5 @@ func (o *{{.Name | ToCamel}}) Unmarshal(b *conv.BinaryIterator) error {
 }
 
 func (o *{{.Name | ToCamel}}) Copy() message.Message{
-    return {{printf "&%s{}" (.Name | ToCamel)}}
+    return {{printf "&%s{%s}" (.Name | ToCamel) (FillDefaultObjectParamsGo .Name)}}
 }
