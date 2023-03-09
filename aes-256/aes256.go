@@ -29,7 +29,20 @@ func Encrypt(inputBytes []byte, key []byte) ([]byte, error) {
 			return nil, err
 		}
 
-		result = append(result, encryptedData...)
+		var cbcEncryptedData []byte
+		if batch == 1 {
+			cbcEncryptedData, err = CBCXor(encryptedData, IV)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			cbcEncryptedData, err = CBCXor(encryptedData, result[len(result)-Nb*4:])
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		result = append(result, cbcEncryptedData...)
 	}
 
 	return result, nil
@@ -49,9 +62,31 @@ func Decrypt(cipher []byte, key []byte) ([]byte, error) {
 		offset := (batch - 1) * Nb * 4
 		limit := offset + Nb*4
 
-		state := cipher[offset:limit]
+		prevOffset := (batch - 2) * Nb * 4
+		prevLimit := prevOffset + Nb*4
 
-		decryptedData, err := decrypt(state, key)
+		state := cipher[offset:limit]
+		var prevState []byte
+		if batch != 1 {
+			prevState = cipher[prevOffset:prevLimit]
+		}
+
+		var err error
+
+		var cbcDecryptedData []byte
+		if batch == 1 {
+			cbcDecryptedData, err = CBCXor(state, IV)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			cbcDecryptedData, err = CBCXor(state, prevState)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		decryptedData, err := decrypt(cbcDecryptedData, key)
 		if err != nil {
 			return nil, err
 		}

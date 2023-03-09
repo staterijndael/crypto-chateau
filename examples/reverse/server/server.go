@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/oringik/crypto-chateau/peer"
 	"time"
 
 	zap2 "go.uber.org/zap"
@@ -32,7 +33,7 @@ func main() {
 
 type ReverseEndpoint struct{}
 
-func (r *ReverseEndpoint) Rasd(ctx context.Context, req *endpoints.ReverseMagicStringRequest) (*endpoints.ReverseMagicStringResponse, error) {
+func (r *ReverseEndpoint) Rasd(ctx context.Context, peer *peer.Peer, req *endpoints.ReverseMagicStringRequest) error {
 	//TODO implement me
 	panic("implement me")
 }

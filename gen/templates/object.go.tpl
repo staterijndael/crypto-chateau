@@ -2,7 +2,11 @@
 
 type {{.Name | ToCamel}} struct {
 {{- range .Fields}}
+    {{if or (not .Type.IsArray) (eq (.Type.ArrSize) 0)}}
     {{ .Name | ToCamel }} {{ .Type | GoType }}
+    {{else}}
+    {{ .Name | ToCamel }} *{{ .Type | GoType }}
+    {{end}}
 {{- end}}
 }
 

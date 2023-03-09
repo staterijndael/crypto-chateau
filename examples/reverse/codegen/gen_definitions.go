@@ -27,7 +27,7 @@ var tagsByHandlerName = map[string]map[string]string{
 
 type Reverse interface {
 	ReverseMagicString(ctx context.Context, req *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error)
-	Rasd(ctx context.Context, req *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error)
+	Rasd(ctx context.Context, peer *peer.Peer, req *ReverseMagicStringRequest) error
 }
 
 type Reverse2 interface {
@@ -51,19 +51,20 @@ func ReverseMagicStringSqueeze(fnc func(context.Context, *ReverseMagicStringRequ
 	}
 }
 
-func RasdSqueeze(fnc func(context.Context, *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error)) server.HandlerFunc {
-	return func(ctx context.Context, msg message.Message) (message.Message, error) {
+func RasdSqueeze(fnc func(context.Context, *peer.Peer, *ReverseMagicStringRequest) error) server.StreamFunc {
+	return func(ctx context.Context, peer *peer.Peer, msg message.Message) error {
 		if _, ok := msg.(*ReverseMagicStringRequest); ok {
-			return fnc(ctx, msg.(*ReverseMagicStringRequest))
+			return fnc(ctx, peer, msg.(*ReverseMagicStringRequest))
 		} else {
-			return nil, errors.New("unknown message type: expected ReverseMagicStringRequest")
+			return errors.New("unknown message type: expected ReverseMagicStringRequest")
 		}
 	}
 }
 
 type ReverseCommonObject struct {
-	Key   [16]byte
-	Value [32]string
+	Key *[16]byte
+
+	Value *[32]string
 }
 
 var _ message.Message = (*ReverseCommonObject)(nil)
@@ -160,18 +161,30 @@ func (o *ReverseCommonObject) Copy() message.Message {
 }
 
 type ReverseMagicStringRequest struct {
-	MagicString      string
-	MagicInt8        int8
-	MagicInt16       int16
-	MagicInt32       int32
-	MagicInt64       int64
-	MagicUInt8       uint8
-	MagicUInt16      uint16
-	MagicUInt32      uint32
-	MagicUInt64      uint64
-	MagicBool        bool
-	MagicBytes       []byte
-	MagicObject      ReverseCommonObject
+	MagicString string
+
+	MagicInt8 int8
+
+	MagicInt16 int16
+
+	MagicInt32 int32
+
+	MagicInt64 int64
+
+	MagicUInt8 uint8
+
+	MagicUInt16 uint16
+
+	MagicUInt32 uint32
+
+	MagicUInt64 uint64
+
+	MagicBool bool
+
+	MagicBytes []byte
+
+	MagicObject ReverseCommonObject
+
 	MagicObjectArray []ReverseCommonObject
 }
 
@@ -359,18 +372,30 @@ func (o *ReverseMagicStringRequest) Copy() message.Message {
 
 type ReverseMagicStringResponse struct {
 	ReversedMagicString string
-	MagicInt8           int8
-	MagicInt16          int16
-	MagicInt32          int32
-	MagicInt64          int64
-	MagicUInt8          uint8
-	MagicUInt16         uint16
-	MagicUInt32         uint32
-	MagicUInt64         uint64
-	MagicBool           bool
-	MagicBytes          []byte
-	MagicObject         ReverseCommonObject
-	MagicObjectArray    []ReverseCommonObject
+
+	MagicInt8 int8
+
+	MagicInt16 int16
+
+	MagicInt32 int32
+
+	MagicInt64 int64
+
+	MagicUInt8 uint8
+
+	MagicUInt16 uint16
+
+	MagicUInt32 uint32
+
+	MagicUInt64 uint64
+
+	MagicBool bool
+
+	MagicBytes []byte
+
+	MagicObject ReverseCommonObject
+
+	MagicObjectArray []ReverseCommonObject
 }
 
 var _ message.Message = (*ReverseMagicStringResponse)(nil)
@@ -570,14 +595,14 @@ func GetHandlers(reverse Reverse, reverse2 Reverse2) map[hash.HandlerHash]*serve
 		Tags:            tagsByHandlerName["ReverseMagicString"],
 	}
 
-	var callFuncRasd server.HandlerFunc
+	var callFuncRasd server.StreamFunc
 	if reverse != nil {
 		callFuncRasd = RasdSqueeze(reverse.Rasd)
 	}
 
 	handlers[hash.HandlerHash{0xCB, 0xB1, 0x2D, 0x3D}] = &server.Handler{
-		CallFuncHandler: callFuncRasd,
-		HandlerType:     server.HandlerT,
+		CallFuncStream:  callFuncRasd,
+		HandlerType:     server.StreamT,
 		RequestMsgType:  &ReverseMagicStringRequest{},
 		ResponseMsgType: &ReverseMagicStringResponse{},
 		Tags:            tagsByHandlerName["Rasd"],
@@ -596,7 +621,7 @@ func GetEmptyHandlers() map[hash.HandlerHash]*server.Handler {
 	}
 
 	handlers[hash.HandlerHash{0xCB, 0xB1, 0x2D, 0x3D}] = &server.Handler{
-		HandlerType:     server.HandlerT,
+		HandlerType:     server.StreamT,
 		RequestMsgType:  &ReverseMagicStringRequest{},
 		ResponseMsgType: &ReverseMagicStringResponse{},
 	}
@@ -620,12 +645,8 @@ func CallClientMethod(ctx context.Context, host string, port int, serviceName st
 			return client.ReverseMagicString(ctx, req.(*ReverseMagicStringRequest))
 		}
 		if methodName == "Rasd" {
-			client, err := NewClientReverse(host, port)
-			if err != nil {
-				return nil, err
-			}
-			return client.Rasd(ctx, req.(*ReverseMagicStringRequest))
 		}
+
 	}
 
 	if serviceName == "Reverse2" {
@@ -672,7 +693,7 @@ func (c *ClientReverse) ReverseMagicString(ctx context.Context, req *ReverseMagi
 	return respMsg, nil
 }
 
-func (c *ClientReverse) Rasd(ctx context.Context, req *ReverseMagicStringRequest) (*ReverseMagicStringResponse, error) {
+func (c *ClientReverse) Rasd(ctx context.Context, req *ReverseMagicStringRequest) (*peer.Peer, error) {
 	multiplexConn := c.multiplexConnPool.NewMultiplexConn()
 	c.multiplexConnPool.SetRawTCPDeadline(time.Now().Add(5 * time.Minute))
 	peer := peer.NewPeer(multiplexConn)
@@ -681,13 +702,10 @@ func (c *ClientReverse) Rasd(ctx context.Context, req *ReverseMagicStringRequest
 		return nil, err
 	}
 
-	respMsg := &ReverseMagicStringResponse{}
-	err = peer.ReadMessage(respMsg)
 	if err != nil {
 		return nil, err
 	}
-
-	return respMsg, nil
+	return peer, nil
 }
 
 type ClientReverse2 struct {

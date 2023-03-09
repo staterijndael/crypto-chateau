@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+const saltSize = 1024
+
 type Conn struct {
 	tcpConn    net.Conn
 	cfg        ConnCfg
@@ -59,6 +61,15 @@ func (cn *Conn) EnableEncryption(sharedKey [32]byte) error {
 
 func (cn *Conn) Write(p []byte) (int, error) {
 	if cn.encryption.enabled {
+		//// add salt for cipher strength
+		//salt := make([]byte, saltSize)
+		//_, err := rand.Read(salt)
+		//if err != nil {
+		//	return 0, err
+		//}
+		//
+		//p = append(p, salt...)
+
 		encryptedData, err := aes_256.Encrypt(p, cn.encryption.sharedKey)
 		if err != nil {
 			return 0, err
@@ -107,6 +118,12 @@ func (cn *Conn) Read(b []byte) (int, error) {
 			return 0, err
 		}
 
+		//// skip salt
+		//if len(decryptedData) < saltSize {
+		//	return 0, errors.New("not enough bytes for skipping salt")
+		//}
+		//
+		//fullMsg = decryptedData[:len(decryptedData)-1-saltSize]
 		fullMsg = decryptedData
 	}
 
