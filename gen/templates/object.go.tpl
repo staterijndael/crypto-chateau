@@ -59,9 +59,15 @@ func (o *{{.Name | ToCamel}}) Marshal() []byte {
 	{{- $arrBufName := printf "arrBuf%s" (.Name | ToCamel) }}
 	{{$arrBufName}} := make([]byte, 0, 128)
 	{{- $inputVar := printf "el%s" (.Name | ToCamel) }}
+    {{if not (eq (.Type.ArrSize) 0) }}
+    if o.{{.Name | ToCamel}} != nil{
+    {{end}}
 	for _, {{$inputVar}} := range o.{{.Name | ToCamel}} {
 		{{- template "marshal" dict "Type" .Type "Name" .Name "BufName" $arrBufName "InputVar" $inputVar }}
 	}
+    {{if not (eq (.Type.ArrSize) 0) }}
+    }
+    {{end}}
 	{{- /*TODO: check if buf size exceess max payload bytes size: max(uint32) */}}
 	b = append(b, conv.ConvertSizeToBytes(len({{$arrBufName}}))...)
 	b = append(b, {{$arrBufName}}...)

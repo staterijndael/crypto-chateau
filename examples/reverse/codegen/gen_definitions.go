@@ -77,16 +77,28 @@ func (o *ReverseCommonObject) Marshal() []byte {
 	size := conv.ConvertSizeToBytes(0)
 	b = append(b, size...)
 	arrBufKey := make([]byte, 0, 128)
-	for _, elKey := range o.Key {
-		arrBufKey = append(arrBufKey, conv.ConvertByteToBytes(elKey)...)
+
+	if o.Key != nil {
+
+		for _, elKey := range o.Key {
+			arrBufKey = append(arrBufKey, conv.ConvertByteToBytes(elKey)...)
+		}
+
 	}
+
 	b = append(b, conv.ConvertSizeToBytes(len(arrBufKey))...)
 	b = append(b, arrBufKey...)
 	arrBufValue := make([]byte, 0, 128)
-	for _, elValue := range o.Value {
-		arrBufValue = append(arrBufValue, conv.ConvertSizeToBytes(len([]byte(elValue)))...)
-		arrBufValue = append(arrBufValue, conv.ConvertStringToBytes(elValue)...)
+
+	if o.Value != nil {
+
+		for _, elValue := range o.Value {
+			arrBufValue = append(arrBufValue, conv.ConvertSizeToBytes(len([]byte(elValue)))...)
+			arrBufValue = append(arrBufValue, conv.ConvertStringToBytes(elValue)...)
+		}
+
 	}
+
 	b = append(b, conv.ConvertSizeToBytes(len(arrBufValue))...)
 	b = append(b, arrBufValue...)
 
@@ -209,16 +221,20 @@ func (o *ReverseMagicStringRequest) Marshal() []byte {
 	b = append(b, conv.ConvertUint64ToBytes(o.MagicUInt64)...)
 	b = append(b, conv.ConvertBoolToBytes(o.MagicBool)...)
 	arrBufMagicBytes := make([]byte, 0, 128)
+
 	for _, elMagicBytes := range o.MagicBytes {
 		arrBufMagicBytes = append(arrBufMagicBytes, conv.ConvertByteToBytes(elMagicBytes)...)
 	}
+
 	b = append(b, conv.ConvertSizeToBytes(len(arrBufMagicBytes))...)
 	b = append(b, arrBufMagicBytes...)
 	b = append(b, o.MagicObject.Marshal()...)
 	arrBufMagicObjectArray := make([]byte, 0, 128)
+
 	for _, elMagicObjectArray := range o.MagicObjectArray {
 		arrBufMagicObjectArray = append(arrBufMagicObjectArray, elMagicObjectArray.Marshal()...)
 	}
+
 	b = append(b, conv.ConvertSizeToBytes(len(arrBufMagicObjectArray))...)
 	b = append(b, arrBufMagicObjectArray...)
 
@@ -419,16 +435,20 @@ func (o *ReverseMagicStringResponse) Marshal() []byte {
 	b = append(b, conv.ConvertUint64ToBytes(o.MagicUInt64)...)
 	b = append(b, conv.ConvertBoolToBytes(o.MagicBool)...)
 	arrBufMagicBytes := make([]byte, 0, 128)
+
 	for _, elMagicBytes := range o.MagicBytes {
 		arrBufMagicBytes = append(arrBufMagicBytes, conv.ConvertByteToBytes(elMagicBytes)...)
 	}
+
 	b = append(b, conv.ConvertSizeToBytes(len(arrBufMagicBytes))...)
 	b = append(b, arrBufMagicBytes...)
 	b = append(b, o.MagicObject.Marshal()...)
 	arrBufMagicObjectArray := make([]byte, 0, 128)
+
 	for _, elMagicObjectArray := range o.MagicObjectArray {
 		arrBufMagicObjectArray = append(arrBufMagicObjectArray, elMagicObjectArray.Marshal()...)
 	}
+
 	b = append(b, conv.ConvertSizeToBytes(len(arrBufMagicObjectArray))...)
 	b = append(b, arrBufMagicObjectArray...)
 
