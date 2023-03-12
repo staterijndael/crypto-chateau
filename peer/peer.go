@@ -90,7 +90,7 @@ func (p *Peer) ReadMessage(msg message.Message) error {
 	}
 
 	// check if message has a size
-	if offset+1+len(msgRaw) < conv.ObjectBytesPrefixLength {
+	if len(msgRaw) < offset+1+conv.ObjectBytesPrefixLength {
 		return errors.New("not enough for size and message")
 	}
 
