@@ -32,7 +32,7 @@ func NewMultiplexConnPool(tcpConn net.Conn, isClient bool) *MultiplexConnPool {
 		tcpConn:          tcpConn,
 		currentRequestID: atomic.Uint32{},
 
-		toWriteQueue: make(chan ToWriteMsg),
+		toWriteQueue: make(chan ToWriteMsg, 4096),
 
 		listenClients: make(chan *MultiplexConn),
 
@@ -191,10 +191,15 @@ type MultiplexConn struct {
 }
 
 func (cn *MultiplexConn) Write(p []byte) (int, error) {
-	cn.writeQueue <- ToWriteMsg{
+	select {
+	case cn.writeQueue <- ToWriteMsg{
 		RequestID: cn.requestID,
 		Data:      p,
+	}:
+	default:
+		return 0, errors.New("writing to multiplex conn was blocked")
 	}
+
 	err := <-cn.errChan
 
 	return len(p), err
