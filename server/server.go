@@ -104,10 +104,7 @@ func (s *Server) handleRequests(ctx context.Context, clientChan <-chan *peer.Pee
 func (s *Server) handleRequest(ctx context.Context, peer *peer.Peer) {
 	err := peer.EstablishSecureConn()
 	if err != nil {
-		s.logger.Info("error establishing secured connect",
-			zap.String("connIP", peer.Pipe.RemoteAddr().String()),
-			zap.Error(err),
-		)
+		peer.WriteError(err)
 		return
 	}
 
