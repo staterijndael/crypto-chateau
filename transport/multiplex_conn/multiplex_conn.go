@@ -203,7 +203,7 @@ func (cn *MultiplexConn) Write(p []byte) (int, error) {
 	select {
 	case err := <-cn.errChan:
 		return 0, err
-	default:
+	case <-time.After(2 * time.Second):
 		return 0, errors.New("reading from errChan in during write in multiplexConn was blocked")
 	}
 }
