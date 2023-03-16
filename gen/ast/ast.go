@@ -712,7 +712,7 @@ func FillWithDefaultValueType(tp *TypeLink) string {
 	case Object:
 		var fieldsFilled string
 		for i, objField := range tp.ObjectLink.Fields {
-			fieldsFilled += FillTypeWithDefaultValueGo(objField, false, true)
+			fieldsFilled += FillTypeWithDefaultValue(objField, false, true)
 			if i != len(tp.ObjectLink.Fields)-1 {
 				fieldsFilled += ","
 			}
