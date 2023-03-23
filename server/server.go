@@ -200,25 +200,18 @@ func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
 			}
 		}
 	case StreamT:
-		go func() {
-			err = handler.CallFuncStream(ctx, peer, requestMsg)
-			if err != nil {
-				writeErr := peer.WriteError(err)
-				if writeErr != nil {
-					fmt.Println(writeErr)
-				}
-				fmt.Println(err)
-				return
-			}
+		err = handler.CallFuncStream(ctx, peer, requestMsg)
+		if err != nil {
+			writeErr := peer.WriteError(err)
+			return writeErr
+		}
 
-			if val, ok2 := s.Handlers[handlerKey].Tags["keep_conn_alive"]; !ok2 || val != "true" {
-				err = peer.Close()
-				if err != nil {
-					fmt.Println(err)
-					return
-				}
+		if val, ok2 := s.Handlers[handlerKey].Tags["keep_conn_alive"]; !ok2 || val != "true" {
+			err = peer.Close()
+			if err != nil {
+				return err
 			}
-		}()
+		}
 	default:
 		return errors.New("incorrect handler format: InternalError")
 	}
