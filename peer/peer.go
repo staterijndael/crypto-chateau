@@ -20,12 +20,14 @@ var (
 )
 
 type Peer struct {
-	Pipe *pipe.Pipe
+	Pipe    *pipe.Pipe
+	CloseCh chan bool
 }
 
 func NewPeer(conn net.Conn) *Peer {
 	return &Peer{
-		Pipe: pipe.NewPipe(conn),
+		Pipe:    pipe.NewPipe(conn),
+		CloseCh: make(chan bool, 1),
 	}
 }
 
@@ -116,12 +118,20 @@ func (p *Peer) WriteError(err error) error {
 
 func (p *Peer) Write(data []byte) (int, error) {
 	n, err := p.Pipe.Write(data)
+	if err != nil {
+		p.CloseCh <- true
+		p.Close()
+	}
 
 	return n, err
 }
 
 func (p *Peer) Read(bufSize int) ([]byte, error) {
 	msg, err := p.Pipe.Read(pipe.PipeReadCfg{BufSize: bufSize})
+	if err != nil {
+		p.CloseCh <- true
+		p.Close()
+	}
 
 	return msg, err
 }
