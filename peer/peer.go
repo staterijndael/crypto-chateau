@@ -119,7 +119,9 @@ func (p *Peer) WriteError(err error) error {
 func (p *Peer) Write(data []byte) (int, error) {
 	n, err := p.Pipe.Write(data)
 	if err != nil {
-		p.CloseCh <- true
+		select {
+		case p.CloseCh <- true:
+		}
 		p.Close()
 	}
 
@@ -129,7 +131,9 @@ func (p *Peer) Write(data []byte) (int, error) {
 func (p *Peer) Read(bufSize int) ([]byte, error) {
 	msg, err := p.Pipe.Read(pipe.PipeReadCfg{BufSize: bufSize})
 	if err != nil {
-		p.CloseCh <- true
+		select {
+		case p.CloseCh <- true:
+		}
 		p.Close()
 	}
 
