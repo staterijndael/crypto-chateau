@@ -200,12 +200,12 @@ func (cn *MultiplexConn) Write(p []byte) (int, error) {
 		return 0, errors.New("writing to multiplex conn was blocked")
 	}
 
-	select {
-	case err := <-cn.errChan:
-		return 0, err
-	case <-time.After(2 * time.Second):
+	err, ok := <-cn.errChan
+	if !ok {
 		return 0, errors.New("reading from errChan in during write in multiplexConn was blocked")
 	}
+
+	return 0, err
 }
 
 func (cn *MultiplexConn) Read(b []byte) (int, error) {
