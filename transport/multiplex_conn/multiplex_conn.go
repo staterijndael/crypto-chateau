@@ -59,7 +59,8 @@ func (p *MultiplexConnPool) NewMultiplexConn() *MultiplexConn {
 		connReservedDataMx: sync.Mutex{},
 		connReservedData:   []byte{},
 		closeCh:            p.closeConnsCh,
-		readDeadline:       5 * time.Minute,
+		readDeadline:       2 * time.Minute,
+		isClosedMx:         sync.RWMutex{},
 	}
 
 	p.multiplexConnByRequestIDMx.Lock()
@@ -109,7 +110,9 @@ func (p *MultiplexConnPool) Run() {
 				p.multiplexConnByRequestIDMx.Lock()
 				multiplexConn, ok := p.multiplexConnByRequestID[requestID]
 				if ok {
+					multiplexConn.isClosedMx.Lock()
 					multiplexConn.isClosed = true
+					multiplexConn.isClosedMx.Unlock()
 				}
 
 				delete(p.multiplexConnByRequestID, requestID)
@@ -129,12 +132,11 @@ func (p *MultiplexConnPool) Run() {
 			buf := make([]byte, 4096)
 			n, err := p.tcpConn.Read(buf)
 			if err != nil {
-				p.tcpConn.Close()
+				p.terminateCh <- true
 				return
 			}
 
 			if n == 0 {
-				p.tcpConn.Close()
 				break
 			}
 
@@ -157,7 +159,8 @@ func (p *MultiplexConnPool) Run() {
 					connReservedDataMx: sync.Mutex{},
 					connReservedData:   []byte{},
 					closeCh:            p.closeConnsCh,
-					readDeadline:       5 * time.Minute,
+					isClosedMx:         sync.RWMutex{},
+					readDeadline:       2 * time.Minute,
 				}
 
 				newMultiplexConn.readQueue <- buf[2:]
@@ -186,11 +189,20 @@ type MultiplexConn struct {
 
 	readDeadline time.Duration
 
-	closeCh  chan<- uint32
-	isClosed bool
+	closeCh chan<- uint32
+
+	isClosed   bool
+	isClosedMx sync.RWMutex
 }
 
 func (cn *MultiplexConn) Write(p []byte) (int, error) {
+	cn.isClosedMx.RLock()
+	if cn.isClosed {
+		cn.isClosedMx.RUnlock()
+		return 0, errors.New("conn is closed")
+	}
+	cn.isClosedMx.RUnlock()
+
 	select {
 	case cn.writeQueue <- ToWriteMsg{
 		RequestID: cn.requestID,
@@ -209,9 +221,13 @@ func (cn *MultiplexConn) Write(p []byte) (int, error) {
 }
 
 func (cn *MultiplexConn) Read(b []byte) (int, error) {
+	cn.isClosedMx.RLock()
 	if cn.isClosed {
-		return 0, errors.New("read from closed connection")
+		cn.isClosedMx.RUnlock()
+		return 0, errors.New("conn is closed")
 	}
+	cn.isClosedMx.RUnlock()
+
 	cn.connReservedDataMx.Lock()
 	if len(cn.connReservedData) > 0 {
 		defer cn.connReservedDataMx.Unlock()
