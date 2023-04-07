@@ -107,27 +107,33 @@ func fillMethodsDart() {
 class Client {
   final ConnectParams connectParams;
   final Peer _peer;
+  final ConnectionRoot _root;
 
   const Client._({
     required this.connectParams,
     required Peer peer,
-  }) : _peer = peer;
+    required ConnectionRoot root,
+  })  : _peer = peer,
+        _root = root;
 
   factory Client({
     required ConnectParams connectParams,
   }) {
     final encryption = Encryption();
-    final connection = Connection.root(connectParams).pipe().cipher(encryption);
+    final root = Connection.root(connectParams);
 
     return Client._(
       connectParams: connectParams,
+      root: root,
       peer: Peer(
         MultiplexConnection(
-          connection,
+          root.pipe().cipher(encryption),
         ),
       ),
     );
   }
+
+  Future<void> close() => _root.close();
 
 `
 	resultDart += "// handlers\n\n"
