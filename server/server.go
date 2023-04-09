@@ -133,7 +133,6 @@ func (s *Server) handleConnPool(ctx context.Context, connPool *multiplex_conn.Mu
 				s.logger.Info("error set raw tcp deadline for conn poll",
 					zap.Error(err),
 				)
-				connPool.Close()
 				return
 			}
 			go func() {
