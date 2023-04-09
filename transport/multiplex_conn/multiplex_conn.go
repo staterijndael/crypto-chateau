@@ -118,6 +118,13 @@ func (p *MultiplexConnPool) Run() {
 				delete(p.multiplexConnByRequestID, requestID)
 				p.multiplexConnByRequestIDMx.Unlock()
 			case <-p.terminateCh:
+				p.multiplexConnByRequestIDMx.Lock()
+				for _, multiplexConn := range p.multiplexConnByRequestID {
+					multiplexConn.isClosedMx.Lock()
+					multiplexConn.isClosed = true
+					multiplexConn.isClosedMx.Unlock()
+				}
+				p.multiplexConnByRequestIDMx.Unlock()
 				p.tcpConn.Close()
 				close(p.toWriteQueue)
 				close(p.listenClients)
