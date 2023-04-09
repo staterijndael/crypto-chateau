@@ -114,6 +114,7 @@ func (s *Server) handleRequest(ctx context.Context, peer *peer.Peer) {
 		s.logger.Info("error set raw tcp deadline for conn poll",
 			zap.Error(err),
 		)
+		multiplexConnPool.Close()
 		return
 	}
 	multiplexConnPool.Run()
@@ -132,6 +133,7 @@ func (s *Server) handleConnPool(ctx context.Context, connPool *multiplex_conn.Mu
 				s.logger.Info("error set raw tcp deadline for conn poll",
 					zap.Error(err),
 				)
+				connPool.Close()
 				return
 			}
 			go func() {
@@ -145,7 +147,7 @@ func (s *Server) handleConnPool(ctx context.Context, connPool *multiplex_conn.Mu
 					return
 				}
 			}()
-		case <-time.After(5 * time.Minute):
+		case <-time.After(2 * time.Minute):
 			connPool.Close()
 			isFinished = true
 		}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/oringik/crypto-chateau/gen/hash"
 	"github.com/oringik/crypto-chateau/transport/handshake"
+	"github.com/oringik/crypto-chateau/transport/multiplex_conn"
 	"github.com/oringik/crypto-chateau/transport/pipe"
 	"net"
 	"time"
@@ -25,9 +26,18 @@ type Peer struct {
 }
 
 func NewPeer(conn net.Conn) *Peer {
+	closeCh := make(chan bool, 1)
+	if _, ok := conn.(*multiplex_conn.MultiplexConn); ok {
+		go func() {
+			multiplexConn := conn.(*multiplex_conn.MultiplexConn)
+			<-multiplexConn.ClosedNotifyChannel()
+
+			closeCh <- true
+		}()
+	}
 	return &Peer{
 		Pipe:    pipe.NewPipe(conn),
-		CloseCh: make(chan bool, 1),
+		CloseCh: closeCh,
 	}
 }
 

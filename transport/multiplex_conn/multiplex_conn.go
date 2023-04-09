@@ -61,6 +61,7 @@ func (p *MultiplexConnPool) NewMultiplexConn() *MultiplexConn {
 		closeCh:            p.closeConnsCh,
 		readDeadline:       2 * time.Minute,
 		isClosedMx:         sync.RWMutex{},
+		closedNotifyCh:     make(chan bool, 1),
 	}
 
 	p.multiplexConnByRequestIDMx.Lock()
@@ -115,6 +116,8 @@ func (p *MultiplexConnPool) Run() {
 					multiplexConn.isClosedMx.Unlock()
 				}
 
+				multiplexConn.closedNotifyCh <- true
+
 				delete(p.multiplexConnByRequestID, requestID)
 				p.multiplexConnByRequestIDMx.Unlock()
 			case <-p.terminateCh:
@@ -123,6 +126,8 @@ func (p *MultiplexConnPool) Run() {
 					multiplexConn.isClosedMx.Lock()
 					multiplexConn.isClosed = true
 					multiplexConn.isClosedMx.Unlock()
+
+					multiplexConn.closedNotifyCh <- true
 				}
 				p.multiplexConnByRequestIDMx.Unlock()
 				p.tcpConn.Close()
@@ -168,6 +173,7 @@ func (p *MultiplexConnPool) Run() {
 					closeCh:            p.closeConnsCh,
 					isClosedMx:         sync.RWMutex{},
 					readDeadline:       2 * time.Minute,
+					closedNotifyCh:     make(chan bool, 1),
 				}
 
 				newMultiplexConn.readQueue <- buf[2:]
@@ -200,6 +206,8 @@ type MultiplexConn struct {
 
 	isClosed   bool
 	isClosedMx sync.RWMutex
+
+	closedNotifyCh chan bool
 }
 
 func (cn *MultiplexConn) Write(p []byte) (int, error) {
@@ -292,4 +300,8 @@ func (cn *MultiplexConn) SetReadDeadline(t time.Time) error {
 
 func (cn *MultiplexConn) SetWriteDeadline(t time.Time) error {
 	return nil
+}
+
+func (cn *MultiplexConn) ClosedNotifyChannel() <-chan bool {
+	return cn.closedNotifyCh
 }
