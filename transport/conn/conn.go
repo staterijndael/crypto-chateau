@@ -88,6 +88,10 @@ func (cn *Conn) Write(p []byte) (int, error) {
 	return n, nil
 }
 
+func IsBefore() {
+	IS_BEFORE = true
+}
+
 func (cn *Conn) Read(b []byte) (int, error) {
 	cn.connReservedDataMx.Lock()
 	if len(cn.connReservedData) > 0 {
