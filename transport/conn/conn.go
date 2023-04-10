@@ -2,7 +2,6 @@ package conn
 
 import (
 	"errors"
-	"fmt"
 	"github.com/oringik/crypto-chateau/aes-256"
 	"github.com/oringik/crypto-chateau/transport"
 	"github.com/oringik/crypto-chateau/transport/message"
@@ -58,10 +57,7 @@ func (cn *Conn) EnableEncryption(sharedKey [32]byte) error {
 	return nil
 }
 
-var IS_BEFORE = false
-
 func (cn *Conn) Write(p []byte) (int, error) {
-	before := p
 	if cn.encryption.enabled {
 		encryptedData, err := aes_256.Encrypt(p, cn.encryption.sharedKey)
 		if err != nil {
@@ -81,15 +77,7 @@ func (cn *Conn) Write(p []byte) (int, error) {
 		return 0, err
 	}
 
-	if IS_BEFORE {
-		fmt.Println(cn.tcpConn.RemoteAddr(), " - ", before)
-	}
-
 	return n, nil
-}
-
-func IsBefore() {
-	IS_BEFORE = true
 }
 
 func (cn *Conn) Read(b []byte) (int, error) {
