@@ -79,7 +79,7 @@ func (cn *Conn) Write(p []byte) (int, error) {
 		return 0, err
 	}
 
-	fmt.Println(before)
+	fmt.Println(cn.tcpConn.RemoteAddr(), " - ", before)
 
 	return n, nil
 }
