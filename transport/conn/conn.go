@@ -59,6 +59,7 @@ func (cn *Conn) EnableEncryption(sharedKey [32]byte) error {
 }
 
 func (cn *Conn) Write(p []byte) (int, error) {
+	before := p
 	if cn.encryption.enabled {
 		encryptedData, err := aes_256.Encrypt(p, cn.encryption.sharedKey)
 		if err != nil {
@@ -78,7 +79,7 @@ func (cn *Conn) Write(p []byte) (int, error) {
 		return 0, err
 	}
 
-	fmt.Println(dataWithLength)
+	fmt.Println(before)
 
 	return n, nil
 }
