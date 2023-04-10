@@ -143,8 +143,8 @@ class Client {
 				resultDart += fmt.Sprintf("\tFuture<%s> %s(%s request) => ", method.Returns[0].Type.ObjectName, strings.ToLower(method.Name[:1])+method.Name[1:], method.Params[0].Type.ObjectName)
 				resultDart += fmt.Sprintf("_peer.request(HandlerHash(hash:[%s]), request).first.then(%s.fromBytes);\n\n", method.Hash.Code(), method.Returns[0].Type.ObjectName)
 			} else if method.MethodType == ast2.Stream {
-				resultDart += fmt.Sprintf("\tStream<%s> %s(%s request) => ", method.Returns[0].Type.ObjectName, strings.ToLower(method.Name[:1])+method.Name[1:], method.Params[0].Type.ObjectName)
-				resultDart += fmt.Sprintf("_peer.request(HandlerHash(hash:[%s]), request).map(%s.fromBytes);\n\n", method.Hash.Code(), method.Returns[0].Type.ObjectName)
+				resultDart += fmt.Sprintf("\tStream<%s> %s(%s request, Stream<Message> writePipe) => ", method.Returns[0].Type.ObjectName, strings.ToLower(method.Name[:1])+method.Name[1:], method.Params[0].Type.ObjectName)
+				resultDart += fmt.Sprintf("_peer.request(HandlerHash(hash:[%s]), request, writePipe).map(%s.fromBytes);\n\n", method.Hash.Code(), method.Returns[0].Type.ObjectName)
 			}
 		}
 	}
