@@ -58,6 +58,8 @@ func (cn *Conn) EnableEncryption(sharedKey [32]byte) error {
 	return nil
 }
 
+var IS_BEFORE = false
+
 func (cn *Conn) Write(p []byte) (int, error) {
 	before := p
 	if cn.encryption.enabled {
@@ -79,7 +81,9 @@ func (cn *Conn) Write(p []byte) (int, error) {
 		return 0, err
 	}
 
-	fmt.Println(cn.tcpConn.RemoteAddr(), " - ", before)
+	if IS_BEFORE {
+		fmt.Println(cn.tcpConn.RemoteAddr(), " - ", before)
+	}
 
 	return n, nil
 }
