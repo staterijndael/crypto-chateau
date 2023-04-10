@@ -1,11 +1,5 @@
 
-import 'dart:async';
-import 'dart:typed_data';
-import 'package:crypto_chateau_dart/client/models.dart';
-import 'package:crypto_chateau_dart/client/conv.dart';
-import 'package:crypto_chateau_dart/transport/connection/connection.dart';
-import 'package:crypto_chateau_dart/client/binary_iterator.dart';
-import 'package:crypto_chateau_dart/transport/handler.dart';
+part of 'client.dart';
 var handlerHashMap = {
 	"Reverse":{
 		"ReverseMagicString":[0x90, 0xA, 0xDC, 0x45],
@@ -15,68 +9,13 @@ var handlerHashMap = {
 	},
 };
 
-class BinaryCtx {
-  int size;
-  int arrSize;
-  int pos;
-  late BinaryIterator buf;
-  late BinaryIterator arrBuf;
 
-  BinaryCtx({
-    this.size = 0,
-    this.arrSize = 0,
-    this.pos = 0,
-  }) {
-    buf = BinaryIterator(List.empty(growable: true));
-    arrBuf = BinaryIterator(List.empty(growable: true));
-  }
-}
+mixin ClientMixin {
+  Peer get _peer;
 
-extension ExtendList<T> on List<T> {
-  void extend(int newLength, T defaultValue) {
-    assert(newLength >= 0);
+	Future<ReverseMagicStringResponse> reverseMagicString(ReverseMagicStringRequest request) => _peer.request(HandlerHash(hash:[0x90, 0xA, 0xDC, 0x45]), request).first.then(ReverseMagicStringResponse.fromBytes);
 
-    final lengthDifference = newLength - this.length;
-    if (lengthDifference <= 0) {
-		this.length = newLength;
-        return;
-    }
-
-    this.addAll(List.filled(lengthDifference, defaultValue));
-  }
-}
-
-
-class Client {
-  final ConnectParams connectParams;
-  final Peer _peer;
-
-  const Client._({
-    required this.connectParams,
-    required Peer peer,
-  }) : _peer = peer;
-
-  factory Client({
-    required ConnectParams connectParams,
-  }) {
-    final encryption = Encryption();
-    final connection = Connection.root(connectParams).pipe().cipher(encryption);
-
-    return Client._(
-      connectParams: connectParams,
-      peer: Peer(
-        MultiplexConnection(
-          connection,
-        ),
-      ),
-    );
-  }
-
-// handlers
-
-	Future<ReverseMagicStringResponse> reverseMagicString(ReverseMagicStringRequest request) => _peer.sendRequest(HandlerHash(hash:[0x90, 0xA, 0xDC, 0x45]), request).then(ReverseMagicStringResponse.fromBytes);
-
-	Stream<ReverseMagicStringResponse> rasd(ReverseMagicStringRequest request) => _peer.sendStreamRequest(HandlerHash(hash:[0xCB, 0xB1, 0x2D, 0x3D]), request).map(ReverseMagicStringResponse.fromBytes);
+	Stream<ReverseMagicStringResponse> rasd(ReverseMagicStringRequest request, Stream<Message> writePipe) => _peer.request(HandlerHash(hash:[0xCB, 0xB1, 0x2D, 0x3D]), request, writePipe).map(ReverseMagicStringResponse.fromBytes);
 
 }
 

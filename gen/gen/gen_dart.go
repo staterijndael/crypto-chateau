@@ -16,7 +16,6 @@ func GenerateDefinitionsDart(astLocal *ast2.Ast) string {
 
 	fillImportsDart()
 	fillHandlerHash()
-	fillBinaryCtx()
 	fillMethodsDart()
 	err := fillObjectsDart()
 	if err != nil {
@@ -28,13 +27,7 @@ func GenerateDefinitionsDart(astLocal *ast2.Ast) string {
 
 func fillImportsDart() {
 	resultDart += `
-import 'dart:async';
-import 'dart:typed_data';
-import 'package:crypto_chateau_dart/client/models.dart';
-import 'package:crypto_chateau_dart/client/conv.dart';
-import 'package:crypto_chateau_dart/transport/connection/connection.dart';
-import 'package:crypto_chateau_dart/client/binary_iterator.dart';
-import 'package:crypto_chateau_dart/transport/handler.dart';
+part of 'client.dart';
 `
 }
 
@@ -48,25 +41,6 @@ func fillHandlerHash() {
 		resultDart += "\t},\n"
 	}
 	resultDart += "};\n\n"
-}
-
-func fillBinaryCtx() {
-	resultDart += `class BinaryCtx {
-  int size;
-  int arrSize;
-  int pos;
-  late BinaryIterator buf;
-  late BinaryIterator arrBuf;
-
-  BinaryCtx({
-    this.size = 0,
-    this.arrSize = 0,
-    this.pos = 0,
-  }) {
-    buf = BinaryIterator(List.empty(growable: true));
-    arrBuf = BinaryIterator(List.empty(growable: true));
-  }
-}` + "\n\n"
 }
 
 func fillObjectsDart() error {
@@ -89,54 +63,11 @@ func fillObjectsDart() error {
 }
 
 func fillMethodsDart() {
-	resultDart += `extension ExtendList<T> on List<T> {
-  void extend(int newLength, T defaultValue) {
-    assert(newLength >= 0);
-
-    final lengthDifference = newLength - this.length;
-    if (lengthDifference <= 0) {
-		this.length = newLength;
-        return;
-    }
-
-    this.addAll(List.filled(lengthDifference, defaultValue));
-  }
-}` + "\n\n"
-
 	resultDart += `
-class Client {
-  final ConnectParams connectParams;
-  final Peer _peer;
-  final ConnectionRoot _root;
-
-  const Client._({
-    required this.connectParams,
-    required Peer peer,
-    required ConnectionRoot root,
-  })  : _peer = peer,
-        _root = root;
-
-  factory Client({
-    required ConnectParams connectParams,
-  }) {
-    final encryption = Encryption();
-    final root = Connection.root(connectParams);
-
-    return Client._(
-      connectParams: connectParams,
-      root: root,
-      peer: Peer(
-        MultiplexConnection(
-          root.pipe().cipher(encryption),
-        ),
-      ),
-    );
-  }
-
-  Future<void> close() => _root.close();
+mixin ClientMixin {
+  Peer get _peer;
 
 `
-	resultDart += "// handlers\n\n"
 	for _, service := range astDart.Chateau.Services {
 		for _, method := range service.Methods {
 			if method.MethodType == ast2.Handler {
