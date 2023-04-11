@@ -63,6 +63,25 @@ func (p *Peer) SendRequestClient(handlerHash hash.HandlerHash, msg message.Messa
 	return err
 }
 
+func (p *Peer) ReadClientMessage(msg message.Message) error {
+	msgRaw, err := p.Read(2048)
+	if err != nil {
+		return fmt.Errorf("failed to read from connection: %w", err)
+	}
+
+	// check if message has a size
+	if len(msgRaw) < conv.ObjectBytesPrefixLength {
+		return errors.New("not enough for size and message")
+	}
+
+	err = msg.Unmarshal(conv.NewBinaryIterator(msgRaw[conv.ObjectBytesPrefixLength:]))
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
 func (p *Peer) WriteResponse(msg message.Message) error {
 	var resp []byte
 
