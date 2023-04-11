@@ -82,16 +82,6 @@ func (p *Peer) ReadMessageStream(msg message.Message) error {
 	return err
 }
 
-func (p *Peer) WriteMessageStream(msg message.Message) error {
-	var resp []byte
-
-	resp = append(resp, OkByte)
-	resp = append(resp, msg.Marshal()...)
-
-	_, err := p.Write(resp)
-	return err
-}
-
 func (p *Peer) WriteResponse(msg message.Message) error {
 	var resp []byte
 
@@ -147,17 +137,6 @@ func (p *Peer) WriteError(err error) error {
 	var resp []byte
 
 	resp = append(resp, version.NewProtocolByte())
-	resp = append(resp, ErrByte)
-	resp = append(resp, []byte(err.Error())...)
-
-	_, writeErr := p.Write(resp)
-
-	return writeErr
-}
-
-func (p *Peer) WriteErrorStream(err error) error {
-	var resp []byte
-
 	resp = append(resp, ErrByte)
 	resp = append(resp, []byte(err.Error())...)
 
