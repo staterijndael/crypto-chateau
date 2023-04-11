@@ -82,6 +82,15 @@ func (p *Peer) ReadClientMessage(msg message.Message) error {
 	return err
 }
 
+func (p *Peer) WriteMessage(msg message.Message) error {
+	var resp []byte
+
+	resp = append(resp, msg.Marshal()...)
+
+	_, err := p.Write(resp)
+	return err
+}
+
 func (p *Peer) WriteResponse(msg message.Message) error {
 	var resp []byte
 
