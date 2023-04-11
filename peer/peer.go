@@ -63,7 +63,7 @@ func (p *Peer) SendRequestClient(handlerHash hash.HandlerHash, msg message.Messa
 	return err
 }
 
-func (p *Peer) ReadClientMessage(msg message.Message) error {
+func (p *Peer) ReadMessageStream(msg message.Message) error {
 	msgRaw, err := p.Read(2048)
 	if err != nil {
 		return fmt.Errorf("failed to read from connection: %w", err)
@@ -82,9 +82,10 @@ func (p *Peer) ReadClientMessage(msg message.Message) error {
 	return err
 }
 
-func (p *Peer) WriteMessage(msg message.Message) error {
+func (p *Peer) WriteMessageStream(msg message.Message) error {
 	var resp []byte
 
+	resp = append(resp, OkByte)
 	resp = append(resp, msg.Marshal()...)
 
 	_, err := p.Write(resp)
@@ -146,6 +147,17 @@ func (p *Peer) WriteError(err error) error {
 	var resp []byte
 
 	resp = append(resp, version.NewProtocolByte())
+	resp = append(resp, ErrByte)
+	resp = append(resp, []byte(err.Error())...)
+
+	_, writeErr := p.Write(resp)
+
+	return writeErr
+}
+
+func (p *Peer) WriteErrorStream(err error) error {
+	var resp []byte
+
 	resp = append(resp, ErrByte)
 	resp = append(resp, []byte(err.Error())...)
 

@@ -203,7 +203,7 @@ func (s *Server) handleMethod(ctx context.Context, peer *peer.Peer) error {
 	case StreamT:
 		err = handler.CallFuncStream(ctx, peer, requestMsg)
 		if err != nil {
-			writeErr := peer.WriteError(err)
+			writeErr := peer.WriteErrorStream(err)
 			return writeErr
 		}
 
